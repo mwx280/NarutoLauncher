@@ -51,6 +51,25 @@ renderer.exe  C++ · CEF 87.1.13 · x86 单构建（三平台通用）
 5. 验证 ARM64 VM 上 x86 模拟运行稳定性
 - **门禁**：以上全部 PASS 才进阶段 2；FAIL 则重估方案
 
+### 阶段 1 调研结论（2026-08-19）
+
+**已达成**：
+- Flash 34 PPAPI 插件在 CEF 87 中成功加载（修复了中文路径编码导致的 error 126）
+- 登录 / 选区 / 进游戏全流程跑通，游戏画面正常渲染
+- cookie 持久化生效：改用全局 `CefSettings.cache_path` + `persist_session_cookies` 后免登录跨启动生效（`CefRequestContextSettings` 单独设置时 session cookie 不落盘）
+
+**关键阻断：Flash 音频触发 libcef CHECK 崩溃**：
+- 现象：进游戏/战斗后加载大量音效 SWF，随即 `SyncReader::Read timed out`（audio glitch 累积到 100）→ Flash（ppapi）进程崩溃 → 黑屏
+- Windows 事件日志：`libcef.dll` 触发 `0x80000003`（STATUS_BREAKPOINT / CHECK）崩溃，偏移 0x02a74c2a
+- **ARM64 VM 与 x86 真机均复现**，排除模拟环境因素
+- `mute-audio` 无效：Flash PPAPI 音频输出不走 Chromium 网页音频路径，不受该开关控制
+- 官方微端（QQ游戏盒子）用独立 Flash 播放器，音频不经 Chromium 音频栈，故无此崩溃
+
+**后续候选方案（未实施）**：
+1. 禁用系统音频设备后重试，确认是否能完全避开该 CHECK（需在真机验证）
+2. 换用独立 Flash 播放器做渲染器（架构变更大，规避 CEF 音频缺陷）
+3. 深挖 libcef.dll 崩溃点 / CEF 87 音频配置（需 PDB 或源码级分析）
+
 ## 阶段 2：渲染器核心（C++/CEF 87）
 
 1. CEF 宿主：`CefExecuteProcess` 双模式 + 多线程消息循环
