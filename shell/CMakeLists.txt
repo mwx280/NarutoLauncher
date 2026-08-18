@@ -16,6 +16,14 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 
 add_executable(naruto_shell WIN32
     src/main.cpp
+    src/frameless_window.cpp
+    src/frameless_window.h
+    src/title_bar.cpp
+    src/title_bar.h
+    src/side_nav.cpp
+    src/side_nav.h
+    src/account.cpp
+    src/account.h
 )
 
 target_link_libraries(naruto_shell PRIVATE
@@ -27,8 +35,3 @@ target_link_libraries(naruto_shell PRIVATE
 if(MSVC)
     target_compile_options(naruto_shell PRIVATE /utf-8)
 endif()
-
-# 阶段 3 起接入：
-# - QLocalSocket IPC 客户端（Qt6::Network）
-# - 服务器列表 UI / 公告 / 设置
-# - 游戏视图容器（createWindowContainer + QWindow::fromWinId）
