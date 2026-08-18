@@ -22,16 +22,16 @@ $ThirdParty = Join-Path $RootDir 'third_party'
 New-Item -ItemType Directory -Force -Path $ThirdParty | Out-Null
 $dest = Join-Path $ThirdParty 'pepflashplayer.dll'
 
-# 候选来源（x86 插件位于 SysWOW64）
-$candidates = @(
-    (Join-Path $env:SystemRoot 'SysWOW64\Macromed\Flash\pepflashplayer.dll'),
-    (Join-Path $env:SystemRoot 'SysWOW64\Macromed\Flash\NPSWF32.dll'),
-    (Join-Path $env:windir 'SysWOW64\Macromed\Flash\pepflashplayer.dll')
-)
+# 候选来源（x86 插件位于 SysWOW64；新版文件名带版本号，如 pepflashplayer32_34_0_0_380.dll）
+$flashDir = Join-Path $env:SystemRoot 'SysWOW64\Macromed\Flash'
 
 $found = $null
-foreach ($c in $candidates) {
-    if (Test-Path -LiteralPath $c) { $found = $c; break }
+if (Test-Path -LiteralPath $flashDir) {
+    $found = Get-ChildItem -LiteralPath $flashDir -Filter 'pepflashplayer32_*.dll' -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $found) {
+        $found = Get-ChildItem -LiteralPath $flashDir -Filter 'pepflashplayer.dll' -ErrorAction SilentlyContinue | Select-Object -First 1
+    }
+    if ($found) { $found = $found.FullName }
 }
 
 if ($found) {

@@ -24,10 +24,11 @@ powershell -ExecutionPolicy Bypass -File tools/extract_flash.ps1
 
 - Flash.cn 官方 PPAPI 安装包是**专有引导程序，不支持静默解压**（实测 `/extract` 无效），也不内嵌可读的 `pepflashplayer.dll`。
 - `tools/extract_flash.ps1` 逻辑：
-  1. 若系统已装 Flash（`C:\Windows\SysWOW64\Macromed\Flash\pepflashplayer.dll`），直接复制到本目录；
-  2. 否则下载官方安装包到本目录，**提示你手动运行安装**，装完再跑一次脚本即自动复制。
+  1. 若系统已装 Flash，从 `C:\Windows\SysWOW64\Macromed\Flash\` 找到 **x86 插件**（新版文件名带版本号，如 `pepflashplayer32_34_0_0_380.dll`），复制为 `third_party\pepflashplayer.dll`；
+  2. 否则下载官方安装包到本目录，提示你手动运行安装，装完再跑一次脚本即自动复制。
 - **安全提示**：务必使用官方安装包并核对签名，勿从第三方站点下载插件。
-- 版本锁定：Flash.cn 官方 34.0.0.380（2026-06 更新），与 CEF 87（Chromium 88 以下内核）兼容。
+- 版本锁定：Flash.cn 官方 34.0.0.380（x86，2026-06 更新），与 CEF 87（Chromium 88 以下内核）兼容。
+- 渲染器注册时 `--ppapi-flash-path` 指向 `third_party\pepflashplayer.dll`。
 
 ## 版本锁定
 
