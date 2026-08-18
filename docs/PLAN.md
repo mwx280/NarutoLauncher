@@ -88,6 +88,31 @@ renderer.exe  C++ · CEF 87.1.13 · x86 单构建（三平台通用）
 3. 游戏视图容器：`createWindowContainer` 嵌入 + 尺寸/DPI/焦点管理 + 加载占位
 - **门禁**：外壳能拉起渲染器进程、建立 IPC、嵌入渲染器窗口
 
+### 阶段 3 进度（2026-08-19）
+
+**已定 UI 方案（经预览对比确认）**：方案 C —— Qt 无边框自绘窗口。
+放弃 QtWebEngine / CEF 渲染 HTML 的方案：HTML 窗口仍需原生窗口宿主承载 HWND 与拖拽/缩放，
+无边框该做的原生工作一样不少，且引入第二套 Web 栈、CEF 窗口嵌套复杂度与体积成本。
+
+**已完成（提交 cafd26b）**：
+- `FramelessWindow`：无边框窗口框架 —— `FramelessWindowHint` + 透明背景，自绘标题栏
+  （拖拽移动 / 最小化 / 最大化还原 / 关闭 / 双击全屏），`WM_NCHITTEST` 拦截实现
+  边缘与四角缩放（由系统完成尺寸计算），最大化时铺满工作区并隐藏阴影边距。
+- `TitleBar`：自绘标题栏（品牌区 + 窗口控制按钮），最大化图标随状态切换，
+  拖拽时若处于最大化先还原再跟手。
+- `SideNav`：左侧账号管理导航栏（可收缩展开），账号卡片支持
+  添加（备注/账号/密码三字段）/ 编辑保存 / 删除 / 自动登录勾选 / 开始游戏。
+- `AccountStore`：基于 QSettings 的账号本地持久化（注册表，随用户配置目录迁移）。
+  密码当前明文存储，后续升级为加密或系统凭据库（DPAPI / Windows Credential Manager）。
+- 注意：`windows.h` 的 `IsMaximized`/`IsZoomed` 宏会污染 Qt 成员名，成员已命名
+  `IsWindowMaximized` 规避。
+
+**待做（阶段 3 剩余）**：
+- 渲染器进程拉起（shell 启动 renderer.exe）
+- Named Pipe 协议 v1：渲染器服务端 + 外壳 `QLocalSocket` 客户端
+- 游戏视图容器：`createWindowContainer` 嵌入渲染器窗口（尺寸 / DPI / 焦点 / 占位）
+- UI 侧「开始游戏」接入真实登录流程
+
 ## 阶段 4：集成走查
 
 1. 登录态同步：未登录 → 渲染器导航登录页 → 成功回传 → 外壳切列表
