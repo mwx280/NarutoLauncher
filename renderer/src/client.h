@@ -30,11 +30,18 @@ public:
                               bool isLoading,
                               bool canGoBack,
                               bool canGoForward) override;
+    void OnLoadEnd(CefRefPtr<CefBrowser> browser,
+                   CefRefPtr<CefFrame> frame,
+                   int httpStatusCode) override;
     void OnLoadError(CefRefPtr<CefBrowser> browser,
                      CefRefPtr<CefFrame> frame,
                      ErrorCode errorCode,
                      const CefString& errorText,
                      const CefString& failedUrl) override;
+
+    // 在页面里自动点击 Flash 的 click-to-play 占位，使 Flash 无需用户手点即可运行。
+    // 在浏览器进程调用，内部注入 JS 到指定 frame。
+    void AutoClickFlashPlaceholder(CefRefPtr<CefFrame> frame);
 
     // CefRequestContextHandler
     // 允许 Flash 插件自动运行，避免出现"右键点击运行 Flash"的占位提示
