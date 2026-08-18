@@ -93,7 +93,7 @@ void CreateBrowser(HWND parent, const std::string& url,
             "profile.default_content_setting_values.plugins",
             plugins_value, error);
         // 注：CEF 87 中即使此设置成功（ok=true），Flash 仍可能被 click-to-play
-        // 拦截（见 docs/CEF_FLASH_FIX.md）。彻底解决需改源码编译，见该文档。
+        // 拦截，需用户右键选择"运行此插件"后才会真正加载。
         (void)ok;
         (void)error;
     }
