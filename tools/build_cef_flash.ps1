@@ -72,15 +72,21 @@ if (-not $hasPython) { throw '未安装 Python 3.8+，请先安装并加入 PATH
 if (-not $onlyDistrib) { Write-Host '环境检查完成，继续。' }
 
 # ---------------------------------------------------------------------------
-# 1. 准备 depot_tools
-#   官方源在 googlesource（国内被墙），改用 GitHub 镜像（coreos/depot_tools）
+# 1. 准备 depot_tools（官方源 googlesource；需代理才能访问）
 # ---------------------------------------------------------------------------
 if (-not $onlyDistrib) {
     Write-Step '1/6 准备 depot_tools'
-    if (-not $need.depot) {
-        git clone https://github.com/coreos/depot_tools.git (Join-Path $DownloadDir 'depot_tools')
+    $depotDir = Join-Path $DownloadDir 'depot_tools'
+    if (Test-Path $depotDir) {
+        # 若存在旧副本（可能是不可用的 GitHub 镜像），删除后重新用官方源拉取
+        Write-Host "删除旧 depot_tools 副本: $depotDir"
+        Remove-Item -LiteralPath $depotDir -Recurse -Force
     }
-    $env:Path = "$DownloadDir\depot_tools;" + $env:Path
+    # 官方源（需代理）。若代理未生效会失败，可改回 GitHub 镜像：
+    #   git clone https://github.com/coreos/depot_tools.git $depotDir
+    git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git $depotDir
+    if ($LASTEXITCODE -ne 0) { throw 'depot_tools 克隆失败，请确认代理已生效或换 GitHub 镜像' }
+    $env:Path = "$depotDir;" + $env:Path
     $env:DEPOT_TOOLS_WIN_TOOLCHAIN = '0'   # 使用本机已装的 Visual Studio
 }
 
@@ -99,12 +105,10 @@ if (-not $onlyDistrib) {
     }
 
     # 首次全量构建命令（automate-git 会自动 gclient sync + 打 CEF patch + gn gen）
-    # 传入本地 depot_tools 目录并禁用其内部更新（官方更新会访问被墙的 googlesource）
+    # 用官方 depot_tools（代理可用），启用其内部更新以生成正确的 git.bat/python.bat
     $env:GN_DEFINES = $GN_DEFINES
     & python "$cefDir\tools\automate\automate-git.py" `
         --download-dir=$DownloadDir `
-        --depot-tools-dir=(Join-Path $DownloadDir 'depot_tools') `
-        --no-depot-tools-update `
         --branch=$CEF_BRANCH `
         --checkout=$CEF_CHECKOUT `
         --x64-build `
