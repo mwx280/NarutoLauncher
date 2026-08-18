@@ -37,7 +37,7 @@ function Update-Path {
 
 # 下载文件（带重试）
 function Download-File([string]$Url, [string]$OutFile) {
-    if (Test-Path $OutFile -and (Get-Item $OutFile).Length -gt 1MB) {
+    if ((Test-Path -LiteralPath $OutFile) -and ((Get-Item -LiteralPath $OutFile).Length -gt 1MB)) {
         Ok "已存在: $OutFile"
         return
     }
