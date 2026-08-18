@@ -15,6 +15,7 @@
 #include "include/cef_browser.h"
 #include "include/cef_command_line.h"
 #include "include/cef_request_context.h"
+#include "include/cef_values.h"
 #include "include/internal/cef_win.h"
 
 #include <windows.h>
@@ -78,6 +79,24 @@ void CreateBrowser(HWND parent, const std::string& url,
     CefRequestContextSettings ctx_settings;
     CefRefPtr<CefRequestContext> request_context =
         CefRequestContext::CreateContext(ctx_settings, client.get());
+
+    // 关键 workaround：将插件的 content setting 设为 ALLOW(1)。
+    // CEF 87 中 Flash 的 click-to-play 占位根因是
+    // profile.default_content_setting_values.plugins 默认不是 ALLOW，
+    // 且其优先级高于 OnBeforePluginLoad 返回的 PLUGIN_POLICY_ALLOW。
+    // 设置该偏好后 Flash 应自动运行（CEF issue #2768 官方 workaround）。
+    {
+        CefRefPtr<CefValue> plugins_value = CefValue::Create();
+        plugins_value->SetInt(1);  // 1 = CONTENT_SETTING_ALLOW
+        CefString error;
+        bool ok = request_context->SetPreference(
+            "profile.default_content_setting_values.plugins",
+            plugins_value, error);
+        // 注：CEF 87 中即使此设置成功（ok=true），Flash 仍可能被 click-to-play
+        // 拦截（见 docs/CEF_FLASH_FIX.md）。彻底解决需改源码编译，见该文档。
+        (void)ok;
+        (void)error;
+    }
 
     CefString url_str(url);
     CefBrowserHost::CreateBrowser(window_info, client, url_str,
