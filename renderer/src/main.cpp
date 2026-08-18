@@ -14,6 +14,7 @@
 #include "include/cef_app.h"
 #include "include/cef_browser.h"
 #include "include/cef_command_line.h"
+#include "include/cef_request_context.h"
 #include "include/internal/cef_win.h"
 
 #include <windows.h>
@@ -61,17 +62,26 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT message,
 }
 
 // 创建浏览器（嵌入到主窗口客户区）
-void CreateBrowser(HWND parent, const std::string& url) {
+void CreateBrowser(HWND parent, const std::string& url,
+                   CefRefPtr<NarutoClient> client) {
     CefWindowInfo window_info;
     RECT rect;
     GetClientRect(parent, &rect);
     window_info.SetAsChild(parent, rect);
 
     CefBrowserSettings settings;
+    // 启用插件（含 Flash），去除"右键点击运行 Flash"的 click-to-play 占位
+    settings.plugins = STATE_ENABLED;
+
+    // 创建带请求上下文的浏览器，以便通过 OnBeforePluginLoad 允许 Flash 自动运行。
+    // 使用独立（隔离）上下文，后续 cookie 持久化将基于此上下文。
+    CefRequestContextSettings ctx_settings;
+    CefRefPtr<CefRequestContext> request_context =
+        CefRequestContext::CreateContext(ctx_settings, client.get());
 
     CefString url_str(url);
-    CefBrowserHost::CreateBrowser(window_info, g_client, url_str,
-                                  settings, nullptr, nullptr);
+    CefBrowserHost::CreateBrowser(window_info, client, url_str,
+                                  settings, nullptr, request_context);
 }
 
 // 浏览器进程入口
@@ -107,7 +117,7 @@ int RunBrowserProcess(const CefMainArgs& main_args,
     }
 
     g_client = new NarutoClient();
-    CreateBrowser(hwnd, url);
+    CreateBrowser(hwnd, url, g_client);
 
     ShowWindow(hwnd, SW_SHOW);
     UpdateWindow(hwnd);
