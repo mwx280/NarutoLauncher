@@ -1,36 +1,9 @@
 #include "client.h"
 
 #include "include/cef_browser.h"
-#include "include/cef_frame.h"
 #include "include/cef_web_plugin.h"
 
 #include <algorithm>
-#include <string>
-
-namespace {
-
-// 兜底：在页面里自动移除 Flash 的 click-to-play 占位。
-// Chromium 87 的占位是渲染进程内建的，JS 无法直接"点击"，这里通过重新创建
-// 插件元素强制 Chromium 重新评估加载策略；并非所有场景都有效，仅作兜底。
-const char kAutoClickFlashJs[] =
-    "(function() {"
-    "  var sels = 'embed[type=\"application/x-shockwave-flash\"],"
-    "             object[type=\"application/x-shockwave-flash\"]';"
-    "  var list = document.querySelectorAll(sels);"
-    "  for (var i = 0; i < list.length; i++) {"
-    "    var el = list[i];"
-    "    var parent = el.parentNode;"
-    "    if (!parent || el.dataset.narutoTouched) continue;"
-    "    el.dataset.narutoTouched = '1';"
-    "    var clone = el.cloneNode(false);"
-    "    for (var j = 0; j < el.attributes.length; j++) {"
-    "      clone.setAttribute(el.attributes[j].name, el.attributes[j].value);"
-    "    }"
-    "    parent.replaceChild(clone, el);"
-    "  }"
-    "})();";
-
-}  // namespace
 
 NarutoClient::NarutoClient() : is_closing_(false) {}
 
@@ -54,6 +27,12 @@ void NarutoClient::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
     browser_list_.insert(browser);
 }
 
+CefRefPtr<CefBrowser> NarutoClient::GetFirstBrowser() const {
+    if (browser_list_.empty())
+        return nullptr;
+    return *browser_list_.begin();
+}
+
 bool NarutoClient::DoClose(CefRefPtr<CefBrowser> browser) {
     // 若正在关闭全部浏览器，则允许关闭
     return is_closing_;
@@ -70,21 +49,6 @@ void NarutoClient::OnLoadingStateChange(CefRefPtr<CefBrowser> browser,
     (void)isLoading;
     (void)canGoBack;
     (void)canGoForward;
-}
-
-void NarutoClient::OnLoadEnd(CefRefPtr<CefBrowser> browser,
-                             CefRefPtr<CefFrame> frame,
-                             int httpStatusCode) {
-    (void)browser;
-    (void)httpStatusCode;
-    // 只在主 frame 加载完成后执行，避免每个子 frame 都重复注入
-    if (frame->IsMain()) {
-        AutoClickFlashPlaceholder(frame);
-    }
-}
-
-void NarutoClient::AutoClickFlashPlaceholder(CefRefPtr<CefFrame> frame) {
-    frame->ExecuteJavaScript(kAutoClickFlashJs, frame->GetURL(), 0);
 }
 
 void NarutoClient::OnLoadError(CefRefPtr<CefBrowser> browser,

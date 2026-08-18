@@ -14,6 +14,7 @@
 #include "include/cef_app.h"
 #include "include/cef_browser.h"
 #include "include/cef_command_line.h"
+#include "include/cef_cookie.h"
 #include "include/cef_request_context.h"
 #include "include/cef_values.h"
 #include "include/internal/cef_win.h"
@@ -32,6 +33,26 @@ const int kWindowHeight = 800;
 HWND g_main_window = nullptr;
 // 浏览器客户端
 CefRefPtr<NarutoClient> g_client;
+
+// 解析用户数据目录（cookie 持久化用）。
+// 使用宽字符 API 解析 exe 路径并拼接子目录，避免中文安装路径的编码问题。
+std::wstring ResolveUserDataDir() {
+    wchar_t exe_path[MAX_PATH] = {0};
+    DWORD n = ::GetModuleFileNameW(nullptr, exe_path, MAX_PATH);
+    std::wstring dir;
+    if (n > 0 && n < MAX_PATH) {
+        dir.assign(exe_path, n);
+        size_t sep = dir.find_last_of(L"\\/");
+        if (sep != std::wstring::npos)
+            dir = dir.substr(0, sep + 1);
+        dir += L"userdata";
+    } else {
+        dir = L"userdata";
+    }
+    // 确保目录存在（CEF 要求缓存目录存在，否则不持久化）
+    ::CreateDirectoryW(dir.c_str(), nullptr);
+    return dir;
+}
 
 // 注册 Windows 窗口类
 bool RegisterWindowClass(const wchar_t* class_name,
@@ -75,8 +96,12 @@ void CreateBrowser(HWND parent, const std::string& url,
     settings.plugins = STATE_ENABLED;
 
     // 创建带请求上下文的浏览器，以便通过 OnBeforePluginLoad 允许 Flash 自动运行。
-    // 使用独立（隔离）上下文，后续 cookie 持久化将基于此上下文。
+    // 使用独立（隔离）上下文；设置 cache_path 使 cookie 持久化（登录态跨启动）。
     CefRequestContextSettings ctx_settings;
+    // cache_path 是原始 cef_string_t，需用 CefString 包装后填充
+    CefString(&ctx_settings.cache_path).FromWString(ResolveUserDataDir());
+    // 会话级 cookie（如 skey/p_skey）也写入磁盘，避免每次重启重新登录
+    ctx_settings.persist_session_cookies = true;
     CefRefPtr<CefRequestContext> request_context =
         CefRequestContext::CreateContext(ctx_settings, client.get());
 
@@ -146,6 +171,13 @@ int RunBrowserProcess(const CefMainArgs& main_args,
 
     // 关闭并清理
     g_client->CloseAllBrowsers(false);
+    // 强制 cookie 落盘（含 session cookie，如 QQ 登录态 skey/p_skey），
+    // 保证免登录跨启动生效
+    CefRefPtr<CefCookieManager> cookie_mgr =
+        CefCookieManager::GetGlobalManager(nullptr);
+    if (cookie_mgr) {
+        cookie_mgr->FlushStore(nullptr);
+    }
     CefShutdown();
     return 0;
 }
@@ -171,6 +203,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t*, int) {
     settings.log_severity = LOGSEVERITY_WARNING;
     // 开启远程调试端口，便于验证 Flash 是否真正加载
     settings.remote_debugging_port = 9222;
+    // 全局 cache_path：cookie 持久化依赖全局路径，
+    // 自定义 context 的 cache_path 需与全局一致才能继承 persist_session_cookies
+    CefString(&settings.cache_path).FromWString(ResolveUserDataDir());
+    settings.persist_session_cookies = true;
 
     return RunBrowserProcess(main_args, app, settings);
 }

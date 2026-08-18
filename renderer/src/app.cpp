@@ -54,8 +54,17 @@ void NarutoApp::OnBeforeCommandLineProcessing(
                                         ResolveFlashPluginPath());
     command_line->AppendSwitchWithValue("ppapi-flash-version", kFlashVersion);
 
-    // 开启 GPU 加速，保证 Flash wmode=direct 的渲染性能
+    // 开启 GPU 硬件加速，保证 Flash wmode=direct 的渲染性能
     command_line->AppendSwitch("enable-gpu");
+
+    // 持久化 session cookie（QQ 登录态 skey/p_skey 为无过期时间的会话 cookie），
+    // 使免登录跨启动生效。与 CefRequestContextSettings 配合，双保险。
+    command_line->AppendSwitch("persist-session-cookies");
+
+    // 临时禁用音频输出：ARM64 VM 的 x86 模拟下音频管线超时会导致 Flash
+    // 插件进程崩溃（audio glitch 累积后 ppapi crash）。先静音验证稳定性，
+    // 后续再解决音频兼容问题。
+    command_line->AppendSwitch("mute-audio");
 
     // 可行性验证阶段：开启详细日志，便于确认 Flash 插件加载
     command_line->AppendSwitch("enable-logging");
