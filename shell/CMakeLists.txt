@@ -1,0 +1,34 @@
+# 外壳（Shell）—— Qt 6.8.3 · x64
+# 配置方式（x64 目标，MSVC 环境）：
+#   cmake -S shell -B build/shell -G Ninja -DCMAKE_PREFIX_PATH="C:/Users/xiaowu/Dev/Qt/6.8.3/msvc2022_win64"
+#   cmake --build build/shell
+
+cmake_minimum_required(VERSION 3.16)
+project(naruto_shell VERSION 0.1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
+
+add_executable(naruto_shell WIN32
+    src/main.cpp
+)
+
+target_link_libraries(naruto_shell PRIVATE
+    Qt6::Widgets
+    Qt6::Network
+)
+
+# 源码含中文注释，强制 MSVC 以 UTF-8 解析源码
+if(MSVC)
+    target_compile_options(naruto_shell PRIVATE /utf-8)
+endif()
+
+# 阶段 3 起接入：
+# - QLocalSocket IPC 客户端（Qt6::Network）
+# - 服务器列表 UI / 公告 / 设置
+# - 游戏视图容器（createWindowContainer + QWindow::fromWinId）

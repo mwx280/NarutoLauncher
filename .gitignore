@@ -1,0 +1,34 @@
+# 构建产物
+build/
+*.exe
+*.dll
+*.lib
+*.obj
+*.o
+*.exp
+*.pdb
+*.ilk
+*.user
+*.suo
+.vs/
+.idea/
+.vscode/
+
+# 第三方预编译依赖（由 tools/download_deps.ps1 下载，禁止入库）
+third_party/*
+!third_party/README.md
+
+# UI 预览（非 Git 跟踪）
+preview/
+
+# 日志与临时文件
+*.log
+*.tmp
+*.bak
+
+# 敏感信息（如未来出现，一律不入库）
+.env
+*.pem
+*.key
+secrets.*
+credentials.*
