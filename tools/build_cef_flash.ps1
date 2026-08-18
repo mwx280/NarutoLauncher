@@ -14,9 +14,10 @@
 #   -SkipBuild    <拉源码+打补丁后不构建（用于先生成补丁）>
 # =============================================================================
 param(
-    [string]$DownloadDir = 'C:\cef-src',
+    [string]$DownloadDir = 'D:\cef-src',
     [switch]$SkipBuild,
-    [switch]$OnlyDistrib
+    [switch]$OnlyDistrib,
+    [switch]$SkipInstallDeps
 )
 
 $ErrorActionPreference = 'Stop'
@@ -72,11 +73,12 @@ if (-not $onlyDistrib) { Write-Host '环境检查完成，继续。' }
 
 # ---------------------------------------------------------------------------
 # 1. 准备 depot_tools
+#   官方源在 googlesource（国内被墙），改用 GitHub 镜像（coreos/depot_tools）
 # ---------------------------------------------------------------------------
 if (-not $onlyDistrib) {
     Write-Step '1/6 准备 depot_tools'
     if (-not $need.depot) {
-        git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git (Join-Path $DownloadDir 'depot_tools')
+        git clone https://github.com/coreos/depot_tools.git (Join-Path $DownloadDir 'depot_tools')
     }
     $env:Path = "$DownloadDir\depot_tools;" + $env:Path
     $env:DEPOT_TOOLS_WIN_TOOLCHAIN = '0'   # 使用本机已装的 Visual Studio

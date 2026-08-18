@@ -155,7 +155,7 @@ if (-not $vsFound) {
 # 4. depot_tools 提示
 # ---------------------------------------------------------------------------
 Write-Step '4/5 depot_tools'
-$downloadDir = 'C:\cef-src'
+$downloadDir = 'D:\cef-src'
 $depot = Join-Path $downloadDir 'depot_tools\depot_tools.bat'
 if (Test-Path $depot) { Ok "depot_tools 已就绪: $depot" }
 else { Warn "depot_tools 将由 build_cef_flash.ps1 自动创建于 $downloadDir" }
