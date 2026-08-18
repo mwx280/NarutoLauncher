@@ -99,9 +99,12 @@ if (-not $onlyDistrib) {
     }
 
     # 首次全量构建命令（automate-git 会自动 gclient sync + 打 CEF patch + gn gen）
+    # 传入本地 depot_tools 目录并禁用其内部更新（官方更新会访问被墙的 googlesource）
     $env:GN_DEFINES = $GN_DEFINES
     & python "$cefDir\tools\automate\automate-git.py" `
         --download-dir=$DownloadDir `
+        --depot-tools-dir=(Join-Path $DownloadDir 'depot_tools') `
+        --no-depot-tools-update `
         --branch=$CEF_BRANCH `
         --checkout=$CEF_CHECKOUT `
         --x64-build `
