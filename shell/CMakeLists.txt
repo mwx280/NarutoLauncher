@@ -1,6 +1,6 @@
-# 外壳（Shell）—— Qt 6.8.3 · x64
+# 外壳（Shell）—— Qt 6.9.3 · x64（MSVC）
 # 配置方式（x64 目标，MSVC 环境）：
-#   cmake -S shell -B build/shell -G Ninja -DCMAKE_PREFIX_PATH="C:/Users/xiaowu/Dev/Qt/6.8.3/msvc2022_win64"
+#   cmake -S shell -B build/shell -G Ninja -DCMAKE_PREFIX_PATH="C:/Users/xiaowu/Dev/Qt/6.9.3/msvc2022_64"
 #   cmake --build build/shell
 
 cmake_minimum_required(VERSION 3.16)

@@ -26,6 +26,9 @@ preview/
 *.tmp
 *.bak
 
+# macOS AppleDouble 资源文件（从 macOS 复制产生）
+._*
+
 # 敏感信息（如未来出现，一律不入库）
 .env
 *.pem

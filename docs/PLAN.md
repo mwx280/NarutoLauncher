@@ -5,7 +5,7 @@
 ## 架构总览
 
 ```
-shell.exe     Qt 6.8.3 · x64 单构建（x64 原生 / ARM64 模拟）
+shell.exe     Qt 6.9.3 · x64 单构建（x64 原生 / ARM64 模拟）
 ├─ 原生 UI：登录态 · 服务器列表 · 公告 · 设置（Qt Widgets）
 ├─ 脚本引擎：QJSEngine（JS 脚本，零额外依赖）
 ├─ IPC 客户端：QLocalSocket → Named Pipe
@@ -26,7 +26,7 @@ renderer.exe  C++ · CEF 87.1.13 · x86 单构建（三平台通用）
 |---|---|---|
 | 渲染引擎 | CEF 87.1.13（x86）| 最后一个支持 PPAPI Flash 的内核 |
 | Flash 插件 | Flash.cn PPAPI 34.0.0.380（x86）| 官方微端同款 |
-| 外壳 | Qt 6.8.3 · x64 · Widgets | 单 x64 构建，ARM64 走 x64 模拟 |
+| 外壳 | Qt 6.9.3 · x64 · Widgets | 单 x64 构建，ARM64 走 x64 模拟 |
 | 渲染器架构 | 固定 x86 | x86 模拟是 ARM64 上最快的模拟路径 |
 | 脚本引擎 | JS / QJSEngine | 游戏可编程面 = 页面级 JS + ExternalInterface |
 | 变速 | 子进程内建时间 API hook | MinHook x86，倍率经 IPC 下发 |
@@ -35,8 +35,8 @@ renderer.exe  C++ · CEF 87.1.13 · x86 单构建（三平台通用）
 
 ## 阶段 0：开发环境准备
 
-1. 用 MaintenanceTool 加装 **Qt 6.8.3 msvc2022_win64** kit（x64 目标；ARM64 kit 已就绪）
-2. 验证 **MSVC v145 编译 Qt 6.8.3**：三目标 hello-world 试编译；若编译器版本不兼容 → 加装 **MSVC v143 工具集**
+1. 加装 **Qt 6.9.3 msvc2022_64** kit（x64 目标）并验证工具链
+2. 验证 **MSVC v145 编译 Qt 6.9.3**：三目标 hello-world 试编译
 3. 下载 **CEF 87.1.13 windows32** 标准发行版到 `third_party/`
 4. 下载 **Flash.cn PPAPI 34 x86**，提取 `pepflashplayer.dll` 到 `third_party/`
 5. 建立 CMake 工程骨架（shell x64 + renderer x86 两个独立构建）
@@ -115,6 +115,6 @@ renderer.exe  C++ · CEF 87.1.13 · x86 单构建（三平台通用）
 ## 开发环境
 
 - 开发机：Windows ARM64（Apple Silicon 上的 VM）
-- Qt 6.8.3（msvc2022_arm64 已装；msvc2022_win64 待加装）
+- Qt 6.9.3（msvc2022_64 x64 kit 已装；msvc2022_arm64 亦已装）
 - Visual Studio 2026 Community（MSVC v145，交叉工具链完整）
 - 注意：本机为 ARM64 VM，渲染器 x86 全程走模拟；阶段 1 功能可验、性能数据不代表真机
