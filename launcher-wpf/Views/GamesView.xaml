@@ -3,33 +3,95 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:views="clr-namespace:NarutoLauncher.Views">
+    <UserControl.Resources>
+        <Style x:Key="GameTabItemStyle" TargetType="TabItem">
+            <Setter Property="MinWidth" Value="130"/>
+            <Setter Property="MaxWidth" Value="200"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="2,0,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Bd"
+                                Background="Transparent"
+                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                BorderThickness="1,1,0,0"
+                                CornerRadius="6,6,0,0"
+                                Padding="8,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock x:Name="TabTitle"
+                                               Text="{TemplateBinding Header}"
+                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                               FontSize="13" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="RunningDot"
+                                               Text="●" FontSize="10" Margin="4,0,0,0"
+                                               Foreground="#4ADE80" VerticalAlignment="Center"
+                                               Visibility="Collapsed"/>
+                                </StackPanel>
+                                <ui:Button x:Name="CloseBtn" Grid.Column="1"
+                                           Content="✕" Width="20" Height="20"
+                                           Padding="0" Margin="6,0,0,0"
+                                           Appearance="Transparent"
+                                           FontSize="11" VerticalAlignment="Center"
+                                           Click="OnCloseTab"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background"
+                                        Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Margin="24" Background="Transparent">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- 操作栏：账号选择 + 开始 / 停止 -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-            <ComboBox x:Name="AccountSelector" Width="220" Margin="0,0,12,0"
-                      VerticalContentAlignment="Center"/>
-            <ui:Button x:Name="StartBtn" Content="开始游戏" Appearance="Primary"
-                        Width="130" Height="34" Margin="0,0,8,0" Click="OnStartGame"/>
-            <ui:Button x:Name="StopBtn" Content="停止游戏" Appearance="Secondary"
-                        Width="110" Height="34" Click="OnStopGame"/>
-        </StackPanel>
+        <!-- 标签栏 -->
+        <TabControl x:Name="TabControl" Grid.Row="0"
+                    Background="Transparent" BorderThickness="0"
+                    SelectedIndex="-1" SelectionChanged="OnTabChanged">
+            <TabControl.ItemContainerStyle>
+                <Style TargetType="TabItem">
+                    <Setter Property="Header" Value="{Binding DisplayName}"/>
+                    <Setter Property="Tag" Value="{Binding Id}"/>
+                    <Setter Property="Style" Value="{StaticResource GameTabItemStyle}"/>
+                </Style>
+            </TabControl.ItemContainerStyle>
+        </TabControl>
 
-        <!-- 内嵌游戏窗口（保持深色背景） -->
+        <!-- 工具栏 -->
         <Border Grid.Row="1" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1" CornerRadius="8" Background="#1E1E1E" ClipToBounds="True">
-            <Grid>
-                <StackPanel x:Name="Placeholder" HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                    <TextBlock Text="游戏窗口将显示在这里" FontSize="15" Foreground="#999"
-                               HorizontalAlignment="Center"/>
-                </StackPanel>
-                <views:GameHostView x:Name="GameHost" Visibility="Collapsed"/>
-            </Grid>
+                BorderThickness="0,0,0,1" Padding="0,8,0,10">
+            <StackPanel Orientation="Horizontal">
+                <ComboBox x:Name="AccountSelector" Width="200" Margin="0,0,12,0"
+                          VerticalContentAlignment="Center"/>
+                <ui:Button x:Name="StartBtn" Content="开始游戏" Appearance="Primary"
+                           Width="120" Height="32" Margin="0,0,8,0" Click="OnStartGame"/>
+                <ui:Button x:Name="StopBtn" Content="停止游戏" Appearance="Secondary"
+                           Width="100" Height="32" Margin="0,0,8,0" Click="OnStopGame"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 游戏内容区 -->
+        <Border Grid.Row="2" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1" CornerRadius="0,0,8,8" Background="#1E1E1E"
+                ClipToBounds="True" Margin="0,-1,0,0">
+            <ContentPresenter x:Name="ContentArea"/>
         </Border>
     </Grid>
 </UserControl>
