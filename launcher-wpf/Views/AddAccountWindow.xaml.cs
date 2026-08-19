@@ -128,7 +128,6 @@ public partial class AddAccountWindow : FluentWindow
                 if (session.Process.HasExited) break;
                 await Task.Delay(200);
             }
-            Log($"window_hwnd={childHwnd}");
             if (childHwnd != 0)
                 Dispatcher.Invoke(() =>
                 {
