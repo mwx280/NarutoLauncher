@@ -111,8 +111,8 @@ SideNav::SideNav(QWidget* parent) : QFrame(parent) {
     setFixedWidth(kExpandedWidth);
 
     QVBoxLayout* lay = new QVBoxLayout(this);
-    lay->setContentsMargins(12, 10, 12, 10);
-    lay->setSpacing(8);
+    lay->setContentsMargins(14, 14, 14, 10);
+    lay->setSpacing(10);
 
     // 顶部：品牌区 + 收缩按钮
     QHBoxLayout* head = new QHBoxLayout;
