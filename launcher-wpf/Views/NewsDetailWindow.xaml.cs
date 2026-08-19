@@ -16,11 +16,27 @@ public partial class NewsDetailWindow : HandyControl.Controls.Window
             ? System.Drawing.Color.FromArgb(0x1F, 0x1F, 0x1F)
             : System.Drawing.Color.White;
 
+        // 抑制闪烁：初始化期间隐藏，导航完成后再显示
+        Browser.Visibility = Visibility.Hidden;
+
         Loaded += async (_, _) =>
         {
-            await Browser.EnsureCoreWebView2Async();
+            // 优先使用共享环境（App 启动时已预创建，可减少延迟）
+            if (App.WebViewEnv != null)
+                await Browser.EnsureCoreWebView2Async(App.WebViewEnv);
+            else
+                await Browser.EnsureCoreWebView2Async();
+
+            Browser.NavigationCompleted += OnNavigationCompleted;
             Browser.NavigateToString(BuildHtml(htmlBody, isDark));
         };
+    }
+
+    private void OnNavigationCompleted(object? sender,
+        Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs e)
+    {
+        // HTML 渲染完成后显示（UI 线程）
+        Dispatcher.Invoke(() => Browser.Visibility = Visibility.Visible);
     }
 
     /// <summary>构建带主题样式与现代化滚动条的 HTML。</summary>
