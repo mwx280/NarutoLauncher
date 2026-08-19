@@ -16,8 +16,8 @@ public partial class NewsDetailWindow : HandyControl.Controls.Window
             ? System.Drawing.Color.FromArgb(0x1F, 0x1F, 0x1F)
             : System.Drawing.Color.White;
 
-        // 初始化期间隐藏 WebView2，避免白屏闪烁；导航完成后再显示
-        Browser.Visibility = Visibility.Hidden;
+        // 打开窗口即显示"加载中"，WebView2 渲染完成后再显示内容
+        LoadingOverlay.Visibility = Visibility.Visible;
 
         Loaded += async (_, _) =>
         {
@@ -30,8 +30,12 @@ public partial class NewsDetailWindow : HandyControl.Controls.Window
     private void OnNavigationCompleted(object? sender,
         Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs e)
     {
-        // HTML 渲染完成后显示（UI 线程）
-        Dispatcher.Invoke(() => Browser.Visibility = Visibility.Visible);
+        // 渲染完成：隐藏加载中，显示内容（UI 线程）
+        Dispatcher.Invoke(() =>
+        {
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            Browser.Visibility = Visibility.Visible;
+        });
     }
 
     /// <summary>构建带主题样式与现代化滚动条的 HTML。</summary>

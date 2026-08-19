@@ -26,7 +26,20 @@
             </DockPanel>
         </Border>
 
-        <wv2:WebView2 Grid.Row="1" x:Name="Browser"
-                      DefaultBackgroundColor="#1F1F1F"/>
+        <!-- 内容区：加载覆盖层 + WebView2 -->
+        <Grid Grid.Row="1">
+            <wv2:WebView2 x:Name="Browser" Visibility="Collapsed"
+                          DefaultBackgroundColor="#1F1F1F"/>
+
+            <!-- 加载中覆盖层 -->
+            <Border x:Name="LoadingOverlay" Background="{DynamicResource AppBackground}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ProgressBar Width="220" Height="6" IsIndeterminate="True"/>
+                    <TextBlock Text="正在加载公告..." FontSize="14"
+                               Foreground="{DynamicResource AppForegroundSecondary}"
+                               HorizontalAlignment="Center" Margin="0,16,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </hc:Window>
