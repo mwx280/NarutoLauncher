@@ -13,16 +13,7 @@
         <!-- 标题栏：置顶 + 最小化/最大化/关闭 -->
         <ui:TitleBar x:Name="TitleBarHost" DockPanel.Dock="Top"
                      Title="火影忍者OL"
-                     ShowMaximize="True" ShowMinimize="True" ShowClose="True">
-            <ui:TitleBar.TrailingContent>
-                <ui:Button x:Name="PinBtn" Appearance="Transparent"
-                           ToolTip="置顶" Click="OnToggleTopmost"
-                           Width="34" Height="30" Padding="0">
-                    <TextBlock Text="📌" FontSize="13"
-                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                </ui:Button>
-            </ui:TitleBar.TrailingContent>
-        </ui:TitleBar>
+                     ShowMaximize="True" ShowMinimize="True" ShowClose="True"/>
 
         <!-- 空白内容区（后续用于承载游戏画面） -->
         <Border Background="{DynamicResource WindowBackground}">
