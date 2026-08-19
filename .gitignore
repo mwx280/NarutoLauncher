@@ -36,7 +36,7 @@ preview/
 secrets.*
 credentials.*
 
-# .NET / WinUI 3 构建产物
+# .NET / WPF 构建产物
 bin/
 obj/
 *.suo
