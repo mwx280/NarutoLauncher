@@ -59,7 +59,11 @@ public partial class HomeView : UserControl
         try
         {
             var detail = await _news.FetchDetailAsync(item.Url);
-            NewsDetailWindow.Show(detail.Title, detail.HtmlBody, Window.GetWindow(this));
+            var win = new NewsDetailWindow(detail.Title, detail.HtmlBody)
+            {
+                Owner = Window.GetWindow(this),
+            };
+            win.ShowDialog();
         }
         catch (Exception ex)
         {
