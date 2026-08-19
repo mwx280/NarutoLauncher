@@ -48,7 +48,7 @@
     </UserControl.Resources>
 
     <ScrollViewer>
-        <StackPanel Margin="28,20,28,24" MaxWidth="680" HorizontalAlignment="Left">
+        <StackPanel Margin="28,20,28,24">
 
             <TextBlock Text="设置" FontSize="24" FontWeight="SemiBold" Foreground="#1A1A1A"
                        Margin="0,0,0,4"/>
