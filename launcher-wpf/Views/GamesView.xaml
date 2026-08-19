@@ -7,11 +7,17 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="游戏" FontSize="22" FontWeight="Bold"
-                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" Margin="0,0,0,12"/>
+        <!-- 操作栏：账号选择 + 开始 / 停止 -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+            <ComboBox x:Name="AccountSelector" Width="220" Margin="0,0,12,0"
+                      VerticalContentAlignment="Center"/>
+            <ui:Button x:Name="StartBtn" Content="开始游戏" Appearance="Primary"
+                        Width="130" Height="34" Margin="0,0,8,0" Click="OnStartGame"/>
+            <ui:Button x:Name="StopBtn" Content="停止游戏" Appearance="Secondary"
+                        Width="110" Height="34" Click="OnStopGame"/>
+        </StackPanel>
 
         <!-- 内嵌游戏窗口（保持深色背景） -->
         <Border Grid.Row="1" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
