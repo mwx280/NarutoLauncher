@@ -50,7 +50,7 @@ public partial class NewsDetailWindow : HandyControl.Controls.Window
             "<style>\n" +
             "  html,body{font-family:\"Microsoft YaHei\",\"SimHei\",sans-serif;" +
             "background-color:" + bg + "!important;color:" + fg + "!important;" +
-            "font-size:13px;padding:24px 32px;line-height:1.8;zoom:120%;}\n" +
+            "font-size:13px;padding:24px 32px;line-height:1.8;zoom:100%;}\n" +
             "  p{margin:0.8em 0;}\n" +
             "  span,div,td,li,p{font-size:inherit !important;line-height:inherit !important;" +
             (isDark ? "color:inherit !important;" : "") + "}\n" +
