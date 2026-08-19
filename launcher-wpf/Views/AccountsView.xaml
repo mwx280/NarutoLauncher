@@ -2,15 +2,17 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hc="https://handyorg.github.io/handycontrol">
-    <DockPanel Margin="24">
+    <DockPanel Margin="24" Background="{DynamicResource AppBackground}">
         <TextBlock DockPanel.Dock="Top" Text="账号管理" FontSize="22" FontWeight="Bold"
-                   Foreground="#333" Margin="0,0,0,8"/>
-        <TextBlock DockPanel.Dock="Top" x:Name="CountText" Foreground="#8A7A66"
+                   Foreground="{DynamicResource AppForeground}" Margin="0,0,0,8"/>
+        <TextBlock DockPanel.Dock="Top" x:Name="CountText"
+                   Foreground="{DynamicResource AppForegroundSecondary}"
                    FontSize="12" Margin="0,0,0,12"/>
         <Button DockPanel.Dock="Bottom" Content="添加账号" Style="{StaticResource ButtonPrimary}"
                 Width="130" Height="34" HorizontalAlignment="Left" Margin="0,12,0,0" Click="OnAddAccount"/>
 
-        <ListView x:Name="AccountList" Margin="0,0,0,8">
+        <ListView x:Name="AccountList" Margin="0,0,0,8"
+                  Background="Transparent" BorderThickness="0">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid Margin="4">
@@ -20,14 +22,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0" Width="38" Height="38" CornerRadius="19"
-                                Background="#E8482C" Margin="0,0,10,0">
+                                Background="{DynamicResource AccentBrush}" Margin="0,0,10,0">
                             <TextBlock Text="{Binding AvatarChar}" Foreground="White"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"
                                        FontWeight="Bold"/>
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" Foreground="#333"/>
-                            <TextBlock Text="{Binding InfoText}" Foreground="#8A7A66" FontSize="12"/>
+                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AppForeground}"/>
+                            <TextBlock Text="{Binding InfoText}"
+                                       Foreground="{DynamicResource AppForegroundSecondary}" FontSize="12"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                             <Button Content="删除" Style="{StaticResource ButtonDanger}" Width="80" Height="30"

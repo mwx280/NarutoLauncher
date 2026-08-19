@@ -10,11 +10,13 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1"
+        <Border Grid.Row="0" Background="{DynamicResource RowBackground}"
+                BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,0,0,1"
                 Padding="16,12">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Content="关闭" Padding="14,4" Click="OnClose"/>
-                <TextBlock x:Name="TitleText" FontSize="15" FontWeight="SemiBold" Foreground="#333"
+                <TextBlock x:Name="TitleText" FontSize="15" FontWeight="SemiBold"
+                           Foreground="{DynamicResource AppForeground}"
                            TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
             </DockPanel>
         </Border>

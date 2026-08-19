@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hc="https://handyorg.github.io/handycontrol"
              xmlns:views="clr-namespace:NarutoLauncher.Views">
-    <Grid Margin="24">
+    <Grid Margin="24" Background="{DynamicResource AppBackground}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -11,17 +11,17 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="游戏" FontSize="22" FontWeight="Bold"
-                   Foreground="#333" Margin="0,0,0,12"/>
+                   Foreground="{DynamicResource AppForeground}" Margin="0,0,0,12"/>
 
-        <!-- 内嵌游戏窗口 -->
-        <Border Grid.Row="1" BorderBrush="#DDDDDD" BorderThickness="1" CornerRadius="8"
-                Background="#1E1E1E" ClipToBounds="True">
+        <!-- 内嵌游戏窗口（保持深色背景） -->
+        <Border Grid.Row="1" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1"
+                CornerRadius="8" Background="#1E1E1E" ClipToBounds="True">
             <Grid>
                 <StackPanel x:Name="Placeholder" HorizontalAlignment="Center"
                             VerticalAlignment="Center">
-                    <TextBlock Text="游戏窗口将显示在这里" FontSize="15" Foreground="#777"
+                    <TextBlock Text="游戏窗口将显示在这里" FontSize="15" Foreground="#999"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="选择账号后点击下方「开始游戏」" FontSize="12" Foreground="#555"
+                    <TextBlock Text="选择账号后点击下方「开始游戏」" FontSize="12" Foreground="#777"
                                HorizontalAlignment="Center" Margin="0,6,0,0"/>
                 </StackPanel>
                 <views:GameHostView x:Name="GameHost" Visibility="Collapsed"/>
