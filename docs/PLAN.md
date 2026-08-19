@@ -5,7 +5,7 @@
 ## 架构总览
 
 ```
-shell.exe     Qt 6.9.3 · x64 单构建（x64 原生 / ARM64 模拟）
+HuoYinLauncher.exe  Qt 6.9.3 · x64 单构建（x64 原生 / ARM64 模拟）
 ├─ 原生 UI：登录态 · 服务器列表 · 公告 · 设置（Qt Widgets）
 ├─ 脚本引擎：QJSEngine（JS 脚本，零额外依赖）
 ├─ IPC 客户端：QLocalSocket → Named Pipe
@@ -39,8 +39,8 @@ renderer.exe  C++ · CEF 87.1.13 · x86 单构建（三平台通用）
 2. 验证 **MSVC v145 编译 Qt 6.9.3**：三目标 hello-world 试编译
 3. 下载 **CEF 87.1.13 windows32** 标准发行版到 `third_party/`
 4. 下载 **Flash.cn PPAPI 34 x86**，提取 `pepflashplayer.dll` 到 `third_party/`
-5. 建立 CMake 工程骨架（shell x64 + renderer x86 两个独立构建）
-- **门禁**：shell(x64)/renderer(x86) 两目标 CMake 配置通过
+5. 建立 CMake 工程骨架（HuoYinLauncher x64 + renderer x86 两个独立构建）
+- **门禁**：HuoYinLauncher(x64)/renderer(x86) 两目标 CMake 配置通过
 
 ## 阶段 1：可行性验证（最高风险，先做）
 
@@ -125,7 +125,7 @@ renderer.exe  C++ · CEF 87.1.13 · x86 单构建（三平台通用）
   滚动条细化，游戏视图区径向橙色光晕。
 
 **待做（阶段 3 剩余）**：
-- 渲染器进程拉起（shell 启动 renderer.exe）
+- 渲染器进程拉起（HuoYinLauncher 启动 renderer.exe）
 - Named Pipe 协议 v1：渲染器服务端 + 外壳 `QLocalSocket` 客户端
 - 游戏视图容器：`createWindowContainer` 嵌入渲染器窗口（尺寸 / DPI / 焦点 / 占位）
 - UI 侧「开始游戏」接入真实登录流程
@@ -160,7 +160,7 @@ renderer.exe  C++ · CEF 87.1.13 · x86 单构建（三平台通用）
 
 ## 阶段 7：打包与分发
 
-1. 打包结构：`shell_x64.exe + renderer\（renderer.exe + libcef.dll + cef.pak + icudtl.dat + pepflashplayer.dll）+ version.json`
+1. 打包结构：`HuoYinLauncher.exe + renderer\（renderer.exe + libcef.dll + cef.pak + icudtl.dat + pepflashplayer.dll）+ version.json`
 2. GitHub Releases 整包发布 + 版本检查 + 下载更新
 3. 测试矩阵：Windows x64 真机 + ARM64 真机/VM
 

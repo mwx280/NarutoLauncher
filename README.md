@@ -5,7 +5,7 @@
 ## 架构总览
 
 ```
-shell.exe     Qt 6.9.3 · x64 单构建（x64 原生 / ARM64 模拟）
+HuoYinLauncher.exe  Qt 6.9.3 · x64 单构建（x64 原生 / ARM64 模拟）
 ├─ 原生 UI：登录态 · 服务器列表 · 公告 · 设置（Qt Widgets）
 ├─ 脚本引擎：QJSEngine（JS 脚本，零额外依赖）
 ├─ IPC 客户端：QLocalSocket → Named Pipe
@@ -37,7 +37,7 @@ renderer.exe  C++ · CEF 87.1.13 · x86 单构建（三平台通用）
 
 ```
 naruto-launcher/
-├── shell/        外壳（Qt x64）：UI · 脚本引擎 · IPC 客户端 · 视图容器
+├── HuoYinLauncher/  外壳（Qt x64）：UI · 脚本引擎 · IPC 客户端 · 视图容器
 ├── renderer/     渲染器（C++/CEF 87 x86）：宿主 · Flash · JS 桥 · 变速 hook · IPC 服务端
 ├── third_party/  第三方依赖（CEF SDK、Flash 插件，.gitignore，由脚本下载）
 ├── tools/        依赖下载 / 提取 / 打包脚本
@@ -53,8 +53,8 @@ naruto-launcher/
 powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1
 
 # 配置构建（需先执行 vcvarsall 进入 MSVC 环境）
-cmake -S . -B build/shell -G Ninja -DCMAKE_PREFIX_PATH="<Qt x64 路径>"
-cmake --build build/shell
+cmake -S . -B build/HuoYinLauncher -G Ninja -DCMAKE_PREFIX_PATH="<Qt x64 路径>"
+cmake --build build/HuoYinLauncher
 ```
 
 ## 环境要求
