@@ -5,31 +5,74 @@ namespace NarutoLauncher.Views;
 
 public partial class NewsDetailWindow : HandyControl.Controls.Window
 {
-    public NewsDetailWindow(string title, string htmlBody)
+    private static NewsDetailWindow? _instance;
+    private bool _webViewReady;
+    private string _pendingBody = "";
+
+    private NewsDetailWindow()
     {
         InitializeComponent();
-        TitleText.Text = title;
+        // 系统关闭/自定义关闭都改为隐藏（保留 WebView2 供复用）
+        Closing += (_, e) =>
+        {
+            e.Cancel = true;
+            Hide();
+        };
 
-        // 根据主题设置默认背景
-        var isDark = ThemeManager.IsDark;
-        Browser.DefaultBackgroundColor = isDark
-            ? System.Drawing.Color.FromArgb(0x1F, 0x1F, 0x1F)
-            : System.Drawing.Color.White;
+        // 根据当前主题设置默认背景（避免加载前闪烁白屏）
+        ApplyThemeBackground();
 
         // 抑制闪烁：初始化期间隐藏，导航完成后再显示
         Browser.Visibility = Visibility.Hidden;
 
         Loaded += async (_, _) =>
         {
-            // 优先使用共享环境（App 启动时已预创建，减少延迟）
-            if (App.WebViewEnv != null)
-                await Browser.EnsureCoreWebView2Async(App.WebViewEnv);
-            else
-                await Browser.EnsureCoreWebView2Async();
-
+            await Browser.EnsureCoreWebView2Async();
+            _webViewReady = true;
             Browser.NavigationCompleted += OnNavigationCompleted;
-            Browser.NavigateToString(BuildHtml(htmlBody, isDark));
+            // 若已有待显示内容，立即加载
+            if (!string.IsNullOrEmpty(_pendingBody))
+                Browser.NavigateToString(_pendingBody);
         };
+    }
+
+    /// <summary>显示公告详情（单例复用，首次初始化慢，之后秒开）。</summary>
+    public static void Show(string title, string htmlBody, Window? owner)
+    {
+        if (_instance == null)
+        {
+            _instance = new NewsDetailWindow();
+            _instance.Owner = owner;
+            _instance.Closed += (_, _) => _instance = null;
+        }
+
+        var win = _instance;
+        win.TitleText.Text = title;
+        win.ApplyThemeBackground();
+        win._pendingBody = BuildHtml(htmlBody, ThemeManager.IsDark);
+
+        // WebView2 已就绪则直接加载；否则等 Loaded 初始化后自动加载
+        if (win._webViewReady)
+            win.Browser.NavigateToString(win._pendingBody);
+
+        if (win.IsVisible)
+        {
+            win.Activate();
+        }
+        else
+        {
+            // 隐藏后复用：非模态重新显示（可重复调用）
+            win.Show();
+            win.Activate();
+        }
+    }
+
+    private void ApplyThemeBackground()
+    {
+        var isDark = ThemeManager.IsDark;
+        Browser.DefaultBackgroundColor = isDark
+            ? System.Drawing.Color.FromArgb(0x1F, 0x1F, 0x1F)
+            : System.Drawing.Color.White;
     }
 
     private void OnNavigationCompleted(object? sender,
@@ -74,6 +117,7 @@ public partial class NewsDetailWindow : HandyControl.Controls.Window
 
     private void OnClose(object sender, RoutedEventArgs e)
     {
-        Close();
+        // 隐藏而非销毁，保留已初始化的 WebView2 供复用
+        Hide();
     }
 }

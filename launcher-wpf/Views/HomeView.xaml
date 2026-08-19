@@ -28,42 +28,54 @@
                     Click="OnRefresh"/>
         </Grid>
 
-        <!-- 公告列表 -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
-                      Background="{DynamicResource AppBackground}"
-                      BorderBrush="{DynamicResource CardBorder}" BorderThickness="1"
-                      Margin="24,0,24,20">
-            <ItemsControl x:Name="NewsList" Background="Transparent">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,0,0,1"
-                                Padding="14,12" Background="Transparent" Cursor="Hand"
-                                PreviewMouseLeftButtonUp="OnNewsClick">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Background="{DynamicResource AccentFaint}"
-                                        CornerRadius="4"
-                                        Padding="6,2" Margin="0,0,10,0" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Category}"
-                                               Foreground="{DynamicResource AccentBrush}"
-                                               FontSize="12"/>
-                                </Border>
-                                <TextBlock Grid.Column="1" Text="{Binding Title}"
-                                           Foreground="{DynamicResource AppForeground}" FontSize="14"
-                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="2" Text="{Binding Date}"
-                                           Foreground="{DynamicResource AppForegroundSecondary}"
-                                           FontSize="12"
-                                           Margin="12,0,0,0" VerticalAlignment="Center"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+        <!-- 公告列表（含加载覆盖层） -->
+        <Grid Grid.Row="1" Margin="24,0,24,20">
+            <ScrollViewer x:Name="ListScroll" VerticalScrollBarVisibility="Auto"
+                          Background="{DynamicResource AppBackground}"
+                          BorderBrush="{DynamicResource CardBorder}" BorderThickness="1">
+                <ItemsControl x:Name="NewsList" Background="Transparent">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,0,0,1"
+                                    Padding="14,12" Background="Transparent" Cursor="Hand"
+                                    PreviewMouseLeftButtonUp="OnNewsClick">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Background="{DynamicResource AccentFaint}"
+                                            CornerRadius="4"
+                                            Padding="6,2" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Category}"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontSize="12"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                               Foreground="{DynamicResource AppForeground}" FontSize="14"
+                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Date}"
+                                               Foreground="{DynamicResource AppForegroundSecondary}"
+                                               FontSize="12"
+                                               Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- 加载覆盖层 -->
+            <Border x:Name="LoadingOverlay" Background="{DynamicResource AppBackground}"
+                    CornerRadius="8">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ProgressBar Width="200" Height="6" IsIndeterminate="True"/>
+                    <TextBlock Text="正在加载公告..." FontSize="14"
+                               Foreground="{DynamicResource AppForegroundSecondary}"
+                               HorizontalAlignment="Center" Margin="0,16,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
