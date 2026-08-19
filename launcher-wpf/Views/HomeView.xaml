@@ -1,0 +1,58 @@
+<UserControl x:Class="NarutoLauncher.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer>
+        <StackPanel Margin="20">
+            <TextBlock Text="火影忍者OL" FontSize="24" FontWeight="Bold" Foreground="#2B2118"/>
+            <TextBlock Text="忍界大战 · 多开登录 · 一键加速 · 自动挂机"
+                       Foreground="#8A7A66" Margin="0,4,0,16"/>
+
+            <Button Content="开始游戏" Padding="24,10" HorizontalAlignment="Left"
+                    FontWeight="Bold" Click="OnStartGame"
+                    Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"/>
+
+            <TextBlock Text="我的账号" FontSize="16" FontWeight="Bold" Foreground="#2B2118"
+                       Margin="0,24,0,8"/>
+            <ItemsControl x:Name="AccountList">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6"
+                                Background="#FAFAFA" Padding="12" Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20"
+                                        Background="#E8482C" Margin="0,0,12,0">
+                                    <TextBlock Text="{Binding AvatarChar}" Foreground="White"
+                                               FontSize="16" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding InfoText}" Foreground="#8A7A66"
+                                               FontSize="12"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="2" Text="{Binding RunText}"
+                                           VerticalAlignment="Center" Foreground="#8A7A66"
+                                           FontSize="12"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="功能设置" FontSize="16" FontWeight="Bold" Foreground="#2B2118"
+                       Margin="0,24,0,8"/>
+            <WrapPanel>
+                <CheckBox x:Name="GameSpeedBox" Content="游戏变速" Margin="0,0,16,8" IsChecked="True"/>
+                <CheckBox x:Name="AntiDropBox" Content="挂机防掉线" Margin="0,0,16,8" IsChecked="True"/>
+                <CheckBox x:Name="AutoScriptBox" Content="自动脚本" Margin="0,0,16,8"/>
+                <CheckBox x:Name="AutoTaskBox" Content="自动任务" Margin="0,0,16,8"/>
+                <CheckBox x:Name="TrayBox" Content="最小化到托盘" Margin="0,0,16,8" IsChecked="True"/>
+            </WrapPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
