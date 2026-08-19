@@ -4,41 +4,51 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
                  Title="公告详情" Height="700" Width="900"
-                 WindowStartupLocation="CenterOwner">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+                 WindowStartupLocation="CenterOwner"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 WindowCornerPreference="Round">
+    <DockPanel>
+        <!-- 标题栏（最小化/最大化/关闭按钮） -->
+        <ui:TitleBar DockPanel.Dock="Top"
+                     Title="公告详情"
+                     ShowMaximize="True" ShowMinimize="True" ShowClose="True"/>
 
-        <Border Grid.Row="0"
-                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                BorderThickness="0,0,0,1" Padding="16,12"
-                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
-            <DockPanel>
-                <ui:Button DockPanel.Dock="Right" Content="关闭" Padding="14,4"
-                           Appearance="Secondary" Click="OnClose"/>
-                <TextBlock x:Name="TitleText" FontSize="15" FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-            </DockPanel>
-        </Border>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- 内容区：加载覆盖层 + WebView2 -->
-        <Grid Grid.Row="1">
-            <wv2:WebView2 x:Name="Browser" Visibility="Collapsed"
-                          DefaultBackgroundColor="#1F1F1F"/>
-
-            <!-- 加载中覆盖层 -->
-            <Border x:Name="LoadingOverlay"
+            <!-- 公告标题栏 -->
+            <Border Grid.Row="0"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="0,0,0,1" Padding="16,12"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <ProgressBar Width="220" Height="6" IsIndeterminate="True"/>
-                    <TextBlock Text="正在加载公告..." FontSize="14"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0,16,0,0"/>
-                </StackPanel>
+                <DockPanel>
+                    <ui:Button DockPanel.Dock="Right" Content="关闭" Padding="14,4"
+                               Appearance="Secondary" Click="OnClose"/>
+                    <TextBlock x:Name="TitleText" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                </DockPanel>
             </Border>
+
+            <!-- 内容区：加载覆盖层 + WebView2 -->
+            <Grid Grid.Row="1">
+                <wv2:WebView2 x:Name="Browser" Visibility="Collapsed"/>
+
+                <!-- 加载中覆盖层 -->
+                <Border x:Name="LoadingOverlay"
+                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ProgressBar Width="220" Height="6" IsIndeterminate="True"/>
+                        <TextBlock Text="正在加载公告..." FontSize="14"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   HorizontalAlignment="Center" Margin="0,16,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
-    </Grid>
+    </DockPanel>
 </ui:FluentWindow>
