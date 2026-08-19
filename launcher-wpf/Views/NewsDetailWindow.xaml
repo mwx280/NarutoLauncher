@@ -6,7 +6,6 @@
                  Title="公告详情" Height="700" Width="900"
                  WindowStartupLocation="CenterOwner"
                  ExtendsContentIntoTitleBar="True"
-                 WindowBackdropType="Mica"
                  WindowCornerPreference="Round">
     <DockPanel>
         <!-- 标题栏（最小化/最大化/关闭按钮） -->

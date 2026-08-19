@@ -13,10 +13,11 @@ public partial class NewsDetailWindow : FluentWindow
         TitleText.Text = title;
 
         // 根据主题设置默认背景（避免加载前闪烁白屏），颜色取自 WPF-UI 主题资源
+        // 注意：WebView2 的 DefaultBackgroundColor alpha 只能为 0 或 255，否则抛 E_INVALIDARG
         var isDark = ThemeManager.IsDark;
         var bgColor = ThemeBackgroundColor();
         Browser.DefaultBackgroundColor = System.Drawing.Color.FromArgb(
-            bgColor.A, bgColor.R, bgColor.G, bgColor.B);
+            255, bgColor.R, bgColor.G, bgColor.B);
 
         // 打开窗口即显示"加载中"，WebView2 渲染完成后再显示内容
         LoadingOverlay.Visibility = Visibility.Visible;
@@ -29,10 +30,12 @@ public partial class NewsDetailWindow : FluentWindow
         };
     }
 
-    /// <summary>读取 WPF-UI 当前主题的卡片背景色（与窗口/加载层一致）。</summary>
+    /// <summary>读取 WPF-UI 当前主题的窗口背景色（不透明，避免 WebView2 alpha 限制）。</summary>
     private static Color ThemeBackgroundColor()
     {
-        var brush = Application.Current.Resources["CardBackgroundFillColorDefaultBrush"] as SolidColorBrush;
+        // 用不透明的窗口背景（SolidBackgroundFillColorBaseBrush），
+        // 不能用 CardBackgroundFillColorDefaultBrush（深色下是半透明白，转出来成白底）。
+        var brush = Application.Current.Resources["SolidBackgroundFillColorBaseBrush"] as SolidColorBrush;
         return brush?.Color ?? Color.FromRgb(0x20, 0x20, 0x20);
     }
 
