@@ -73,6 +73,9 @@
                                             </TextBlock.Text>
                                         </TextBlock>
                                         <Image Stretch="UniformToFill">
+                                            <Image.Clip>
+                                                <EllipseGeometry Center="21,21" RadiusX="21" RadiusY="21"/>
+                                            </Image.Clip>
                                             <Image.Source>
                                                 <MultiBinding Converter="{StaticResource QqAvatarConverter}">
                                                     <Binding/>
