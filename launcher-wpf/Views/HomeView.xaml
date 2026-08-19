@@ -23,6 +23,9 @@
                              Visibility="Collapsed"/>
             </StackPanel>
             <Button Grid.Column="1" x:Name="RefreshBtn" Content="刷新" Padding="16,5"
+                    Background="{DynamicResource RowBackground}"
+                    Foreground="{DynamicResource AppForeground}"
+                    BorderBrush="{DynamicResource CardBorder}"
                     Click="OnRefresh"/>
         </Grid>
 
