@@ -7,32 +7,48 @@
            Background="{DynamicResource AppBackground}"
            ResizeMode="NoResize">
     <hc:Window.Resources>
-        <!-- 输入框样式（适配深色/浅色） -->
+        <!-- 输入框样式（适配深色/浅色 + 内容垂直居中） -->
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="{DynamicResource InputBackground}"/>
             <Setter Property="Foreground" Value="{DynamicResource AppForeground}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}"/>
             <Setter Property="CaretBrush" Value="{DynamicResource AppForeground}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="8,0"/>
         </Style>
         <Style TargetType="PasswordBox">
             <Setter Property="Background" Value="{DynamicResource InputBackground}"/>
             <Setter Property="Foreground" Value="{DynamicResource AppForeground}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}"/>
             <Setter Property="CaretBrush" Value="{DynamicResource AppForeground}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="8,0"/>
         </Style>
-        <!-- 选项卡样式 -->
+        <!-- 选项卡样式：深色适配 -->
         <Style TargetType="TabControl">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppForeground}"/>
         </Style>
         <Style TargetType="TabItem">
             <Setter Property="Foreground" Value="{DynamicResource AppForeground}"/>
+            <Setter Property="Background" Value="{DynamicResource AppBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+            <Setter Property="Padding" Value="16,8"/>
         </Style>
-        <!-- 普通按钮 -->
+        <!-- 普通按钮：hover 深色适配 -->
         <Style TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource RowBackground}"/>
             <Setter Property="Foreground" Value="{DynamicResource AppForeground}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource IconBackground}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource CardBorder}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </hc:Window.Resources>
 
