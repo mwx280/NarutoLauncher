@@ -14,11 +14,15 @@
         </Grid.ColumnDefinitions>
 
         <!-- 左侧导航 -->
-        <Border Grid.Column="0" Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+        <Border Grid.Column="0" Background="{DynamicResource NavBackground}"
+                BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,0,1,0">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Top" Margin="20,24,20,20">
-                    <TextBlock Text="火影忍者OL" FontSize="18" FontWeight="Bold" Foreground="#E8482C"/>
-                    <TextBlock Text="启动器" FontSize="12" Foreground="#999" Margin="0,2,0,0"/>
+                    <TextBlock Text="火影忍者OL" FontSize="18" FontWeight="Bold"
+                               Foreground="{DynamicResource AccentBrush}"/>
+                    <TextBlock Text="启动器" FontSize="12"
+                               Foreground="{DynamicResource AppForegroundSecondary}"
+                               Margin="0,2,0,0"/>
                 </StackPanel>
                 <ListBox x:Name="NavList" BorderThickness="0" Background="Transparent"
                          SelectionChanged="OnNavChanged" SelectedIndex="0"
@@ -27,6 +31,7 @@
                         <Style TargetType="ListBoxItem">
                             <Setter Property="Padding" Value="20,10"/>
                             <Setter Property="Margin" Value="8,2"/>
+                            <Setter Property="Foreground" Value="{DynamicResource AppForeground}"/>
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ListBoxItem">
@@ -37,12 +42,15 @@
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="Bd" Property="Background" Value="#DCE9FB"/>
-                                                <Setter Property="Foreground" Value="#1B5FA8"/>
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{DynamicResource AccentFaint}"/>
+                                                <Setter Property="Foreground"
+                                                        Value="{DynamicResource AccentBrush}"/>
                                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                             </Trigger>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Bd" Property="Background" Value="#F0F5FC"/>
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{DynamicResource RowBackground}"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
@@ -59,7 +67,7 @@
         </Border>
 
         <!-- 右侧内容 -->
-        <Grid Grid.Column="1">
+        <Grid Grid.Column="1" Background="{DynamicResource AppBackground}">
             <ContentControl x:Name="ContentHost"/>
         </Grid>
     </Grid>

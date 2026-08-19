@@ -7,6 +7,12 @@
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- 强调色（默认橙色，可由 ThemeManager 动态替换） -->
+            <SolidColorBrush x:Key="AccentBrush" Color="#E8482C"/>
+            <SolidColorBrush x:Key="AccentBrushHover" Color="#F05A3D"/>
+            <SolidColorBrush x:Key="AccentBrushPressed" Color="#C93D24"/>
+            <SolidColorBrush x:Key="AccentFaint" Color="#FDE8E3"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

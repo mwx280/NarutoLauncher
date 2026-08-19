@@ -19,7 +19,8 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Track" Property="Background" Value="#0078D4"/>
+                                <Setter TargetName="Track" Property="Background"
+                                        Value="{DynamicResource AccentBrush}"/>
                                 <Setter TargetName="Thumb" Property="Margin" Value="23,0,0,0"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -31,7 +32,7 @@
         <!-- Win11 设置项行：图标 + 名称/说明 + 开关 -->
         <Style x:Key="SettingRowStyle" TargetType="Border">
             <Setter Property="Padding" Value="20,14"/>
-            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="Background" Value="{DynamicResource RowBackground}"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Margin" Value="0,3"/>
         </Style>
@@ -40,24 +41,148 @@
         <Style x:Key="SettingIconStyle" TargetType="Border">
             <Setter Property="Width" Value="28"/>
             <Setter Property="Height" Value="28"/>
-            <Setter Property="Background" Value="#E8E8E8"/>
+            <Setter Property="Background" Value="{DynamicResource IconBackground}"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Margin" Value="0,0,14,0"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- 设置项图标文字 -->
+        <Style x:Key="SettingIconTextStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- 设置项名称文字 -->
+        <Style x:Key="ItemNameStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppForeground}"/>
+        </Style>
+
+        <!-- 设置项说明文字 -->
+        <Style x:Key="ItemDescStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppForegroundSecondary}"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+
+        <!-- 分组标题 -->
+        <Style x:Key="GroupTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource GroupTitle}"/>
+            <Setter Property="Margin" Value="4,8,0,4"/>
+        </Style>
+
+        <!-- 页面大标题 -->
+        <Style x:Key="PageTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppForeground}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <!-- 主题单选按钮 -->
+        <Style x:Key="ThemeRadioStyle" TargetType="RadioButton">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppForeground}"/>
+            <Setter Property="Margin" Value="0,6,24,6"/>
         </Style>
     </UserControl.Resources>
 
     <ScrollViewer>
         <StackPanel Margin="28,20,28,24">
 
-            <TextBlock Text="设置" FontSize="24" FontWeight="SemiBold" Foreground="#1A1A1A"
-                       Margin="0,0,0,4"/>
-            <TextBlock Text="Windows 11 设置风格" FontSize="13" Foreground="#666"
-                       Margin="0,0,0,16"/>
+            <TextBlock Text="设置" Style="{StaticResource PageTitleStyle}"/>
+            <TextBlock Text="Windows 11 设置风格" FontSize="13"
+                       Foreground="{DynamicResource AppForegroundSecondary}" Margin="0,0,0,16"/>
 
-            <!-- 游戏分组 -->
-            <TextBlock Text="游戏" FontSize="14" FontWeight="SemiBold" Foreground="#333"
-                       Margin="4,8,0,4"/>
+            <!-- ===== 个性化分组 ===== -->
+            <TextBlock Text="个性化" Style="{StaticResource GroupTitleStyle}"/>
+
+            <!-- 深色模式 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE706;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="深色模式" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="选择应用的外观模式" Style="{StaticResource ItemDescStyle}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <RadioButton x:Name="ThemeSystemRadio" Content="跟随系统"
+                                         Style="{StaticResource ThemeRadioStyle}"
+                                         GroupName="theme" Checked="OnThemeChanged"/>
+                            <RadioButton x:Name="ThemeDarkRadio" Content="深色"
+                                         Style="{StaticResource ThemeRadioStyle}"
+                                         GroupName="theme" Checked="OnThemeChanged"/>
+                            <RadioButton x:Name="ThemeLightRadio" Content="浅色"
+                                         Style="{StaticResource ThemeRadioStyle}"
+                                         GroupName="theme" Checked="OnThemeChanged"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 主题色 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE790;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="主题色" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="选择强调色（按钮/开关/选中状态）" Style="{StaticResource ItemDescStyle}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <RadioButton x:Name="AccentSystemRadio" Content="跟随系统"
+                                         Style="{StaticResource ThemeRadioStyle}"
+                                         GroupName="accent" Checked="OnAccentChanged"/>
+                            <RadioButton x:Name="AccentCustomRadio" Content="自定义"
+                                         Style="{StaticResource ThemeRadioStyle}"
+                                         GroupName="accent" Checked="OnAccentChanged"/>
+                            <!-- 色板 -->
+                            <StackPanel x:Name="ColorPalette" Orientation="Horizontal"
+                                        Visibility="Collapsed" VerticalAlignment="Center">
+                                <Border x:Name="ColorChip0" Width="22" Height="22" CornerRadius="4"
+                                        Background="#E8482C" Margin="0,0,6,0" Cursor="Hand"
+                                        MouseLeftButtonUp="OnColorClick" Tag="#E8482C"/>
+                                <Border x:Name="ColorChip1" Width="22" Height="22" CornerRadius="4"
+                                        Background="#0078D4" Margin="0,0,6,0" Cursor="Hand"
+                                        MouseLeftButtonUp="OnColorClick" Tag="#0078D4"/>
+                                <Border x:Name="ColorChip2" Width="22" Height="22" CornerRadius="4"
+                                        Background="#107C10" Margin="0,0,6,0" Cursor="Hand"
+                                        MouseLeftButtonUp="OnColorClick" Tag="#107C10"/>
+                                <Border x:Name="ColorChip3" Width="22" Height="22" CornerRadius="4"
+                                        Background="#8764B8" Margin="0,0,6,0" Cursor="Hand"
+                                        MouseLeftButtonUp="OnColorClick" Tag="#8764B8"/>
+                                <Border x:Name="ColorChip4" Width="22" Height="22" CornerRadius="4"
+                                        Background="#FFB900" Margin="0,0,6,0" Cursor="Hand"
+                                        MouseLeftButtonUp="OnColorClick" Tag="#FFB900"/>
+                                <Border x:Name="ColorChip5" Width="22" Height="22" CornerRadius="4"
+                                        Background="#00B7C3" Margin="0,0,6,0" Cursor="Hand"
+                                        MouseLeftButtonUp="OnColorClick" Tag="#00B7C3"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ===== 游戏分组 ===== -->
+            <TextBlock Text="游戏" Style="{StaticResource GroupTitleStyle}"/>
 
             <!-- 游戏变速 -->
             <Border Style="{StaticResource SettingRowStyle}">
@@ -68,14 +193,11 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE94A;" FontFamily="Segoe Fluent Icons"
-                                   FontSize="15" Foreground="#0078D4"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="&#xE94A;" Style="{StaticResource SettingIconTextStyle}"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="游戏变速" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
-                        <TextBlock Text="调整游戏运行速度" FontSize="12" Foreground="#666"
-                                   Margin="0,2,0,0"/>
+                        <TextBlock Text="游戏变速" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="调整游戏运行速度" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ToggleButton Grid.Column="2" x:Name="GameSpeedBox"
                                   Style="{StaticResource SwitchStyle}"/>
@@ -91,23 +213,19 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xEA18;" FontFamily="Segoe Fluent Icons"
-                                   FontSize="15" Foreground="#0078D4"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="&#xEA18;" Style="{StaticResource SettingIconTextStyle}"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="挂机防掉线" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
-                        <TextBlock Text="挂机时自动重连，防止掉线" FontSize="12" Foreground="#666"
-                                   Margin="0,2,0,0"/>
+                        <TextBlock Text="挂机防掉线" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="挂机时自动重连，防止掉线" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ToggleButton Grid.Column="2" x:Name="AntiDropBox"
                                   Style="{StaticResource SwitchStyle}"/>
                 </Grid>
             </Border>
 
-            <!-- 自动化分组 -->
-            <TextBlock Text="自动化" FontSize="14" FontWeight="SemiBold" Foreground="#333"
-                       Margin="4,12,0,4"/>
+            <!-- ===== 自动化分组 ===== -->
+            <TextBlock Text="自动化" Style="{StaticResource GroupTitleStyle}"/>
 
             <!-- 自动脚本 -->
             <Border Style="{StaticResource SettingRowStyle}">
@@ -118,14 +236,11 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons"
-                                   FontSize="15" Foreground="#0078D4"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="&#xE713;" Style="{StaticResource SettingIconTextStyle}"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="自动脚本" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
-                        <TextBlock Text="自动执行预设脚本任务" FontSize="12" Foreground="#666"
-                                   Margin="0,2,0,0"/>
+                        <TextBlock Text="自动脚本" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="自动执行预设脚本任务" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ToggleButton Grid.Column="2" x:Name="AutoScriptBox"
                                   Style="{StaticResource SwitchStyle}"/>
@@ -141,23 +256,19 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE9D5;" FontFamily="Segoe Fluent Icons"
-                                   FontSize="15" Foreground="#0078D4"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="&#xE9D5;" Style="{StaticResource SettingIconTextStyle}"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="自动任务" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
-                        <TextBlock Text="自动完成日常任务" FontSize="12" Foreground="#666"
-                                   Margin="0,2,0,0"/>
+                        <TextBlock Text="自动任务" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="自动完成日常任务" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ToggleButton Grid.Column="2" x:Name="AutoTaskBox"
                                   Style="{StaticResource SwitchStyle}"/>
                 </Grid>
             </Border>
 
-            <!-- 界面分组 -->
-            <TextBlock Text="界面" FontSize="14" FontWeight="SemiBold" Foreground="#333"
-                       Margin="4,12,0,4"/>
+            <!-- ===== 界面分组 ===== -->
+            <TextBlock Text="界面" Style="{StaticResource GroupTitleStyle}"/>
 
             <!-- 最小化到托盘 -->
             <Border Style="{StaticResource SettingRowStyle}">
@@ -168,23 +279,19 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE7F4;" FontFamily="Segoe Fluent Icons"
-                                   FontSize="15" Foreground="#0078D4"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="&#xE7F4;" Style="{StaticResource SettingIconTextStyle}"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="最小化到托盘" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
-                        <TextBlock Text="关闭窗口时最小化到系统托盘" FontSize="12" Foreground="#666"
-                                   Margin="0,2,0,0"/>
+                        <TextBlock Text="最小化到托盘" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="关闭窗口时最小化到系统托盘" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ToggleButton Grid.Column="2" x:Name="TrayBox"
                                   Style="{StaticResource SwitchStyle}"/>
                 </Grid>
             </Border>
 
-            <!-- 账号与安全分组 -->
-            <TextBlock Text="账号与安全" FontSize="14" FontWeight="SemiBold" Foreground="#333"
-                       Margin="4,12,0,4"/>
+            <!-- ===== 账号与安全分组 ===== -->
+            <TextBlock Text="账号与安全" Style="{StaticResource GroupTitleStyle}"/>
 
             <!-- 记住密码 -->
             <Border Style="{StaticResource SettingRowStyle}">
@@ -195,23 +302,19 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE72E;" FontFamily="Segoe Fluent Icons"
-                                   FontSize="15" Foreground="#0078D4"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="&#xE72E;" Style="{StaticResource SettingIconTextStyle}"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="记住密码" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
-                        <TextBlock Text="本地 DPAPI 加密存储，安全保存账号密码" FontSize="12" Foreground="#666"
-                                   Margin="0,2,0,0"/>
+                        <TextBlock Text="记住密码" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="本地 DPAPI 加密存储，安全保存账号密码" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ToggleButton Grid.Column="2" x:Name="RememberPwdBox"
                                   Style="{StaticResource SwitchStyle}"/>
                 </Grid>
             </Border>
 
-            <!-- 关于分组 -->
-            <TextBlock Text="关于" FontSize="14" FontWeight="SemiBold" Foreground="#333"
-                       Margin="4,12,0,4"/>
+            <!-- ===== 关于分组 ===== -->
+            <TextBlock Text="关于" Style="{StaticResource GroupTitleStyle}"/>
 
             <!-- 关于 -->
             <Border Style="{StaticResource SettingRowStyle}">
@@ -222,14 +325,12 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE946;" FontFamily="Segoe Fluent Icons"
-                                   FontSize="15" Foreground="#0078D4"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="&#xE946;" Style="{StaticResource SettingIconTextStyle}"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="NarutoLauncher" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
-                        <TextBlock Text="v0.1.0 · 火影忍者OL 多账号多开启动器" FontSize="12" Foreground="#666"
-                                   Margin="0,2,0,0"/>
+                        <TextBlock Text="NarutoLauncher" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="v0.1.0 · 火影忍者OL 多账号多开启动器"
+                                   Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                 </Grid>
             </Border>

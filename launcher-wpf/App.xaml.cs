@@ -26,11 +26,30 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // 应用主题（深色/浅色 + 强调色）
+        var s = Settings;
+        var accent = ParseColor(s.AccentColor);
+        ThemeManager.Apply(s.ThemeMode, s.AccentMode == AccentMode.Custom, accent);
+
         var win = new MainWindow();
         MainWindow = win;
         // 主窗口句柄（WPF 窗口的 HWND，创建后获取）
         var helper = new System.Windows.Interop.WindowInteropHelper(win);
         win.SourceInitialized += (_, _) => MainWindowHandle = helper.Handle;
         win.Show();
+    }
+
+    /// <summary>解析 #RRGGBB 颜色。</summary>
+    private static System.Windows.Media.Color ParseColor(string hex)
+    {
+        try
+        {
+            return (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex);
+        }
+        catch
+        {
+            return System.Windows.Media.Color.FromRgb(0xE8, 0x48, 0x2C);
+        }
     }
 }

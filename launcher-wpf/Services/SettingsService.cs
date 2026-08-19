@@ -2,6 +2,29 @@ using System.Text.Json;
 
 namespace NarutoLauncher.Services;
 
+/// <summary>界面主题模式。</summary>
+public enum ThemeMode
+{
+    /// <summary>跟随系统。</summary>
+    System = 0,
+
+    /// <summary>深色。</summary>
+    Dark = 1,
+
+    /// <summary>浅色。</summary>
+    Light = 2,
+}
+
+/// <summary>强调色模式。</summary>
+public enum AccentMode
+{
+    /// <summary>跟随系统。</summary>
+    System = 0,
+
+    /// <summary>自定义。</summary>
+    Custom = 1,
+}
+
 /// <summary>
 /// 应用设置：本地 JSON 持久化（设置页各项），属性变更时自动保存。
 /// </summary>
@@ -14,9 +37,11 @@ public class SettingsService
     private bool _antiDrop = true;
     private bool _autoScript;
     private bool _autoTask;
-    private bool _darkTheme;
     private bool _minimizeToTray = true;
     private bool _rememberPassword = true;
+    private ThemeMode _themeMode = ThemeMode.System;
+    private AccentMode _accentMode = AccentMode.System;
+    private string _accentColor = "#E8482C";
 
     public SettingsService()
     {
@@ -32,9 +57,50 @@ public class SettingsService
     public bool AntiDrop { get => _antiDrop; set { if (_antiDrop != value) { _antiDrop = value; Save(); } } }
     public bool AutoScript { get => _autoScript; set { if (_autoScript != value) { _autoScript = value; Save(); } } }
     public bool AutoTask { get => _autoTask; set { if (_autoTask != value) { _autoTask = value; Save(); } } }
-    public bool DarkTheme { get => _darkTheme; set { if (_darkTheme != value) { _darkTheme = value; Save(); } } }
     public bool MinimizeToTray { get => _minimizeToTray; set { if (_minimizeToTray != value) { _minimizeToTray = value; Save(); } } }
     public bool RememberPassword { get => _rememberPassword; set { if (_rememberPassword != value) { _rememberPassword = value; Save(); } } }
+
+    /// <summary>界面主题模式。</summary>
+    public ThemeMode ThemeMode
+    {
+        get => _themeMode;
+        set
+        {
+            if (_themeMode != value)
+            {
+                _themeMode = value;
+                Save();
+            }
+        }
+    }
+
+    /// <summary>强调色模式。</summary>
+    public AccentMode AccentMode
+    {
+        get => _accentMode;
+        set
+        {
+            if (_accentMode != value)
+            {
+                _accentMode = value;
+                Save();
+            }
+        }
+    }
+
+    /// <summary>自定义强调色（#RRGGBB）。</summary>
+    public string AccentColor
+    {
+        get => _accentColor;
+        set
+        {
+            if (_accentColor != value)
+            {
+                _accentColor = value;
+                Save();
+            }
+        }
+    }
 
     public void Save()
     {
@@ -46,9 +112,11 @@ public class SettingsService
                 AntiDrop = _antiDrop,
                 AutoScript = _autoScript,
                 AutoTask = _autoTask,
-                DarkTheme = _darkTheme,
                 MinimizeToTray = _minimizeToTray,
                 RememberPassword = _rememberPassword,
+                ThemeMode = _themeMode,
+                AccentMode = _accentMode,
+                AccentColor = _accentColor,
             };
             var json = JsonSerializer.Serialize(dto, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_path, json);
@@ -71,9 +139,11 @@ public class SettingsService
             _antiDrop = dto.AntiDrop;
             _autoScript = dto.AutoScript;
             _autoTask = dto.AutoTask;
-            _darkTheme = dto.DarkTheme;
             _minimizeToTray = dto.MinimizeToTray;
             _rememberPassword = dto.RememberPassword;
+            _themeMode = dto.ThemeMode;
+            _accentMode = dto.AccentMode;
+            _accentColor = string.IsNullOrEmpty(dto.AccentColor) ? "#E8482C" : dto.AccentColor;
         }
         catch (Exception ex)
         {
@@ -88,8 +158,10 @@ public class SettingsService
         public bool AntiDrop { get; set; } = true;
         public bool AutoScript { get; set; }
         public bool AutoTask { get; set; }
-        public bool DarkTheme { get; set; }
         public bool MinimizeToTray { get; set; } = true;
         public bool RememberPassword { get; set; } = true;
+        public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
+        public AccentMode AccentMode { get; set; } = AccentMode.System;
+        public string AccentColor { get; set; } = "#E8482C";
     }
 }
