@@ -13,7 +13,7 @@ class QPushButton;
 class QLabel;
 class QWidget;
 
-// 单个账号卡片：展示备注/账号/密码，支持编辑保存、自动登录勾选、删除与开始游戏。
+// 单个账号卡片：展示备注/账号/密码，支持编辑保存、删除与开始游戏。
 class AccountCard : public QFrame {
     Q_OBJECT
 public:
@@ -31,9 +31,15 @@ private:
     QLineEdit* remark_;
     QLineEdit* username_;
     QLineEdit* password_;
-    QCheckBox* autoLogin_;
+    QLabel* typeLabel_;       // 登录类型标签（"扫码"/"QQ"）
+    QCheckBox* scanLogin_;    // 扫码登录（仅编辑时可见）
+    QPushButton* editBtn_;    // 编辑/保存 按钮
+    QPushButton* startBtn_;   // 开始游戏 按钮（编辑时隐藏）
     bool editing_ = false;
 
+    // 根据登录类型返回卡片主显示名：
+    //   扫码登录 → 备注（必填）；QQ 登录 → 有备注显示备注，否则显示 QQ 号。
+    QString DisplayName(const AccountInfo& info) const;
     void ApplyMode();
 };
 
@@ -69,7 +75,9 @@ private:
     QLineEdit* addRemark_;
     QLineEdit* addUsername_;
     QLineEdit* addPassword_;
+    QCheckBox* addScanLogin_;   // 添加表单：扫码登录复选框
     QWidget* addForm_;
+    QLabel* emptyLabel_;   // 空账号列表时的引导提示
 
     void AddAccountToUi(const AccountInfo& info);
     void SaveAll();

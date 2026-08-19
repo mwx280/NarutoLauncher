@@ -9,7 +9,7 @@ const QString kKeyAccountCount = "accounts/count";
 const QString kKeyRemark = "accounts/%1/remark";
 const QString kKeyUsername = "accounts/%1/username";
 const QString kKeyPassword = "accounts/%1/password";
-const QString kKeyAutoLogin = "accounts/%1/autoLogin";
+const QString kKeyScanLogin = "accounts/%1/scanLogin";
 
 }  // namespace
 
@@ -22,9 +22,10 @@ QVector<AccountInfo> AccountStore::LoadAll() const {
         info.remark = settings.value(kKeyRemark.arg(i)).toString();
         info.username = settings.value(kKeyUsername.arg(i)).toString();
         info.password = settings.value(kKeyPassword.arg(i)).toString();
-        info.autoLogin = settings.value(kKeyAutoLogin.arg(i), false).toBool();
-        if (info.username.isEmpty())
-            continue;  // 跳过异常空记录
+        info.scanLogin = settings.value(kKeyScanLogin.arg(i), false).toBool();
+        // 跳过完全无标识的异常记录（扫码登录账号 username 可能为空）
+        if (info.remark.isEmpty() && info.username.isEmpty())
+            continue;
         result.append(info);
     }
     return result;
@@ -39,7 +40,7 @@ void AccountStore::SaveAll(const QVector<AccountInfo>& accounts) const {
         settings.setValue(kKeyRemark.arg(i), a.remark);
         settings.setValue(kKeyUsername.arg(i), a.username);
         settings.setValue(kKeyPassword.arg(i), a.password);
-        settings.setValue(kKeyAutoLogin.arg(i), a.autoLogin);
+        settings.setValue(kKeyScanLogin.arg(i), a.scanLogin);
     }
     settings.sync();
 }

@@ -1,15 +1,10 @@
 #include "frameless_window.h"
 
 #include <QApplication>
-#include <QEasingCurve>
+#include <QCloseEvent>
 #include <QKeyEvent>
-#include <QLabel>
-#include <QParallelAnimationGroup>
-#include <QPropertyAnimation>
 #include <QScreen>
 #include <QVBoxLayout>
-
-#include <functional>
 
 #include "title_bar.h"
 
@@ -69,7 +64,7 @@ FramelessWindow::FramelessWindow(QWidget* parent) : QMainWindow(parent) {
     rootLayout_->addWidget(titleBar_);
 
     connect(titleBar_, &TitleBar::MinimizeRequested, this, [this]() {
-        OnMinimizeWithAnimation();
+        OnMinimize();
     });
     connect(titleBar_, &TitleBar::MaximizeRequested, this, [this]() {
         OnMaximizeToggle();
@@ -110,112 +105,49 @@ bool FramelessWindow::IsWindowFullscreen() const {
 }
 
 void FramelessWindow::OnMaximizeToggle() {
-    if (animating_)
-        return;
-
     if (IsActuallyMaximized(this)) {
-        // 还原：动画回原来的普通几何。
-        AnimateGeometry(normalGeometry_, [this]() {
-            showNormal();
-        });
+        showNormal();
     } else {
-        // 最大化：保存当前几何，动画到工作区。
-        normalGeometry_ = geometry();
-        QScreen* screen = QApplication::screenAt(geometry().center());
-        if (!screen)
-            return;
-        const QRect target = screen->availableGeometry();
-        AnimateGeometry(target, [this]() {
-            showMaximized();
-        });
+        normalGeometry_ = geometry();  // 记录还原位置
+        showMaximized();
     }
 }
 
 void FramelessWindow::OnFullscreenToggle() {
-    if (animating_)
-        return;
-
     if (isFullScreen()) {
-        AnimateGeometry(normalGeometry_, [this]() {
-            showNormal();
-        });
+        showNormal();
     } else {
         normalGeometry_ = geometry();
-        QScreen* screen = QApplication::screenAt(geometry().center());
-        if (!screen)
-            return;
-        // 全屏目标：整个屏幕（含任务栏区域）。
-        const QRect target = screen->geometry();
-        AnimateGeometry(target, [this]() {
-            showFullScreen();
-        });
+        showFullScreen();
     }
 }
 
-void FramelessWindow::OnMinimizeWithAnimation() {
-    if (animating_)
-        return;
-
-    // 缩小 + 淡出动画，结束后真正最小化。
-    const QRect from = geometry();
-    // 缩小到屏幕底部居中的一个窄条。
-    QScreen* screen = QApplication::screenAt(geometry().center());
-    if (!screen) {
-        showMinimized();
-        return;
-    }
-    const QRect sr = screen->geometry();
-    QRect to(sr.left() + sr.width() / 2 - 40, sr.bottom() - 2, 80, 2);
-
-    QPropertyAnimation* geo = new QPropertyAnimation(this, "geometry", this);
-    geo->setDuration(180);
-    geo->setStartValue(from);
-    geo->setEndValue(to);
-    geo->setEasingCurve(QEasingCurve::InCubic);
-
-    QPropertyAnimation* opacity = new QPropertyAnimation(this, "windowOpacity", this);
-    opacity->setDuration(180);
-    opacity->setStartValue(1.0);
-    opacity->setEndValue(0.0);
-    opacity->setEasingCurve(QEasingCurve::InCubic);
-
-    // 两个动画并行，结束一起触发最小化。
-    auto group = new QParallelAnimationGroup(this);
-    group->addAnimation(geo);
-    group->addAnimation(opacity);
-    animating_ = true;
-    connect(group, &QParallelAnimationGroup::finished, this, [this, group]() {
-        animating_ = false;
-        setWindowOpacity(1.0);  // 还原透明度，供下次显示
-        showMinimized();
-        group->deleteLater();
-    });
-    group->start();
+void FramelessWindow::OnMinimize() {
+    showMinimized();
 }
 
 void FramelessWindow::RestoreForDrag() {
-    if (animating_)
-        return;  // 动画中不打断
     showNormal();
     // showNormal 恢复后，normalGeometry_ 保持拖拽前的普通几何用于还原。
 }
 
-void FramelessWindow::AnimateGeometry(const QRect& to,
-                                      std::function<void()> finish) {
-    const QRect from = geometry();
-    QPropertyAnimation* anim = new QPropertyAnimation(this, "geometry", this);
-    anim->setDuration(220);
-    anim->setStartValue(from);
-    anim->setEndValue(to);
-    anim->setEasingCurve(QEasingCurve::OutCubic);
-    animating_ = true;
-    connect(anim, &QPropertyAnimation::finished, this, [this, finish, anim]() {
-        animating_ = false;
-        if (finish)
-            finish();
-        anim->deleteLater();
-    });
-    anim->start();
+void FramelessWindow::SetCloseToTray(bool enabled) {
+    closeToTray_ = enabled;
+}
+
+void FramelessWindow::Quit() {
+    closeToTray_ = false;  // 允许关闭
+    close();
+}
+
+void FramelessWindow::closeEvent(QCloseEvent* event) {
+    if (closeToTray_) {
+        // 关闭即隐藏到托盘，不退出。
+        hide();
+        event->ignore();
+        return;
+    }
+    QMainWindow::closeEvent(event);
 }
 
 void FramelessWindow::resizeEvent(QResizeEvent* event) {

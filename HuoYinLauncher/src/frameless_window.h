@@ -54,6 +54,13 @@ public:
     // 拖拽时从最大化立即还原（无动画），供 TitleBar 拖动调用。
     void RestoreForDrag();
 
+    // 设置是否"关闭即隐藏"（配合托盘）。默认 true：点关闭按钮隐藏到托盘，
+    // 由托盘菜单"退出"真正结束程序。
+    void SetCloseToTray(bool enabled);
+
+    // 供托盘"退出"调用：置允许关闭后真正退出。
+    void Quit();
+
 protected:
     // 拦截 WM_NCHITTEST 实现无边框边缘缩放；其余事件交给基类。
     bool nativeEvent(const QByteArray& event_type,
@@ -62,15 +69,15 @@ protected:
     // ESC 退出全屏。
     void keyPressEvent(QKeyEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
+    // 关闭拦截：关闭即隐藏到托盘。
+    void closeEvent(QCloseEvent* event) override;
 
 private:
     void OnMaximizeToggle();
     void OnFullscreenToggle();
-    void OnMinimizeWithAnimation();
+    void OnMinimize();
 
-    // 窗口几何平滑动画（from 当前几何 → to 目标几何），结束后执行 finish。
-    void AnimateGeometry(const QRect& to,
-                         std::function<void()> finish = nullptr);
+    bool closeToTray_ = true;
 
     // 根据消息坐标判定当前命中区域（返回 Win32 HT* 常量）。
     long HitTestFromMsg(long x, long y);
@@ -78,9 +85,8 @@ private:
     // 同步阴影边距与标题栏按钮图标（在窗口状态变化后调用）。
     void SyncWindowState();
 
-    // 动画进行中的原始窗口状态（还原/退出全屏的目标位置）。
+    // 窗口普通（非最大化/全屏）状态下的几何，供还原使用。
     QRect normalGeometry_;
-    bool animating_ = false;
 
     TitleBar* titleBar_;
     QVBoxLayout* rootLayout_;

@@ -6,6 +6,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSignalBlocker>
 #include <QVBoxLayout>
 
 namespace {
@@ -25,8 +26,12 @@ AccountCard::AccountCard(const AccountInfo& info, QWidget* parent) : QFrame(pare
     lay->setContentsMargins(10, 8, 10, 8);
     lay->setSpacing(5);
 
-    // 第一行：备注 + 删除
+    // 第一行：登录类型标签 + 主显示名（备注 / QQ号）+ 删除
     QHBoxLayout* top = new QHBoxLayout;
+    typeLabel_ = new QLabel(this);
+    typeLabel_->setObjectName("CardTypeLabel");
+    typeLabel_->setAlignment(Qt::AlignCenter);
+    top->addWidget(typeLabel_);
     remark_ = new QLineEdit(info.remark, this);
     remark_->setPlaceholderText("备注");
     remark_->setObjectName("CardRemark");
@@ -38,7 +43,7 @@ AccountCard::AccountCard(const AccountInfo& info, QWidget* parent) : QFrame(pare
     top->addWidget(del);
     lay->addLayout(top);
 
-    // 第二行：账号 + 密码
+    // 第二行：账号 + 密码（扫码登录时隐藏）
     QHBoxLayout* mid = new QHBoxLayout;
     username_ = new QLineEdit(info.username, this);
     username_->setPlaceholderText("账号 / QQ号");
@@ -49,43 +54,77 @@ AccountCard::AccountCard(const AccountInfo& info, QWidget* parent) : QFrame(pare
     mid->addWidget(password_, 1);
     lay->addLayout(mid);
 
-    // 第三行：自动登录 + 编辑 + 开始游戏
+    // 第三行：扫码登录（仅编辑时显示）+ 编辑 + 开始游戏
     QHBoxLayout* ops = new QHBoxLayout;
-    autoLogin_ = new QCheckBox("自动登录", this);
-    ops->addWidget(autoLogin_);
+    scanLogin_ = new QCheckBox("扫码登录", this);
+    ops->addWidget(scanLogin_);
     ops->addStretch();
-    QPushButton* edit = new QPushButton("编辑", this);
-    edit->setObjectName("CardButton");
-    ops->addWidget(edit);
-    QPushButton* start = new QPushButton("开始游戏", this);
-    start->setObjectName("CardButtonPrimary");
-    ops->addWidget(start);
+    editBtn_ = new QPushButton("编辑", this);
+    editBtn_->setObjectName("CardButton");
+    ops->addWidget(editBtn_);
+    startBtn_ = new QPushButton("开始游戏", this);
+    startBtn_->setObjectName("CardButtonPrimary");
+    ops->addWidget(startBtn_);
     lay->addLayout(ops);
 
-    ApplyMode();
+    SetInfo(info);
 
     connect(del, &QPushButton::clicked, this, &AccountCard::DeleteRequested);
-    connect(edit, &QPushButton::clicked, this, [this]() {
+    connect(editBtn_, &QPushButton::clicked, this, [this]() {
         editing_ = !editing_;
         ApplyMode();
         if (!editing_)
             emit Edited();
     });
-    connect(start, &QPushButton::clicked, this, [this]() {
+    connect(startBtn_, &QPushButton::clicked, this, [this]() {
         emit StartRequested(Info());
     });
+    // 编辑时切换登录方式：即时显示/隐藏 QQ 输入框；
+    // 从 QQ 切到扫码时，备注若为空则默认填入已有 QQ 号。
+    connect(scanLogin_, &QCheckBox::toggled, this, [this](bool checked) {
+        username_->setVisible(!checked);
+        password_->setVisible(!checked);
+        typeLabel_->setText(checked ? "扫码" : "QQ");
+        if (checked && remark_->text().trimmed().isEmpty())
+            remark_->setText(username_->text());  // QQ 号作为默认备注
+    });
+}
+
+QString AccountCard::DisplayName(const AccountInfo& info) const {
+    if (info.scanLogin)
+        return info.remark.isEmpty() ? "扫码登录" : info.remark;
+    return info.remark.isEmpty() ? info.username : info.remark;
 }
 
 void AccountCard::ApplyMode() {
     const bool editable = editing_;
+    const bool scan = scanLogin_->isChecked();
+
+    // 字段可编辑性
     remark_->setReadOnly(!editable);
     username_->setReadOnly(!editable);
     password_->setReadOnly(!editable);
-    autoLogin_->setEnabled(editable);
-    autoLogin_->setVisible(!editable || true);
-    // 编辑/保存按钮文字由外部持有，这里仅控制字段状态
-    if (!editable)
+    scanLogin_->setVisible(editable);
+    scanLogin_->setEnabled(editable);
+
+    // 编辑时：隐藏「开始游戏」，按钮文字切换 编辑/保存
+    startBtn_->setVisible(!editable);
+    editBtn_->setText(editable ? "保存" : "编辑");
+
+    // 可见性
+    username_->setVisible(editable && !scan);
+    password_->setVisible(editable && !scan);
+    typeLabel_->setVisible(true);
+    remark_->setVisible(true);
+
+    if (!editable) {
+        // 非编辑态：主显示名 + 隐藏账号/密码
+        remark_->setText(DisplayName(Info()));
         password_->setEchoMode(QLineEdit::Password);
+    } else {
+        // 编辑态：显示真实备注，扫码账号密码框自动隐藏（由 toggled 处理）
+        remark_->setText(Info().remark);
+    }
 }
 
 AccountInfo AccountCard::Info() const {
@@ -93,15 +132,20 @@ AccountInfo AccountCard::Info() const {
     i.remark = remark_->text();
     i.username = username_->text();
     i.password = password_->text();
-    i.autoLogin = autoLogin_->isChecked();
+    i.scanLogin = scanLogin_->isChecked();
     return i;
 }
 
 void AccountCard::SetInfo(const AccountInfo& info) {
+    // 先清空触发一次切换逻辑，避免 toggled 干扰初始设置
+    QSignalBlocker blocker(scanLogin_);
+    scanLogin_->setChecked(info.scanLogin);
+    blocker.unblock();
     remark_->setText(info.remark);
     username_->setText(info.username);
     password_->setText(info.password);
-    autoLogin_->setChecked(info.autoLogin);
+    typeLabel_->setText(info.scanLogin ? "扫码" : "QQ");
+    ApplyMode();
 }
 
 // ------------------------- 左侧导航栏 -------------------------
@@ -154,8 +198,13 @@ SideNav::SideNav(QWidget* parent) : QFrame(parent) {
     QVBoxLayout* fl = new QVBoxLayout(addForm_);
     fl->setContentsMargins(10, 10, 10, 10);
     fl->setSpacing(6);
+
+    // 扫码登录复选框
+    addScanLogin_ = new QCheckBox("扫码登录（无需 QQ 号/密码）", addForm_);
+    fl->addWidget(addScanLogin_);
+
     addRemark_ = new QLineEdit(addForm_);
-    addRemark_->setPlaceholderText("备注（可选）");
+    addRemark_->setPlaceholderText("备注（扫码登录必填）");
     fl->addWidget(addRemark_);
     addUsername_ = new QLineEdit(addForm_);
     addUsername_->setPlaceholderText("账号 / QQ号");
@@ -181,6 +230,15 @@ SideNav::SideNav(QWidget* parent) : QFrame(parent) {
     accountsLayout_ = new QVBoxLayout(host);
     accountsLayout_->setContentsMargins(0, 0, 4, 0);
     accountsLayout_->setSpacing(8);
+
+    // 空账号引导提示（无账号时显示）
+    emptyLabel_ = new QLabel(
+        "还没有账号\n\n点击上方「＋ 添加账号」\n保存后即可一键登录游戏", host);
+    emptyLabel_->setObjectName("EmptyLabel");
+    emptyLabel_->setAlignment(Qt::AlignCenter);
+    emptyLabel_->setWordWrap(true);
+    accountsLayout_->addWidget(emptyLabel_);
+
     accountsLayout_->addStretch();
     scroll_->setWidget(host);
     bl->addWidget(scroll_, 1);
@@ -205,18 +263,41 @@ SideNav::SideNav(QWidget* parent) : QFrame(parent) {
     connect(cancelBtn, &QPushButton::clicked, this, [this]() {
         addForm_->setVisible(false);
     });
+
+    // 勾选扫码登录：隐藏账号/密码，备注变为必填
+    connect(addScanLogin_, &QCheckBox::toggled, this, [this](bool checked) {
+        addUsername_->setVisible(!checked);
+        addPassword_->setVisible(!checked);
+        addRemark_->setPlaceholderText(checked
+                                           ? "备注（扫码登录必填）"
+                                           : "备注（可选）");
+        if (checked)
+            addRemark_->setFocus();
+    });
+
     connect(saveBtn, &QPushButton::clicked, this, [this]() {
         AccountInfo info;
         info.remark = addRemark_->text();
         info.username = addUsername_->text();
         info.password = addPassword_->text();
-        if (info.username.isEmpty())
-            return;
+        info.scanLogin = addScanLogin_->isChecked();
+        if (info.scanLogin) {
+            // 扫码登录：备注必填
+            if (info.remark.trimmed().isEmpty())
+                return;
+            info.username.clear();
+            info.password.clear();
+        } else {
+            // QQ 登录：账号必填
+            if (info.username.isEmpty())
+                return;
+        }
         AddAccountToUi(info);
         SaveAll();
         addRemark_->clear();
         addUsername_->clear();
         addPassword_->clear();
+        addScanLogin_->setChecked(false);
         addForm_->setVisible(false);
     });
 }
@@ -227,6 +308,9 @@ void SideNav::LoadFromStore(const QVector<AccountInfo>& accounts) {
 }
 
 void SideNav::AddAccountToUi(const AccountInfo& info) {
+    // 隐藏空状态引导
+    emptyLabel_->hide();
+
     AccountCard* card = new AccountCard(info, scroll_);
     accountsLayout_->insertWidget(accountsLayout_->count() - 1, card);
 
@@ -239,6 +323,9 @@ void SideNav::AddAccountToUi(const AccountInfo& info) {
         accountsLayout_->removeWidget(card);
         card->deleteLater();
         SaveAll();
+        // 若没有账号了，重新显示引导
+        if (Accounts().isEmpty())
+            emptyLabel_->show();
     });
 }
 

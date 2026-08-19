@@ -10,7 +10,7 @@ struct AccountInfo {
     QString remark;    // 备注名（可选，用于区分多个账号）
     QString username;  // 账号（QQ号）
     QString password;  // 密码
-    bool autoLogin = false;  // 是否自动登录
+    bool scanLogin = false;   // 是否扫码登录（勾选后无需 QQ 号/密码，但备注必填）
 };
 
 // 账号存储管理：基于 QSettings 将账号列表持久化到本地。

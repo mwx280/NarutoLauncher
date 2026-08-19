@@ -24,6 +24,10 @@ add_executable(HuoYinLauncher WIN32
     src/side_nav.h
     src/account.cpp
     src/account.h
+    src/tray_icon.cpp
+    src/tray_icon.h
+    assets.qrc
+    app.rc
 )
 
 target_link_libraries(HuoYinLauncher PRIVATE

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/kunai.png</file>
+        <file>assets/app.ico</file>
+    </qresource>
+</RCC>

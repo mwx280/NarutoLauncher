@@ -4,10 +4,10 @@
 #include <QLabel>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPixmap>
 #include <QPolygonF>
 #include <QPushButton>
-
 #include <functional>
 
 #include "frameless_window.h"
@@ -94,6 +94,45 @@ QIcon CloseIcon() {
     });
 }
 
+// 苦无图标：竖直放置，尖刃 + 加长刃 + 环形手柄。
+// 用实心填充（非线框），金属质感与界面橙色点缀协调。
+QIcon KunaiIcon() {
+    QPixmap pm(kIconSize, kIconSize);
+    pm.fill(Qt::transparent);
+    QPainter p(&pm);
+    p.setRenderHint(QPainter::Antialiasing);
+
+    // 苦无轮廓（整体位于画布中央，竖直朝上）
+    QPainterPath path;
+    // 尖刃：从顶部尖端向两侧展开
+    path.moveTo(8.0, 1.5);          // 尖端
+    path.lineTo(11.0, 7.0);         // 右侧刃根
+    // 加长刃（刃身两侧的延长部分）：右上
+    path.lineTo(13.5, 5.0);
+    path.lineTo(12.2, 8.5);
+    // 右侧刃身外沿
+    path.lineTo(9.2, 9.2);
+    // 环形手柄：右下 → 左下
+    path.quadTo(8.0, 11.5, 6.8, 9.2);
+    // 左侧刃身外沿
+    path.lineTo(3.8, 8.5);
+    path.lineTo(2.5, 5.0);
+    path.lineTo(5.0, 7.0);
+    path.closeSubpath();
+
+    p.fillPath(path, QColor("#c9d2e0"));  // 浅金属色
+
+    // 手柄圆环
+    QPen ringPen(QColor("#ff9a3d"), 1.4);
+    ringPen.setCapStyle(Qt::RoundCap);
+    p.setPen(ringPen);
+    p.setBrush(Qt::NoBrush);
+    p.drawEllipse(QPointF(8.0, 13.0), 1.8, 1.8);
+
+    p.end();
+    return QIcon(pm);
+}
+
 // 创建统一尺寸、带图标的窗口控制按钮。
 QPushButton* MakeWinButton(const QIcon& icon, QWidget* parent) {
     QPushButton* btn = new QPushButton(parent);
@@ -112,14 +151,19 @@ TitleBar::TitleBar(QWidget* parent) : QWidget(parent) {
     setFixedHeight(40);
 
     QHBoxLayout* lay = new QHBoxLayout(this);
-    lay->setContentsMargins(12, 0, 4, 0);
-    lay->setSpacing(2);
+    lay->setContentsMargins(14, 0, 4, 0);
+    lay->setSpacing(8);
 
-    QLabel* logo = new QLabel("火", this);
+    // 苦无 Logo 图标（官方 favicon，资源内嵌）
+    QLabel* logo = new QLabel(this);
     logo->setObjectName("TitleLogo");
+    logo->setPixmap(QPixmap(":/assets/kunai.png"));
+    logo->setFixedSize(22, 22);
+    logo->setScaledContents(true);
+    logo->setAlignment(Qt::AlignCenter);
     lay->addWidget(logo);
 
-    title_ = new QLabel("火影忍者Online 启动器", this);
+    title_ = new QLabel("火影忍者Online", this);
     title_->setObjectName("TitleText");
     lay->addWidget(title_);
     lay->addStretch();
