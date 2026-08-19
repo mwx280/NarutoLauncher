@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace NarutoLauncher.Services;
@@ -22,15 +23,24 @@ public class NewsDetail
 }
 
 /// <summary>
-/// 官方公告服务：抓取并解析公告列表与详情（huoying.qq.com，GB2312 编码）。
+/// 官方公告服务：抓取、解析并缓存公告列表与详情（huoying.qq.com，GB2312 编码）。
+/// 启动时预加载缓存、刷新时增量合并、列表保留最多 10 条。
 /// </summary>
 public class NewsService
 {
     private const string ListUrl = "https://huoying.qq.com/server/website/";
     private const string BaseUrl = "https://huoying.qq.com";
+    private const int MaxNews = 10;
 
     private readonly HttpClient _http;
     private readonly Encoding _encoding;
+    private readonly string _cachePath;
+
+    /// <summary>当前公告列表（含缓存）。</summary>
+    public List<NewsItem> Items { get; private set; } = new();
+
+    /// <summary>已缓存的公告详情（Url → 正文）。</summary>
+    private readonly Dictionary<string, string> _detailCache = new();
 
     public NewsService()
     {
@@ -39,24 +49,115 @@ public class NewsService
         _http.Timeout = TimeSpan.FromSeconds(15);
         // 官网公告页面为 GBK/GB2312 编码（代码页 936 覆盖完整）
         _encoding = Encoding.GetEncoding(936);
+
+        var dir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "NarutoLauncher");
+        Directory.CreateDirectory(dir);
+        _cachePath = Path.Combine(dir, "news_cache.json");
+        LoadCache();
     }
 
-    /// <summary>抓取公告列表。</summary>
-    public async Task<List<NewsItem>> FetchListAsync()
+    // ---------- 缓存持久化 ----------
+
+    /// <summary>从本地缓存加载（启动时立即显示，无网络延迟）。</summary>
+    private void LoadCache()
+    {
+        try
+        {
+            if (!File.Exists(_cachePath)) return;
+            var json = File.ReadAllText(_cachePath, Encoding.UTF8);
+            var data = JsonSerializer.Deserialize<NewsCache>(json);
+            if (data == null) return;
+            Items = data.Items ?? new();
+            if (data.Details != null)
+            {
+                _detailCache.Clear();
+                foreach (var (k, v) in data.Details)
+                    _detailCache[k] = v;
+            }
+        }
+        catch
+        {
+            Items = new();
+            _detailCache.Clear();
+        }
+    }
+
+    private void SaveCache()
+    {
+        try
+        {
+            var data = new NewsCache
+            {
+                Items = Items,
+                Details = _detailCache,
+            };
+            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_cachePath, json, Encoding.UTF8);
+        }
+        catch { }
+    }
+
+    // ---------- 抓取与合并 ----------
+
+    /// <summary>
+    /// 拉取最新公告列表并增量合并：新公告插入头部，保留最多 10 条。
+    /// 返回本次是否有新公告。
+    /// </summary>
+    public async Task<bool> RefreshAsync()
     {
         var html = await FetchStringAsync(ListUrl);
-        return ParseList(html);
+        var fresh = ParseList(html);
+        if (fresh.Count == 0)
+            return false;
+
+        var merged = new List<NewsItem>();
+        foreach (var item in fresh)
+        {
+            // 去重：已有相同 URL 的不重复添加
+            if (!merged.Any(x => x.Url == item.Url))
+                merged.Add(item);
+        }
+        // 补上缓存的旧公告（保持最多 10 条）
+        foreach (var old in Items)
+        {
+            if (!merged.Any(x => x.Url == old.Url))
+                merged.Add(old);
+        }
+
+        // 保留最多 10 条
+        Items = merged.Take(MaxNews).ToList();
+        SaveCache();
+        return true;
     }
 
-    /// <summary>抓取公告详情（返回 HTML 正文）。</summary>
+    /// <summary>立即返回当前列表（缓存优先，无网络）。</summary>
+    public List<NewsItem> GetItems() => Items;
+
+    /// <summary>
+    /// 获取公告详情：优先用缓存，无缓存则网络抓取并缓存。
+    /// </summary>
     public async Task<NewsDetail> FetchDetailAsync(string url)
     {
+        // 缓存命中
+        if (_detailCache.TryGetValue(url, out var cached))
+        {
+            var title = Items.FirstOrDefault(i => i.Url == url)?.Title ?? "公告";
+            return new NewsDetail { Title = title, HtmlBody = cached };
+        }
+
         var full = url.StartsWith("http") ? url : BaseUrl + url;
         var html = await FetchStringAsync(full);
-        return ParseDetail(html);
+        var detail = ParseDetail(html);
+
+        // 缓存详情
+        _detailCache[url] = detail.HtmlBody;
+        SaveCache();
+        return detail;
     }
 
-    /// <summary>按 GB2312 解码抓取页面。</summary>
+    /// <summary>按 GBK 解码抓取页面。</summary>
     private async Task<string> FetchStringAsync(string url)
     {
         var bytes = await _http.GetByteArrayAsync(url);
@@ -108,10 +209,7 @@ public class NewsService
         };
     }
 
-    /// <summary>
-    /// 把正文中的相对/协议相对 URL 重写为完整 URL，
-    /// 使 WebBrowser 显示时图片等资源可正常加载。
-    /// </summary>
+    /// <summary>把正文中的相对/协议相对 URL 重写为完整 URL。</summary>
     private static string ResolveUrls(string html)
     {
         if (string.IsNullOrEmpty(html))
@@ -141,4 +239,11 @@ public class NewsService
     }
 
     private static string HtmlDecode(string s) => WebUtility.HtmlDecode(s);
+
+    /// <summary>缓存数据（JSON 序列化）。</summary>
+    private class NewsCache
+    {
+        public List<NewsItem>? Items { get; set; }
+        public Dictionary<string, string>? Details { get; set; }
+    }
 }

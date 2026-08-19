@@ -13,10 +13,34 @@ public partial class HomeView : UserControl
     public HomeView()
     {
         InitializeComponent();
-        Loaded += async (_, _) => await LoadNewsAsync();
+        // 立即显示本地缓存（无网络延迟）
+        NewsList.ItemsSource = _news.GetItems();
+        // 后台刷新最新公告（有新公告时更新列表）
+        Loaded += async (_, _) => await RefreshBackgroundAsync();
     }
 
-    private async Task LoadNewsAsync()
+    /// <summary>后台刷新（不阻塞 UI，静默更新）。</summary>
+    private async Task RefreshBackgroundAsync()
+    {
+        if (_loading) return;
+        _loading = true;
+        try
+        {
+            await _news.RefreshAsync();
+            RefreshList();
+        }
+        catch
+        {
+            // 后台刷新失败静默（保留缓存显示）
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    /// <summary>前台刷新（按钮触发，带加载指示）。</summary>
+    private async Task RefreshForegroundAsync()
     {
         if (_loading) return;
         _loading = true;
@@ -24,12 +48,15 @@ public partial class HomeView : UserControl
         LoadingBar.Visibility = Visibility.Visible;
         try
         {
-            var items = await _news.FetchListAsync();
-            NewsList.ItemsSource = items;
+            var hasNew = await _news.RefreshAsync();
+            RefreshList();
+            if (hasNew)
+                MessageBox.Show("公告已更新", "提示",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载公告失败：{ex.Message}", "提示",
+            MessageBox.Show($"刷新公告失败：{ex.Message}", "提示",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
@@ -40,8 +67,13 @@ public partial class HomeView : UserControl
         }
     }
 
+    private void RefreshList()
+    {
+        NewsList.ItemsSource = _news.GetItems();
+    }
+
     private async void OnRefresh(object sender, RoutedEventArgs e)
-        => await LoadNewsAsync();
+        => await RefreshForegroundAsync();
 
     private async void OnNewsClick(object sender, MouseButtonEventArgs e)
     {
