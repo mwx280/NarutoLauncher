@@ -21,9 +21,21 @@
                             VerticalAlignment="Center">
                     <TextBlock Text="游戏窗口将显示在这里" FontSize="15" Foreground="#999"
                                HorizontalAlignment="Center"/>
+                    <TextBlock Text="选择账号后点击下方「开始游戏」" FontSize="12" Foreground="#777"
+                               HorizontalAlignment="Center" Margin="0,6,0,0"/>
                 </StackPanel>
                 <views:GameHostView x:Name="GameHost" Visibility="Collapsed"/>
             </Grid>
         </Border>
+
+        <!-- 操作区 -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0" HorizontalAlignment="Left">
+            <ComboBox x:Name="AccountSelector" Width="220" Margin="0,0,12,0"
+                      VerticalContentAlignment="Center"/>
+            <ui:Button x:Name="StartBtn" Content="开始游戏（内嵌）" Appearance="Primary"
+                       Width="150" Height="34" Margin="0,0,8,0" Click="OnStartGame"/>
+            <ui:Button x:Name="StopBtn" Content="停止游戏" Appearance="Secondary"
+                       Width="110" Height="34" Click="OnStopGame"/>
+        </StackPanel>
     </Grid>
 </UserControl>
