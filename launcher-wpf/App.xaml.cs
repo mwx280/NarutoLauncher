@@ -1,3 +1,4 @@
+using System.Text;
 using System.Windows;
 using NarutoLauncher.Services;
 
@@ -18,6 +19,8 @@ public partial class App : Application
     public App()
     {
         CurrentApp = this;
+        // 注册 GB2312/GBK 编码（官网公告页面使用）
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
 
     protected override void OnStartup(StartupEventArgs e)
