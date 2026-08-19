@@ -3,36 +3,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hc="https://handyorg.github.io/handycontrol">
     <UserControl.Resources>
-        <!-- 设置卡片样式 -->
-        <Style x:Key="CardStyle" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#E8E8E8"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20,16"/>
-        </Style>
-        <!-- 设置项行 -->
-        <Style x:Key="ItemRowStyle" TargetType="Grid">
-            <Setter Property="Margin" Value="0,6"/>
-        </Style>
-
         <!-- 开关样式（滑轨 + 滑块） -->
         <Style x:Key="SwitchStyle" TargetType="ToggleButton">
-            <Setter Property="Width" Value="44"/>
-            <Setter Property="Height" Value="24"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="20"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
                         <Grid>
-                            <Border x:Name="Track" Background="#D0D0D0" CornerRadius="12"/>
-                            <Ellipse x:Name="Thumb" Width="18" Height="18" Fill="White"
+                            <Border x:Name="Track" Background="#C8C8C8" CornerRadius="10"/>
+                            <Ellipse x:Name="Thumb" Width="14" Height="14" Fill="White"
                                      HorizontalAlignment="Left" Margin="3,0,0,0"
                                      VerticalAlignment="Center"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Track" Property="Background" Value="#E8482C"/>
+                                <Setter TargetName="Track" Property="Background" Value="#0078D4"/>
                                 <Setter TargetName="Thumb" Property="Margin" Value="23,0,0,0"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -40,140 +27,212 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Win11 设置项行：图标 + 名称/说明 + 开关 -->
+        <Style x:Key="SettingRowStyle" TargetType="Border">
+            <Setter Property="Padding" Value="20,14"/>
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Margin" Value="0,3"/>
+        </Style>
+
+        <!-- 设置项图标 -->
+        <Style x:Key="SettingIconStyle" TargetType="Border">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Background" Value="#E8E8E8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Margin" Value="0,0,14,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer>
-        <StackPanel Margin="28,24,28,24" MaxWidth="640" HorizontalAlignment="Left">
+        <StackPanel Margin="28,20,28,24" MaxWidth="680" HorizontalAlignment="Left">
 
-            <TextBlock Text="设置" FontSize="22" FontWeight="Bold" Foreground="#333"/>
+            <TextBlock Text="设置" FontSize="24" FontWeight="SemiBold" Foreground="#1A1A1A"
+                       Margin="0,0,0,4"/>
+            <TextBlock Text="Windows 11 设置风格" FontSize="13" Foreground="#666"
+                       Margin="0,0,0,16"/>
 
-            <!-- 游戏 -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,16,0,0">
-                <StackPanel>
-                    <TextBlock Text="游戏" FontSize="15" FontWeight="SemiBold" Foreground="#E8482C"
-                               Margin="0,0,0,6"/>
-                    <Grid Style="{StaticResource ItemRowStyle}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="游戏变速" FontSize="14" Foreground="#333"/>
-                            <TextBlock Text="调整游戏运行速度" FontSize="12" Foreground="#999"/>
-                        </StackPanel>
-                        <ToggleButton Grid.Column="1" x:Name="GameSpeedBox" Style="{StaticResource SwitchStyle}"
-                                      VerticalAlignment="Center"/>
-                    </Grid>
-                    <Grid Style="{StaticResource ItemRowStyle}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="挂机防掉线" FontSize="14" Foreground="#333"/>
-                            <TextBlock Text="挂机时自动重连，防止掉线" FontSize="12" Foreground="#999"/>
-                        </StackPanel>
-                        <ToggleButton Grid.Column="1" x:Name="AntiDropBox" Style="{StaticResource SwitchStyle}"
-                                      VerticalAlignment="Center"/>
-                    </Grid>
-                </StackPanel>
+            <!-- 游戏分组 -->
+            <TextBlock Text="游戏" FontSize="14" FontWeight="SemiBold" Foreground="#333"
+                       Margin="4,8,0,4"/>
+
+            <!-- 游戏变速 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE94A;" FontFamily="Segoe Fluent Icons"
+                                   FontSize="15" Foreground="#0078D4"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="游戏变速" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
+                        <TextBlock Text="调整游戏运行速度" FontSize="12" Foreground="#666"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <ToggleButton Grid.Column="2" x:Name="GameSpeedBox"
+                                  Style="{StaticResource SwitchStyle}"/>
+                </Grid>
             </Border>
 
-            <!-- 自动化 -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,14,0,0">
-                <StackPanel>
-                    <TextBlock Text="自动化" FontSize="15" FontWeight="SemiBold" Foreground="#E8482C"
-                               Margin="0,0,0,6"/>
-                    <Grid Style="{StaticResource ItemRowStyle}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="自动脚本" FontSize="14" Foreground="#333"/>
-                            <TextBlock Text="自动执行预设脚本任务" FontSize="12" Foreground="#999"/>
-                        </StackPanel>
-                        <ToggleButton Grid.Column="1" x:Name="AutoScriptBox" Style="{StaticResource SwitchStyle}"
-                                      VerticalAlignment="Center"/>
-                    </Grid>
-                    <Grid Style="{StaticResource ItemRowStyle}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="自动任务" FontSize="14" Foreground="#333"/>
-                            <TextBlock Text="自动完成日常任务" FontSize="12" Foreground="#999"/>
-                        </StackPanel>
-                        <ToggleButton Grid.Column="1" x:Name="AutoTaskBox" Style="{StaticResource SwitchStyle}"
-                                      VerticalAlignment="Center"/>
-                    </Grid>
-                </StackPanel>
+            <!-- 挂机防掉线 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xEA18;" FontFamily="Segoe Fluent Icons"
+                                   FontSize="15" Foreground="#0078D4"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="挂机防掉线" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
+                        <TextBlock Text="挂机时自动重连，防止掉线" FontSize="12" Foreground="#666"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <ToggleButton Grid.Column="2" x:Name="AntiDropBox"
+                                  Style="{StaticResource SwitchStyle}"/>
+                </Grid>
             </Border>
 
-            <!-- 界面 -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,14,0,0">
-                <StackPanel>
-                    <TextBlock Text="界面" FontSize="15" FontWeight="SemiBold" Foreground="#E8482C"
-                               Margin="0,0,0,6"/>
-                    <Grid Style="{StaticResource ItemRowStyle}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="最小化到托盘" FontSize="14" Foreground="#333"/>
-                            <TextBlock Text="关闭窗口时最小化到系统托盘" FontSize="12" Foreground="#999"/>
-                        </StackPanel>
-                        <ToggleButton Grid.Column="1" x:Name="TrayBox" Style="{StaticResource SwitchStyle}"
-                                      VerticalAlignment="Center"/>
-                    </Grid>
-                </StackPanel>
+            <!-- 自动化分组 -->
+            <TextBlock Text="自动化" FontSize="14" FontWeight="SemiBold" Foreground="#333"
+                       Margin="4,12,0,4"/>
+
+            <!-- 自动脚本 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons"
+                                   FontSize="15" Foreground="#0078D4"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="自动脚本" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
+                        <TextBlock Text="自动执行预设脚本任务" FontSize="12" Foreground="#666"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <ToggleButton Grid.Column="2" x:Name="AutoScriptBox"
+                                  Style="{StaticResource SwitchStyle}"/>
+                </Grid>
             </Border>
 
-            <!-- 账号与安全 -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,14,0,0">
-                <StackPanel>
-                    <TextBlock Text="账号与安全" FontSize="15" FontWeight="SemiBold" Foreground="#E8482C"
-                               Margin="0,0,0,6"/>
-                    <Grid Style="{StaticResource ItemRowStyle}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="记住密码" FontSize="14" Foreground="#333"/>
-                            <TextBlock Text="本地 DPAPI 加密存储，安全保存账号密码" FontSize="12" Foreground="#999"/>
-                        </StackPanel>
-                        <ToggleButton Grid.Column="1" x:Name="RememberPwdBox" Style="{StaticResource SwitchStyle}"
-                                      VerticalAlignment="Center"/>
-                    </Grid>
-                </StackPanel>
+            <!-- 自动任务 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE9D5;" FontFamily="Segoe Fluent Icons"
+                                   FontSize="15" Foreground="#0078D4"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="自动任务" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
+                        <TextBlock Text="自动完成日常任务" FontSize="12" Foreground="#666"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <ToggleButton Grid.Column="2" x:Name="AutoTaskBox"
+                                  Style="{StaticResource SwitchStyle}"/>
+                </Grid>
             </Border>
+
+            <!-- 界面分组 -->
+            <TextBlock Text="界面" FontSize="14" FontWeight="SemiBold" Foreground="#333"
+                       Margin="4,12,0,4"/>
+
+            <!-- 最小化到托盘 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE7F4;" FontFamily="Segoe Fluent Icons"
+                                   FontSize="15" Foreground="#0078D4"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="最小化到托盘" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
+                        <TextBlock Text="关闭窗口时最小化到系统托盘" FontSize="12" Foreground="#666"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <ToggleButton Grid.Column="2" x:Name="TrayBox"
+                                  Style="{StaticResource SwitchStyle}"/>
+                </Grid>
+            </Border>
+
+            <!-- 账号与安全分组 -->
+            <TextBlock Text="账号与安全" FontSize="14" FontWeight="SemiBold" Foreground="#333"
+                       Margin="4,12,0,4"/>
+
+            <!-- 记住密码 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE72E;" FontFamily="Segoe Fluent Icons"
+                                   FontSize="15" Foreground="#0078D4"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="记住密码" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
+                        <TextBlock Text="本地 DPAPI 加密存储，安全保存账号密码" FontSize="12" Foreground="#666"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <ToggleButton Grid.Column="2" x:Name="RememberPwdBox"
+                                  Style="{StaticResource SwitchStyle}"/>
+                </Grid>
+            </Border>
+
+            <!-- 关于分组 -->
+            <TextBlock Text="关于" FontSize="14" FontWeight="SemiBold" Foreground="#333"
+                       Margin="4,12,0,4"/>
 
             <!-- 关于 -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,14,0,0">
-                <StackPanel>
-                    <TextBlock Text="关于" FontSize="15" FontWeight="SemiBold" Foreground="#E8482C"
-                               Margin="0,0,0,6"/>
-                    <StackPanel Orientation="Horizontal">
-                        <Border Width="40" Height="40" CornerRadius="20" Background="#E8482C"
-                                Margin="0,0,12,0">
-                            <TextBlock Text="忍" Foreground="White" FontSize="16" FontWeight="Bold"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="NarutoLauncher v0.1.0" FontSize="14" FontWeight="SemiBold"
-                                       Foreground="#333"/>
-                            <TextBlock Text="火影忍者OL 启动器 · 多账号多开" FontSize="12" Foreground="#999"
-                                       Margin="0,2,0,0"/>
-                        </StackPanel>
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE946;" FontFamily="Segoe Fluent Icons"
+                                   FontSize="15" Foreground="#0078D4"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="NarutoLauncher" FontSize="14" FontWeight="Medium" Foreground="#1A1A1A"/>
+                        <TextBlock Text="v0.1.0 · 火影忍者OL 多账号多开启动器" FontSize="12" Foreground="#666"
+                                   Margin="0,2,0,0"/>
                     </StackPanel>
-                </StackPanel>
+                </Grid>
             </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
-
-
-
