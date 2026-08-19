@@ -1,17 +1,43 @@
 <UserControl x:Class="NarutoLauncher.Views.AccountsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:conv="clr-namespace:NarutoLauncher.Converters">
+    <UserControl.Resources>
+        <conv:QqAvatarConverter x:Key="QqAvatarConverter"/>
+        <conv:AvatarCharDisplayConverter x:Key="AvatarCharDisplayConverter"/>
+    </UserControl.Resources>
     <Grid Margin="24" Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="账号管理" FontSize="22" FontWeight="Bold"
-                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" Margin="0,0,0,8"/>
+        <!-- 标题行 + 头像类型 + 添加账号按钮 -->
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="账号管理" FontSize="22" FontWeight="Bold"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                       VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <ComboBox x:Name="AvatarDisplayBox" Width="110" Height="34" Margin="0,0,14,0"
+                          Padding="10,0" VerticalContentAlignment="Center"
+                          Background="{DynamicResource ControlFillColorDefaultBrush}"
+                          BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                          BorderThickness="1" FontSize="13"
+                          SelectionChanged="OnAvatarDisplayChanged">
+                    <ComboBoxItem Content="备注首字"/>
+                    <ComboBoxItem Content="账号首数字"/>
+                    <ComboBoxItem Content="QQ 头像"/>
+                </ComboBox>
+                <ui:Button Content="添加账号" Appearance="Primary"
+                           Width="110" Height="34" Click="OnAddAccount"/>
+            </StackPanel>
+        </Grid>
         <TextBlock Grid.Row="1" x:Name="CountText"
                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                    FontSize="12" Margin="0,0,0,12"/>
@@ -33,21 +59,51 @@
                                 </Grid.ColumnDefinitions>
                                 <Border Grid.Column="0" Width="42" Height="42" CornerRadius="21"
                                         Background="{DynamicResource AccentFillColorDefaultBrush}"
-                                        Margin="0,0,12,0">
-                                    <TextBlock Text="{Binding AvatarChar}"
-                                               Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               FontSize="16" FontWeight="Bold"/>
+                                        Margin="0,0,12,0" ClipToBounds="True">
+                                    <Grid>
+                                        <TextBlock Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   FontSize="16" FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource AvatarCharDisplayConverter}">
+                                                    <Binding/>
+                                                    <Binding Path="AvatarDisplay"
+                                                             RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                        <Image Stretch="UniformToFill">
+                                            <Image.Source>
+                                                <MultiBinding Converter="{StaticResource QqAvatarConverter}">
+                                                    <Binding/>
+                                                    <Binding Path="AvatarDisplay"
+                                                             RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                </MultiBinding>
+                                            </Image.Source>
+                                        </Image>
+                                    </Grid>
                                 </Border>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="14"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="14"/>
+                                        <Border Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                CornerRadius="4" Padding="5,1" Margin="8,0,0,0"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding LoginTypeText}"
+                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                       FontSize="11"/>
+                                        </Border>
+                                    </StackPanel>
                                     <TextBlock Text="{Binding InfoText}"
                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                FontSize="12" Margin="0,2,0,0"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal"
                                             VerticalAlignment="Center">
+                                    <ui:Button Content="编辑" Appearance="Secondary"
+                                               Width="70" Height="30" Margin="0,0,6,0"
+                                               Click="OnEditAccount" Tag="{Binding Id}"/>
                                     <ui:Button Content="删除" Appearance="Danger"
                                                Width="70" Height="30" Margin="0,0,6,0"
                                                Click="OnDeleteAccount" Tag="{Binding Id}"/>
@@ -58,9 +114,5 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-
-        <ui:Button Grid.Row="3" Content="添加账号" Appearance="Primary"
-                   Width="130" Height="34" HorizontalAlignment="Left" Margin="0,12,0,0"
-                   Click="OnAddAccount"/>
     </Grid>
 </UserControl>

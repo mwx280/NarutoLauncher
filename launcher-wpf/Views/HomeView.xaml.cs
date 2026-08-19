@@ -28,7 +28,6 @@ public partial class HomeView : UserControl
         if (_loading) return;
         _loading = true;
         RefreshBtn.IsEnabled = false;
-        LoadingBar.Visibility = Visibility.Visible;
         LoadingOverlay.Visibility = Visibility.Visible;
         try
         {
@@ -44,7 +43,6 @@ public partial class HomeView : UserControl
         {
             _loading = false;
             RefreshBtn.IsEnabled = true;
-            LoadingBar.Visibility = Visibility.Collapsed;
             LoadingOverlay.Visibility = Visibility.Collapsed;
         }
     }

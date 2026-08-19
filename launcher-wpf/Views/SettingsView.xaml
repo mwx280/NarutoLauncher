@@ -90,18 +90,18 @@
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="深色模式" Style="{StaticResource ItemNameStyle}"/>
                         <TextBlock Text="选择应用的外观模式" Style="{StaticResource ItemDescStyle}"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                            <RadioButton x:Name="ThemeSystemRadio" Content="跟随系统"
-                                         Style="{StaticResource ThemeRadioStyle}"
-                                         GroupName="theme" Checked="OnThemeChanged"/>
-                            <RadioButton x:Name="ThemeDarkRadio" Content="深色"
-                                         Style="{StaticResource ThemeRadioStyle}"
-                                         GroupName="theme" Checked="OnThemeChanged"/>
-                            <RadioButton x:Name="ThemeLightRadio" Content="浅色"
-                                         Style="{StaticResource ThemeRadioStyle}"
-                                         GroupName="theme" Checked="OnThemeChanged"/>
-                        </StackPanel>
                     </StackPanel>
+                    <ComboBox x:Name="ThemeCombo" Grid.Column="2" Margin="0,0,20,0"
+                              Width="100" Height="34" Padding="6,0"
+                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                              Background="{DynamicResource ControlFillColorDefaultBrush}"
+                              BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                              BorderThickness="1" FontSize="13"
+                              SelectionChanged="OnThemeChanged">
+                        <ComboBoxItem Content="跟随系统"/>
+                        <ComboBoxItem Content="深色"/>
+                        <ComboBoxItem Content="浅色"/>
+                    </ComboBox>
                 </Grid>
             </Border>
 
@@ -119,37 +119,38 @@
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="主题色" Style="{StaticResource ItemNameStyle}"/>
                         <TextBlock Text="选择强调色（按钮/开关/选中状态）" Style="{StaticResource ItemDescStyle}"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                            <RadioButton x:Name="AccentSystemRadio" Content="跟随系统"
-                                         Style="{StaticResource ThemeRadioStyle}"
-                                         GroupName="accent" Checked="OnAccentChanged"/>
-                            <RadioButton x:Name="AccentCustomRadio" Content="自定义"
-                                         Style="{StaticResource ThemeRadioStyle}"
-                                         GroupName="accent" Checked="OnAccentChanged"/>
-                            <!-- 色板 -->
-                            <StackPanel x:Name="ColorPalette" Orientation="Horizontal"
-                                        Visibility="Collapsed" VerticalAlignment="Center">
-                                <Border x:Name="ColorChip0" Width="22" Height="22" CornerRadius="4"
-                                        Background="#E8482C" Margin="0,0,6,0" Cursor="Hand"
-                                        MouseLeftButtonUp="OnColorClick" Tag="#E8482C"/>
-                                <Border x:Name="ColorChip1" Width="22" Height="22" CornerRadius="4"
-                                        Background="#0078D4" Margin="0,0,6,0" Cursor="Hand"
-                                        MouseLeftButtonUp="OnColorClick" Tag="#0078D4"/>
-                                <Border x:Name="ColorChip2" Width="22" Height="22" CornerRadius="4"
-                                        Background="#107C10" Margin="0,0,6,0" Cursor="Hand"
-                                        MouseLeftButtonUp="OnColorClick" Tag="#107C10"/>
-                                <Border x:Name="ColorChip3" Width="22" Height="22" CornerRadius="4"
-                                        Background="#8764B8" Margin="0,0,6,0" Cursor="Hand"
-                                        MouseLeftButtonUp="OnColorClick" Tag="#8764B8"/>
-                                <Border x:Name="ColorChip4" Width="22" Height="22" CornerRadius="4"
-                                        Background="#FFB900" Margin="0,0,6,0" Cursor="Hand"
-                                        MouseLeftButtonUp="OnColorClick" Tag="#FFB900"/>
-                                <Border x:Name="ColorChip5" Width="22" Height="22" CornerRadius="4"
-                                        Background="#00B7C3" Margin="0,0,6,0" Cursor="Hand"
-                                        MouseLeftButtonUp="OnColorClick" Tag="#00B7C3"/>
-                            </StackPanel>
+                        <!-- 色板（自定义模式下可见） -->
+                        <StackPanel x:Name="ColorPalette" Orientation="Horizontal" Margin="0,6,0,0" Visibility="Collapsed">
+                            <Border x:Name="ColorChip0" Width="22" Height="22" CornerRadius="4"
+                                    Background="#E8482C" Margin="0,0,6,0" Cursor="Hand"
+                                    MouseLeftButtonUp="OnColorClick" Tag="#E8482C"/>
+                            <Border x:Name="ColorChip1" Width="22" Height="22" CornerRadius="4"
+                                    Background="#0078D4" Margin="0,0,6,0" Cursor="Hand"
+                                    MouseLeftButtonUp="OnColorClick" Tag="#0078D4"/>
+                            <Border x:Name="ColorChip2" Width="22" Height="22" CornerRadius="4"
+                                    Background="#107C10" Margin="0,0,6,0" Cursor="Hand"
+                                    MouseLeftButtonUp="OnColorClick" Tag="#107C10"/>
+                            <Border x:Name="ColorChip3" Width="22" Height="22" CornerRadius="4"
+                                    Background="#8764B8" Margin="0,0,6,0" Cursor="Hand"
+                                    MouseLeftButtonUp="OnColorClick" Tag="#8764B8"/>
+                            <Border x:Name="ColorChip4" Width="22" Height="22" CornerRadius="4"
+                                    Background="#FFB900" Margin="0,0,6,0" Cursor="Hand"
+                                    MouseLeftButtonUp="OnColorClick" Tag="#FFB900"/>
+                            <Border x:Name="ColorChip5" Width="22" Height="22" CornerRadius="4"
+                                    Background="#00B7C3" Margin="0,0,6,0" Cursor="Hand"
+                                    MouseLeftButtonUp="OnColorClick" Tag="#00B7C3"/>
                         </StackPanel>
                     </StackPanel>
+                    <ComboBox x:Name="AccentCombo" Grid.Column="2" Margin="0,0,20,0"
+                              Width="100" Height="34" Padding="6,0"
+                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                              Background="{DynamicResource ControlFillColorDefaultBrush}"
+                              BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                              BorderThickness="1" FontSize="13"
+                              SelectionChanged="OnAccentChanged">
+                        <ComboBoxItem Content="跟随系统"/>
+                        <ComboBoxItem Content="自定义"/>
+                    </ComboBox>
                 </Grid>
             </Border>
 

@@ -46,7 +46,8 @@ public class GameHostView : HwndHost
         set
         {
             _childHwnd = value;
-            if (_attached && _childHwnd != 0 && Handle != 0)
+            // 宿主窗口已就绪即可内嵌（AttachChild 幂等）
+            if (_childHwnd != 0 && Handle != 0)
                 AttachChild();
         }
     }
@@ -76,7 +77,7 @@ public class GameHostView : HwndHost
 
     private void AttachChild()
     {
-        if (_childHwnd == 0 || Handle == 0)
+        if (_childHwnd == 0 || Handle == 0 || _attached)
             return;
         // 强制为子窗口 + 可见
         var style = GetWindowLong(_childHwnd, GWL_STYLE);
@@ -98,8 +99,11 @@ public class GameHostView : HwndHost
     {
         if (_childHwnd != 0 && Handle != 0)
         {
-            MoveWindow(_childHwnd, 0, 0, Math.Max(1, (int)ActualWidth),
-                       Math.Max(1, (int)ActualHeight), true);
+            // WPF 的 ActualWidth/Height 是 DIP，MoveWindow 需要物理像素
+            var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(this);
+            int pw = (int)Math.Round(ActualWidth * dpi.DpiScaleX);
+            int ph = (int)Math.Round(ActualHeight * dpi.DpiScaleY);
+            MoveWindow(_childHwnd, 0, 0, Math.Max(1, pw), Math.Max(1, ph), true);
         }
     }
 

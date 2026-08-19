@@ -1,4 +1,5 @@
 using System.Text.Json;
+using NarutoLauncher.Models;
 
 namespace NarutoLauncher.Services;
 
@@ -42,6 +43,7 @@ public class SettingsService
     private ThemeMode _themeMode = ThemeMode.System;
     private AccentMode _accentMode = AccentMode.System;
     private string _accentColor = "#E8482C";
+    private AvatarType _avatarDisplay = AvatarType.NameChar;
 
     public SettingsService()
     {
@@ -102,6 +104,20 @@ public class SettingsService
         }
     }
 
+    /// <summary>账号头像显示类型（账号管理页全局设置）。</summary>
+    public AvatarType AvatarDisplay
+    {
+        get => _avatarDisplay;
+        set
+        {
+            if (_avatarDisplay != value)
+            {
+                _avatarDisplay = value;
+                Save();
+            }
+        }
+    }
+
     public void Save()
     {
         try
@@ -117,6 +133,7 @@ public class SettingsService
                 ThemeMode = _themeMode,
                 AccentMode = _accentMode,
                 AccentColor = _accentColor,
+                AvatarDisplay = _avatarDisplay,
             };
             var json = JsonSerializer.Serialize(dto, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_path, json);
@@ -144,6 +161,7 @@ public class SettingsService
             _themeMode = dto.ThemeMode;
             _accentMode = dto.AccentMode;
             _accentColor = string.IsNullOrEmpty(dto.AccentColor) ? "#E8482C" : dto.AccentColor;
+            _avatarDisplay = dto.AvatarDisplay;
         }
         catch (Exception ex)
         {
@@ -163,5 +181,6 @@ public class SettingsService
         public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
         public AccentMode AccentMode { get; set; } = AccentMode.System;
         public string AccentColor { get; set; } = "#E8482C";
+        public AvatarType AvatarDisplay { get; set; } = AvatarType.NameChar;
     }
 }

@@ -20,8 +20,11 @@
 #include "include/cef_app.h"
 #include "include/cef_browser.h"
 #include "include/cef_command_line.h"
+#include "include/cef_cookie.h"
 #include "include/cef_request_context_handler.h"
+#include "include/cef_task.h"
 #include "include/cef_web_plugin.h"
+#include "include/cef_parser.h"
 #include "include/internal/cef_win.h"
 
 #include "frameless_window.h"
@@ -70,7 +73,9 @@ public:
         command_line->AppendSwitch("enable-gpu");
         command_line->AppendSwitch("persist-session-cookies");
         command_line->AppendSwitch("mute-audio");  // Flash 音频崩溃 workaround
-        command_line->AppendSwitch("enable-logging");
+        // 日志写文件而非控制台，避免弹出 cmd 窗口
+        command_line->AppendSwitchWithValue("log-file",
+            "GameHost_cef.log");
     }
 
     CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override {
@@ -86,21 +91,105 @@ FramelessWindow g_window;
 CefRefPtr<CefBrowser> g_game_browser;
 HWND g_game_hwnd = nullptr;   // 游戏窗口句柄（从 CEF 回调获取）
 std::wstring g_window_title = L"火影忍者OL";
+bool g_login_mode = false;    // 扫码登录模式（加载 QQ 登录页，登录成功写 login_result.txt）
+std::wstring g_userdata_dir;  // userdata 目录（登录结果写入）
+std::string g_cookie_json;    // 启动时注入的 cookie（base64 编码的 JSON）
+HWND g_parent_hwnd = nullptr; // 内嵌父窗口
 // 把 CEF 子窗口嵌入主窗口客户区（由 WM_SIZE 同步尺寸）。
 void EmbedChild(HWND child) {
     g_window.SetClientChild(child);
 }
 
+// 登录成功：把 QQ 号写入 userdata/login_result.txt
+void WriteLoginResult(const CefString& qq) {
+    if (g_userdata_dir.empty()) return;
+    std::wstring file = g_userdata_dir + L"\\login_result.txt";
+    FILE* f = nullptr;
+    if (_wfopen_s(&f, file.c_str(), L"w") == 0 && f) {
+        std::string qq_utf8 = qq.ToString();
+        fprintf(f, "%s", qq_utf8.c_str());
+        fclose(f);
+    }
+    AppLog::Write("扫码登录成功, QQ=%S", qq.c_str());
+}
+
+// ---- cookie 注入（免登录进游戏） ----
+
+// base64 解码
+std::string Base64Decode(const std::string& input) {
+    static const std::string b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out;
+    int val = 0, valb = -8;
+    for (unsigned char c : input) {
+        if (c == '=') break;
+        if (c == '\n' || c == '\r') continue;
+        size_t idx = b64.find(c);
+        if (idx == std::string::npos) continue;
+        val = (val << 6) + (int)idx;
+        valb += 6;
+        if (valb >= 0) {
+            out.push_back(char((val >> valb) & 0xFF));
+            valb -= 8;
+        }
+    }
+    return out;
+}
+
+// 解析 cookie JSON 并注入 CEF。格式：
+// {"https://ptlogin2.qq.com":{"skey":"..","uin":".."},"https://game.huoying.qq.com":{"p_skey":".."}}
+void InjectCookies(const std::string& json) {
+    if (json.empty()) return;
+    CefRefPtr<CefValue> root = CefParseJSON(json, JSON_PARSER_RFC);
+    if (!root || root->GetType() != VTYPE_DICTIONARY) {
+        AppLog::Write("cookie JSON 解析失败");
+        return;
+    }
+    CefRefPtr<CefDictionaryValue> dict = root->GetDictionary();
+    CefRefPtr<CefCookieManager> mgr =
+        CefCookieManager::GetGlobalManager(nullptr);
+    if (!mgr) return;
+
+    std::vector<CefString> keys;
+    dict->GetKeys(keys);
+    for (const CefString& domain : keys) {
+        CefRefPtr<CefValue> v = dict->GetValue(domain);
+        if (!v || v->GetType() != VTYPE_DICTIONARY) continue;
+        CefRefPtr<CefDictionaryValue> cookies = v->GetDictionary();
+        std::vector<CefString> cnames;
+        cookies->GetKeys(cnames);
+        for (const CefString& name : cnames) {
+            CefRefPtr<CefValue> cv = cookies->GetValue(name);
+            if (!cv || cv->GetType() != VTYPE_STRING) continue;
+            CefCookie cookie = {};
+            CefString(&cookie.name) = name;
+            CefString(&cookie.value) = cv->GetString();
+            CefString(&cookie.domain) = domain;
+            CefString(&cookie.path) = "/";
+            cookie.secure = true;
+            cookie.httponly = true;
+            // 设置到期时间（一年后）
+            time_t now = time(nullptr) + 365 * 24 * 3600;
+            cookie.has_expires = true;
+            cef_time_from_timet(now, &cookie.expires);
+            AppLog::Write("注入 cookie: %S @ %S", name.c_str(), domain.c_str());
+            mgr->SetCookie(domain, cookie, nullptr);
+        }
+    }
+}
+
 // ---------- 浏览器客户端 ----------
 class HostClient : public CefClient,
                    public CefLifeSpanHandler,
+                   public CefLoadHandler,
                    public CefRequestContextHandler,
-                   public CefRequestHandler {
+                   public CefRequestHandler,
+                   public CefCookieVisitor {
 public:
     HostClient() = default;
 
     CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
     CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
+    CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
 
     bool OnBeforePluginLoad(const CefString& mime_type,
                             const CefString& plugin_url,
@@ -124,6 +213,126 @@ public:
         }
     }
 
+    // 页面开始加载：注入滚动条隐藏脚本（DOM 就绪后立即执行，避免加载过程出现滚动条）
+    void OnLoadStart(CefRefPtr<CefBrowser> browser,
+                     CefRefPtr<CefFrame> frame,
+                     TransitionType transition_type) override {
+        if (!frame->IsMain())
+            return;
+        frame->ExecuteJavaScript(
+            "var __hide=function(){"
+            "if(window.__noScrollBar)return;"
+            "window.__noScrollBar=true;"
+            "var s=document.createElement('style');"
+            "s.textContent='html,body{overflow:hidden!important;}"
+            "*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}';"
+            "document.head.appendChild(s);};"
+            "if(document.readyState==='loading'){"
+            "document.addEventListener('DOMContentLoaded',__hide);}"
+            "else{__hide();}",
+            frame->GetURL(), 0);
+    }
+
+    // 扫码登录模式：页面加载完成后启动 cookie 轮询检测（出现 skey 即登录成功）
+    void OnLoadEnd(CefRefPtr<CefBrowser> browser,
+                   CefRefPtr<CefFrame> frame,
+                   int httpStatusCode) override {
+        // 隐藏页面滚动条（保持内嵌区域干净）——兜底
+        if (frame->IsMain()) {
+            frame->ExecuteJavaScript(
+                "if(!window.__noScrollBar){"
+                "var s=document.createElement('style');"
+                "s.textContent='html,body{overflow:hidden!important;}"
+                "*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}';"
+                "document.head.appendChild(s);}",
+                frame->GetURL(), 0);
+        }
+        if (g_login_mode && !_login_detected && frame->IsMain()) {
+            AppLog::Write("登录检测: OnLoadEnd 主框架, status=%d", httpStatusCode);
+            _pending_qq = "";
+            CefPostDelayedTask(TID_UI,
+                               new ReadLoginCookiesTask(this), 2000);
+        }
+    }
+
+    // 轮询读取登录 cookie 的任务（每 2 秒重查一次）
+    class ReadLoginCookiesTask : public CefTask {
+    public:
+        explicit ReadLoginCookiesTask(HostClient* client) : client_(client) {}
+        void Execute() override {
+            CefRefPtr<CefCookieManager> mgr =
+                CefCookieManager::GetGlobalManager(nullptr);
+            if (mgr) {
+                mgr->VisitUrlCookies("https://ptlogin2.qq.com", false,
+                                     client_);
+            }
+        }
+    private:
+        HostClient* client_;
+        IMPLEMENT_REFCOUNTING(ReadLoginCookiesTask);
+    };
+
+    // 延迟写登录结果的任务
+    class WriteResultTask : public CefTask {
+    public:
+        explicit WriteResultTask(HostClient* client) : client_(client) {}
+        void Execute() override {
+            client_->OnCookieVisitedDone();
+        }
+    private:
+        HostClient* client_;
+        IMPLEMENT_REFCOUNTING(WriteResultTask);
+    };
+
+    // CefCookieVisitor：收集登录 cookie，出现 skey 视为登录成功
+    bool Visit(const CefCookie& cookie, int count, int total,
+               bool& deleteCookie) override {
+        deleteCookie = false;
+        if (count < 0) {
+            // 兜底：若检测到登录但尚未写结果，写结果
+            AppLog::Write("登录检测: cookie 遍历结束, detected=%d, qq=%s",
+                          _login_detected ? 1 : 0, _pending_qq.c_str());
+            if (_login_detected) {
+                OnCookieVisitedDone();
+            } else if (g_login_mode) {
+                CefPostDelayedTask(TID_UI,
+                                   new ReadLoginCookiesTask(this), 2000);
+            }
+            return false;
+        }
+        if (g_login_mode) {
+            std::string name = CefString(&cookie.name);
+            std::string value = CefString(&cookie.value);
+            AppLog::Write("登录检测: cookie %s=%s (detected=%d)",
+                          name.c_str(), value.c_str(),
+                          _login_detected ? 1 : 0);
+            if (!_login_detected &&
+                (name == "skey" || name == "p_skey" || name == "pt4_token" ||
+                 name == "supertoken" || name == "superuin")) {
+                if (!value.empty() && value[0] != '\0' &&
+                    value != "0" && value.find("login_fail") == std::string::npos) {
+                    _login_detected = true;
+                    // 延迟 800ms 写结果，确保 QQ 已从后续 cookie 提取
+                    CefPostDelayedTask(TID_UI,
+                                       new WriteResultTask(this), 800);
+                }
+            }
+            if (name == "uin" || name == "ptui_loginuin" ||
+                name == "pt2gguin" || name == "superuin") {
+                if (!value.empty() && value[0] != '\0') {
+                    std::string qq;
+                    for (char ch : value) {
+                        if (isdigit((unsigned char)ch))
+                            qq += ch;
+                    }
+                    if (!qq.empty())
+                        _pending_qq = qq;
+                }
+            }
+        }
+        return true;
+    }
+
     bool DoClose(CefRefPtr<CefBrowser> browser) override {
         return false;
     }
@@ -132,7 +341,19 @@ public:
         g_game_browser = nullptr;
     }
 
+    // 登录检测完成后写结果（由 cookie 遍历结束触发）
+    void OnCookieVisitedDone() {
+        if (g_login_mode && _login_detected) {
+            if (_pending_qq.empty())
+                _pending_qq = "0";  // 无法提取 QQ，标记但允许
+            CefString qq(_pending_qq);
+            WriteLoginResult(qq);
+        }
+    }
+
 private:
+    bool _login_detected = false;
+    std::string _pending_qq;
     IMPLEMENT_REFCOUNTING(HostClient);
 };
 
@@ -180,6 +401,20 @@ int RunBrowserProcess(const std::wstring& url,
     if (!ok_init) {
         MessageBox(nullptr, L"CEF 初始化失败", L"错误", MB_OK);
         return 1;
+    }
+
+    // 隐藏控制台窗口（CEF 可能为浏览器进程创建 console）
+    {
+        HWND console = ::GetConsoleWindow();
+        if (console)
+            ::ShowWindow(console, SW_HIDE);
+    }
+
+    // 启动时注入 cookie（免登录进游戏）
+    if (!g_cookie_json.empty()) {
+        InjectCookies(Base64Decode(g_cookie_json));
+        // 等待 cookie 写入完成（异步 SetCookie）
+        ::Sleep(1500);
     }
 
     // 创建游戏浏览器
@@ -233,7 +468,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     std::wstring userdata;
     std::wstring title;
     bool embed = false;
+    bool login = false;
     HWND parent = nullptr;
+    std::string cookie_b64;
     {
         int argc = 0;
         wchar_t** argv = CommandLineToArgvW(lpCmdLine, &argc);
@@ -253,11 +490,37 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
             if (!t.empty()) title = t;
             auto p = val(L"parent");
             if (!p.empty()) parent = (HWND)_wtoi64(p.c_str());
+            auto c = val(L"cookie");
+            if (!c.empty()) {
+                int len = ::WideCharToMultiByte(CP_UTF8, 0, c.c_str(),
+                                                (int)c.size(), nullptr, 0,
+                                                nullptr, nullptr);
+                if (len > 0) {
+                    std::vector<char> buf(len);
+                    ::WideCharToMultiByte(CP_UTF8, 0, c.c_str(),
+                                          (int)c.size(), buf.data(), len,
+                                          nullptr, nullptr);
+                    cookie_b64.assign(buf.data(), len);
+                }
+            }
             if (arg == L"--embed")
                 embed = true;
+            if (arg == L"--login")
+                login = true;
         }
         LocalFree(argv);
     }
+
+    // 扫码登录模式：加载官网首页（自动弹出 QQ 登录二维码），登录成功写 login_result.txt
+    if (login) {
+        g_login_mode = true;
+        g_userdata_dir = userdata;
+        if (url == kDefaultUrl) {
+            url = L"https://huoying.qq.com/server/website/";
+        }
+    }
+    g_cookie_json = cookie_b64;
+    g_parent_hwnd = parent;
 
     CefMainArgs main_args(GetModuleHandle(nullptr));
     CefRefPtr<HostApp> app = new HostApp();
@@ -267,10 +530,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
         return exit_code;
 
     // 仅浏览器进程初始化日志（子进程会走 CefExecuteProcess 提前返回）
+    // 隐藏可能存在的控制台窗口（CEF 子进程或系统为 GUI 分配的 console）
+    {
+        HWND console = ::GetConsoleWindow();
+        if (console)
+            ::ShowWindow(console, SW_HIDE);
+    }
     AppLog::Init();
     AppLog::Write("== GameHost 入口 ==");
-    AppLog::Write("URL=%S userdata=%S embed=%d parent=%llu",
+    AppLog::Write("URL=%S userdata=%S embed=%d parent=%llu login=%d",
                   url.c_str(), userdata.c_str(), embed ? 1 : 0,
-                  (unsigned long long)parent);
+                  (unsigned long long)parent, login ? 1 : 0);
     return RunBrowserProcess(url, userdata, title, embed, parent);
 }

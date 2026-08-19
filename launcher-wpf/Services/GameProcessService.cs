@@ -72,11 +72,13 @@ public class GameProcessService
         if (exe == null)
             return null;
 
-        // 每账号独立缓存目录（多开 cookie 隔离）
-        var userdata = Path.Combine(
-            Path.GetDirectoryName(exe)!,
-            "userdata",
-            account.QQ);
+        // 每账号独立缓存目录（多开 cookie 隔离）；扫码登录账号复用扫码时的 userdata
+        var userdata = !string.IsNullOrEmpty(account.ScanUserDataDir)
+            ? account.ScanUserDataDir
+            : Path.Combine(
+                Path.GetDirectoryName(exe)!,
+                "userdata",
+                account.QQ);
         Directory.CreateDirectory(userdata);
 
         var psi = new ProcessStartInfo
@@ -136,5 +138,48 @@ public class GameProcessService
                 acc.Running = false;
         }
         _sessions.Clear();
+    }
+
+    /// <summary>
+    /// 启动扫码登录会话（GameHost 加载官网首页，弹出 QQ 登录二维码）。
+    /// 登录成功后 userdata/login_result.txt 会写入 QQ 号。
+    /// </summary>
+    public GameSession? StartScanLogin(nint parentHwnd)
+    {
+        var exe = GameHostPath;
+        if (exe == null)
+            return null;
+
+        // 独立扫码 userdata（登录 cookie 持久化，添加账号时绑定）
+        var userdata = Path.Combine(
+            Path.GetDirectoryName(exe)!,
+            "userdata",
+            "scan_" + DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+        Directory.CreateDirectory(userdata);
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = exe,
+            WorkingDirectory = Path.GetDirectoryName(exe)!,
+            UseShellExecute = false,
+        };
+        psi.ArgumentList.Add("--login");
+        psi.ArgumentList.Add($"--userdata={userdata}");
+        psi.ArgumentList.Add("--title=QQ 扫码登录");
+        psi.ArgumentList.Add("--embed");
+        if (parentHwnd != 0)
+            psi.ArgumentList.Add($"--parent={parentHwnd}");
+
+        try
+        {
+            var proc = Process.Start(psi);
+            if (proc == null) return null;
+            return new GameSession { Process = proc, UserdataDir = userdata };
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"启动扫码登录失败: {ex.Message}");
+            return null;
+        }
     }
 }

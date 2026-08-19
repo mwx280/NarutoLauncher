@@ -24,14 +24,16 @@ public partial class SettingsView : UserControl
         _initializing = true;
         var s = App.CurrentApp.Settings;
 
-        // 深色模式
-        ThemeSystemRadio.IsChecked = s.ThemeMode == ThemeMode.System;
-        ThemeDarkRadio.IsChecked = s.ThemeMode == ThemeMode.Dark;
-        ThemeLightRadio.IsChecked = s.ThemeMode == ThemeMode.Light;
+        // 主题模式：同步下拉框
+        ThemeCombo.SelectedIndex = s.ThemeMode switch
+        {
+            ThemeMode.Dark => 1,
+            ThemeMode.Light => 2,
+            _ => 0,
+        };
 
-        // 主题色
-        AccentSystemRadio.IsChecked = s.AccentMode == AccentMode.System;
-        AccentCustomRadio.IsChecked = s.AccentMode == AccentMode.Custom;
+        // 主题色：同步下拉框
+        AccentCombo.SelectedIndex = s.AccentMode == AccentMode.Custom ? 1 : 0;
         ColorPalette.Visibility = s.AccentMode == AccentMode.Custom
             ? Visibility.Visible : Visibility.Collapsed;
 
@@ -70,23 +72,26 @@ public partial class SettingsView : UserControl
         s.RememberPassword = RememberPwdBox.IsChecked == true;
     }
 
-    // ---- 深色模式切换 ----
-    private void OnThemeChanged(object sender, RoutedEventArgs e)
+    // ---- 主题模式切换 ----
+    private void OnThemeChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_initializing || !(sender as RadioButton)?.IsChecked == true) return;
+        if (_initializing) return;
         var s = App.CurrentApp.Settings;
-        s.ThemeMode = ThemeDarkRadio.IsChecked == true ? ThemeMode.Dark
-                     : ThemeLightRadio.IsChecked == true ? ThemeMode.Light
-                     : ThemeMode.System;
+        s.ThemeMode = ThemeCombo.SelectedIndex switch
+        {
+            1 => ThemeMode.Dark,
+            2 => ThemeMode.Light,
+            _ => ThemeMode.System,
+        };
         ApplyTheme();
     }
 
-    // ---- 主题色切换 ----
-    private void OnAccentChanged(object sender, RoutedEventArgs e)
+    // ---- 主题色模式切换 ----
+    private void OnAccentChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_initializing || !(sender as RadioButton)?.IsChecked == true) return;
+        if (_initializing) return;
         var s = App.CurrentApp.Settings;
-        s.AccentMode = AccentCustomRadio.IsChecked == true ? AccentMode.Custom : AccentMode.System;
+        s.AccentMode = AccentCombo.SelectedIndex == 1 ? AccentMode.Custom : AccentMode.System;
         ColorPalette.Visibility = s.AccentMode == AccentMode.Custom
             ? Visibility.Visible : Visibility.Collapsed;
         ApplyTheme();
