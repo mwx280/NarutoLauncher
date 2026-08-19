@@ -1,36 +1,40 @@
 <UserControl x:Class="NarutoLauncher.Views.GamesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
              xmlns:views="clr-namespace:NarutoLauncher.Views">
-    <Grid Margin="20">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="游戏" FontSize="20" FontWeight="Bold"
-                   Foreground="#2B2118" Margin="0,0,0,12"/>
+        <TextBlock Grid.Row="0" Text="游戏" FontSize="22" FontWeight="Bold"
+                   Foreground="#333" Margin="0,0,0,12"/>
 
         <!-- 内嵌游戏窗口 -->
-        <Border Grid.Row="1" BorderBrush="#D9D9D9" BorderThickness="1"
-                Background="#1E1E1E">
+        <Border Grid.Row="1" BorderBrush="#DDDDDD" BorderThickness="1" CornerRadius="8"
+                Background="#1E1E1E" ClipToBounds="True">
             <Grid>
-                <TextBlock x:Name="Placeholder" Text="游戏窗口将显示在这里，点击下方开始游戏"
-                           Foreground="#888" HorizontalAlignment="Center"
-                           VerticalAlignment="Center"/>
+                <StackPanel x:Name="Placeholder" HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="游戏窗口将显示在这里" FontSize="15" Foreground="#777"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="选择账号后点击下方「开始游戏」" FontSize="12" Foreground="#555"
+                               HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                </StackPanel>
                 <views:GameHostView x:Name="GameHost" Visibility="Collapsed"/>
             </Grid>
         </Border>
 
         <!-- 操作区 -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0" HorizontalAlignment="Left">
-            <ComboBox x:Name="AccountSelector" Width="220" Margin="0,0,12,0"
-                      VerticalContentAlignment="Center"/>
-            <Button x:Name="StartBtn" Content="开始游戏（内嵌）" Padding="16,6" Margin="0,0,8,0"
-                    Click="OnStartGame" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"/>
-            <Button x:Name="StopBtn" Content="停止游戏" Padding="16,6"
-                    Click="OnStopGame"/>
+            <hc:ComboBox x:Name="AccountSelector" Width="220" Margin="0,0,12,0"
+                         VerticalContentAlignment="Center"/>
+            <Button x:Name="StartBtn" Content="开始游戏（内嵌）" Style="{StaticResource ButtonPrimary}"
+                    Width="150" Height="34" Margin="0,0,8,0" Click="OnStartGame"/>
+            <Button x:Name="StopBtn" Content="停止游戏" Width="110" Height="34" Click="OnStopGame"/>
         </StackPanel>
     </Grid>
 </UserControl>

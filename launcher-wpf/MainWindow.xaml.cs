@@ -4,7 +4,7 @@ using NarutoLauncher.Views;
 
 namespace NarutoLauncher;
 
-public partial class MainWindow : Window
+public partial class MainWindow : HandyControl.Controls.Window
 {
     private readonly HomeView _home = new();
     private readonly GamesView _games = new();

@@ -19,4 +19,8 @@
     <Using Include="System.Collections.Generic" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="HandyControl" Version="3.5.1" />
+  </ItemGroup>
+
 </Project>
