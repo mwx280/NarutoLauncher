@@ -13,8 +13,8 @@ public:
     FramelessWindow();
     ~FramelessWindow();
 
-    // 创建主窗口。
-    bool Create(int width, int height);
+    // 创建主窗口。embed=true 时创建为 WS_CHILD 子窗口（供 DesktopChildSiteBridge 内嵌）。
+    bool Create(int width, int height, bool embed = false, HWND parent = nullptr);
 
     // 销毁窗口。
     void Destroy();

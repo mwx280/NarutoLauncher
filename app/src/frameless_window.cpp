@@ -27,7 +27,7 @@ FramelessWindow::~FramelessWindow() {
     Destroy();
 }
 
-bool FramelessWindow::Create(int width, int height) {
+bool FramelessWindow::Create(int width, int height, bool embed, HWND parent) {
     // 无边框窗口类
     static const wchar_t kClassName[] = L"HuoYinFramelessWindow";
     WNDCLASSEX wc = {};
@@ -44,13 +44,14 @@ bool FramelessWindow::Create(int width, int height) {
     if (!reg_ok && reg_err != ERROR_CLASS_ALREADY_EXISTS)
         return false;
 
-    DWORD style = WS_POPUP;  // 无边框
-    DWORD ex_style = WS_EX_APPWINDOW;
+    DWORD style = embed ? (WS_CHILD | WS_VISIBLE) : WS_POPUP;  // 无边框
+    DWORD ex_style = embed ? 0 : WS_EX_APPWINDOW;
 
     hwnd_ = CreateWindowEx(
         ex_style, kClassName, L"火影忍者Online",
-        style, CW_USEDEFAULT, CW_USEDEFAULT, width, height,
-        nullptr, nullptr, GetModuleHandle(nullptr), this);
+        style, 0, 0, width, height,
+        embed ? (parent ? parent : GetDesktopWindow()) : nullptr,  // WS_CHILD 必须有父窗口
+        nullptr, GetModuleHandle(nullptr), this);
     DWORD cw_err = GetLastError();
     AppLog::Write("CreateWindowEx: hwnd=%p (err=%lu)", hwnd_, cw_err);
     if (!hwnd_)

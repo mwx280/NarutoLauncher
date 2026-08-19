@@ -86,7 +86,6 @@ FramelessWindow g_window;
 CefRefPtr<CefBrowser> g_game_browser;
 HWND g_game_hwnd = nullptr;   // 游戏窗口句柄（从 CEF 回调获取）
 std::wstring g_window_title = L"火影忍者OL";
-
 // 把 CEF 子窗口嵌入主窗口客户区（由 WM_SIZE 同步尺寸）。
 void EmbedChild(HWND child) {
     g_window.SetClientChild(child);
@@ -140,17 +139,28 @@ private:
 // ---------- 主入口 ----------
 int RunBrowserProcess(const std::wstring& url,
                       const std::wstring& userdata_dir,
-                      const std::wstring& title) {
+                      const std::wstring& title,
+                      bool embed,
+                      HWND parent) {
     AppLog::Write("== GameHost 开始 ==");
     if (!title.empty())
         g_window_title = title;
 
     // 主窗口（在 CefInitialize 之前创建，规避 CEF 环境对窗口创建的影响）
     AppLog::Write("创建主窗口...");
-    if (!g_window.Create(1280, 800)) {
+    if (!g_window.Create(1280, 800, embed, parent)) {
         DWORD err = GetLastError();
         AppLog::Write("创建窗口失败, GetLastError=%lu", err);
         return 1;
+    }
+    // 嵌入模式：把主窗口 HWND 写入 userdata 目录，供启动器桥接读取
+    if (embed && !userdata_dir.empty()) {
+        std::wstring hwnd_file = userdata_dir + L"\\window_hwnd.txt";
+        FILE* f = nullptr;
+        if (_wfopen_s(&f, hwnd_file.c_str(), L"w") == 0 && f) {
+            fprintf(f, "%llu", (unsigned long long)g_window.Handle());
+            fclose(f);
+        }
     }
     ::SetWindowTextW(g_window.Handle(), g_window_title.c_str());
     AppLog::Write("主窗口创建成功, HWND=%p", g_window.Handle());
@@ -222,6 +232,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     std::wstring url = kDefaultUrl;
     std::wstring userdata;
     std::wstring title;
+    bool embed = false;
+    HWND parent = nullptr;
     {
         int argc = 0;
         wchar_t** argv = CommandLineToArgvW(lpCmdLine, &argc);
@@ -239,6 +251,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
             if (!d.empty()) userdata = d;
             auto t = val(L"title");
             if (!t.empty()) title = t;
+            auto p = val(L"parent");
+            if (!p.empty()) parent = (HWND)_wtoi64(p.c_str());
+            if (arg == L"--embed")
+                embed = true;
         }
         LocalFree(argv);
     }
@@ -253,6 +269,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     // 仅浏览器进程初始化日志（子进程会走 CefExecuteProcess 提前返回）
     AppLog::Init();
     AppLog::Write("== GameHost 入口 ==");
-    AppLog::Write("URL=%S userdata=%S", url.c_str(), userdata.c_str());
-    return RunBrowserProcess(url, userdata, title);
+    AppLog::Write("URL=%S userdata=%S embed=%d parent=%llu",
+                  url.c_str(), userdata.c_str(), embed ? 1 : 0,
+                  (unsigned long long)parent);
+    return RunBrowserProcess(url, userdata, title, embed, parent);
 }
