@@ -97,11 +97,11 @@ public static class ThemeManager
             var v = key?.GetValue("ColorizationColor");
             if (v is int argb)
             {
-                // 0xAABBGGRR
+                // ColorizationColor 格式为 0xAARRGGBB
                 return Color.FromRgb(
-                    (byte)(argb & 0xFF),
+                    (byte)((argb >> 16) & 0xFF),
                     (byte)((argb >> 8) & 0xFF),
-                    (byte)((argb >> 16) & 0xFF));
+                    (byte)(argb & 0xFF));
             }
         }
         catch { }
