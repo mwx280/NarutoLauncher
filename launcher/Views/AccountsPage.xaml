@@ -1,0 +1,67 @@
+<Page
+    x:Class="NarutoLauncher.Views.AccountsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:NarutoLauncher.Models"
+    mc:Ignorable="d">
+
+    <Grid Padding="24" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <TextBlock Text="账号管理" Style="{StaticResource TitleTextBlockStyle}"/>
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Content="添加账号" Style="{StaticResource AccentButtonStyle}"
+                        Click="OnAddAccount"/>
+                <Button Content="扫码添加" Click="OnScanAdd"/>
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Grid.Row="1" Text="{x:Bind AccountCountText}"
+                   Style="{StaticResource CaptionTextBlockStyle}"/>
+
+        <ListView Grid.Row="2" ItemsSource="{x:Bind ViewModel.Accounts}"
+                  SelectionMode="Single">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="models:Account">
+                    <Grid ColumnSpacing="12" Padding="4,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20"
+                                Background="{ThemeResource AccentFillColorDefaultBrush}">
+                            <TextBlock Text="{x:Bind AvatarChar}" FontSize="16"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="White"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="{x:Bind DisplayName}"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                            <TextBlock Text="{x:Bind InfoText}"
+                                       Style="{StaticResource CaptionTextBlockStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
+                                    VerticalAlignment="Center">
+                            <Button Content="编辑" Click="OnEditAccount" Tag="{x:Bind Id}"
+                                    FontSize="12" Padding="10,4"/>
+                            <Button Content="删除" Click="OnDeleteAccount" Tag="{x:Bind Id}"
+                                    FontSize="12" Padding="10,4"/>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <InfoBar x:Name="TipInfoBar" Grid.Row="3" IsClosable="True"
+                 IsOpen="False" Severity="Informational"/>
+    </Grid>
+</Page>

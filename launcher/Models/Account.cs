@@ -10,11 +10,13 @@ public class Account : INotifyPropertyChanged
 {
     private string _name = "";
     private string _qq = "";
+    private string _pwd = "";
     private string _server = "";
     private int _level;
     private string _power = "";
     private bool _running;
     private bool _loggedIn;
+    private bool _scanLogin;
 
     public long Id { get; set; }
 
@@ -23,6 +25,9 @@ public class Account : INotifyPropertyChanged
 
     /// <summary>昵称/备注。</summary>
     public string Name { get => _name; set { _name = value; OnChanged(); } }
+
+    /// <summary>密码（仅内存持有，序列化时加密）。</summary>
+    public string Password { get => _pwd; set { _pwd = value; OnChanged(); } }
 
     /// <summary>所在区服。</summary>
     public string Server { get => _server; set { _server = value; OnChanged(); } }
@@ -38,6 +43,9 @@ public class Account : INotifyPropertyChanged
 
     /// <summary>是否运行中（对应 GameHost 进程）。</summary>
     public bool Running { get => _running; set { _running = value; OnChanged(); } }
+
+    /// <summary>是否扫码登录（无密码）。</summary>
+    public bool ScanLogin { get => _scanLogin; set { _scanLogin = value; OnChanged(); } }
 
     /// <summary>头像配色种子。</summary>
     public int Seed { get; set; }

@@ -7,36 +7,42 @@ namespace NarutoLauncher;
 
 public sealed partial class MainWindow : Window
 {
+    private bool _initialized;
+
     public MainWindow()
     {
         InitializeComponent();
         Title = "火影忍者OL 启动器";
-        NavView.SelectedItem = NavView.MenuItems[0];
+        _initialized = true;
         ContentFrame.Navigate(typeof(HomePage), null, new EntranceNavigationTransitionInfo());
     }
 
     private void OnSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
+        if (!_initialized)
+            return;
+
+        if (args.IsSettingsSelected)
+        {
+            ContentFrame.Navigate(typeof(SettingsPage));
+            return;
+        }
+
         if (args.SelectedItem is NavigationViewItem item)
         {
             var tag = item.Tag?.ToString();
             switch (tag)
             {
                 case "games":
-                case "accounts":
-                    ContentFrame.Navigate(typeof(HomePage));
+                    ContentFrame.Navigate(typeof(GamesPage));
                     break;
-                case "settings":
-                    ContentFrame.Navigate(typeof(HomePage));
+                case "accounts":
+                    ContentFrame.Navigate(typeof(AccountsPage));
                     break;
                 default:
                     ContentFrame.Navigate(typeof(HomePage));
                     break;
             }
-        }
-        else if (args.IsSettingsSelected)
-        {
-            ContentFrame.Navigate(typeof(HomePage));
         }
     }
 }

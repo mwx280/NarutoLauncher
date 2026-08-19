@@ -70,12 +70,18 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
-                <ToggleSwitch Header="游戏变速" Grid.Row="0" Grid.Column="0" IsOn="True"/>
-                <ToggleSwitch Header="挂机防掉线" Grid.Row="0" Grid.Column="1" IsOn="True"/>
-                <ToggleSwitch Header="自动脚本" Grid.Row="0" Grid.Column="2"/>
-                <ToggleSwitch Header="自动任务" Grid.Row="1" Grid.Column="0"/>
-                <ToggleSwitch Header="深色主题" Grid.Row="1" Grid.Column="1"/>
-                <ToggleSwitch Header="最小化到托盘" Grid.Row="1" Grid.Column="2" IsOn="True"/>
+                <ToggleSwitch Header="游戏变速" Grid.Row="0" Grid.Column="0"
+                              IsOn="{x:Bind ViewModel.Settings.GameSpeed, Mode=TwoWay}"/>
+                <ToggleSwitch Header="挂机防掉线" Grid.Row="0" Grid.Column="1"
+                              IsOn="{x:Bind ViewModel.Settings.AntiDrop, Mode=TwoWay}"/>
+                <ToggleSwitch Header="自动脚本" Grid.Row="0" Grid.Column="2"
+                              IsOn="{x:Bind ViewModel.Settings.AutoScript, Mode=TwoWay}"/>
+                <ToggleSwitch Header="自动任务" Grid.Row="1" Grid.Column="0"
+                              IsOn="{x:Bind ViewModel.Settings.AutoTask, Mode=TwoWay}"/>
+                <ToggleSwitch Header="深色主题" Grid.Row="1" Grid.Column="1"
+                              IsOn="{x:Bind ViewModel.Settings.DarkTheme, Mode=TwoWay}"/>
+                <ToggleSwitch Header="最小化到托盘" Grid.Row="1" Grid.Column="2"
+                              IsOn="{x:Bind ViewModel.Settings.MinimizeToTray, Mode=TwoWay}"/>
             </Grid>
         </StackPanel>
     </ScrollViewer>
