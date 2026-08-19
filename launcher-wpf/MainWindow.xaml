@@ -9,68 +9,76 @@
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <DockPanel>
+        <!-- 标题栏（最小化/最大化/关闭按钮） -->
+        <ui:TitleBar DockPanel.Dock="Top"
+                     Title="火影忍者OL 启动器"
+                     ShowMaximize="True" ShowMinimize="True" ShowClose="True"/>
 
-        <!-- 左侧导航 -->
-        <Border Grid.Column="0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                BorderThickness="0,0,1,0">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Margin="20,24,20,20">
-                    <TextBlock Text="火影忍者OL" FontSize="18" FontWeight="Bold"
-                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
-                    <TextBlock Text="启动器" FontSize="12"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               Margin="0,2,0,0"/>
-                </StackPanel>
-                <ListBox x:Name="NavList" BorderThickness="0" Background="Transparent"
-                         SelectionChanged="OnNavChanged" SelectedIndex="0"
-                         FontSize="14" Margin="8,0,8,0">
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem">
-                            <Setter Property="Padding" Value="16,10"/>
-                            <Setter Property="Margin" Value="0,2"/>
-                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListBoxItem">
-                                        <Border x:Name="Bd" Background="Transparent"
-                                                CornerRadius="6" Padding="{TemplateBinding Padding}"
-                                                Margin="{TemplateBinding Margin}">
-                                            <ContentPresenter/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="Bd" Property="Background"
-                                                        Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
-                                                <Setter Property="Foreground"
-                                                        Value="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
-                                                <Setter Property="FontWeight" Value="SemiBold"/>
-                                            </Trigger>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Bd" Property="Background"
-                                                        Value="{DynamicResource ControlFillColorDefaultBrush}"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListBox.ItemContainerStyle>
-                    <ListBoxItem Content="🏠  首页"/>
-                    <ListBoxItem Content="🎮  游戏"/>
-                    <ListBoxItem Content="👥  账号管理"/>
-                    <ListBoxItem Content="⚙️  设置"/>
-                </ListBox>
-            </DockPanel>
-        </Border>
+        <!-- 主体内容 -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- 右侧内容 -->
-        <Grid Grid.Column="1">
-            <ContentControl x:Name="ContentHost"/>
+            <!-- 左侧导航 -->
+            <Border Grid.Column="0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="0,1,0,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="20,24,20,20">
+                        <TextBlock Text="火影忍者OL" FontSize="18" FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
+                        <TextBlock Text="启动器" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <ListBox x:Name="NavList" BorderThickness="0" Background="Transparent"
+                             SelectionChanged="OnNavChanged" SelectedIndex="0"
+                             FontSize="14" Margin="8,0,8,0">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="16,10"/>
+                                <Setter Property="Margin" Value="0,2"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="Bd" Background="Transparent"
+                                                    CornerRadius="6" Padding="{TemplateBinding Padding}"
+                                                    Margin="{TemplateBinding Margin}">
+                                                <ContentPresenter/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background"
+                                                            Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                                                    <Setter Property="Foreground"
+                                                            Value="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background"
+                                                            Value="{DynamicResource ControlFillColorDefaultBrush}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBoxItem Content="🏠  首页"/>
+                        <ListBoxItem Content="🎮  游戏"/>
+                        <ListBoxItem Content="👥  账号管理"/>
+                        <ListBoxItem Content="⚙️  设置"/>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- 右侧内容 -->
+            <Grid Grid.Column="1">
+                <ContentControl x:Name="ContentHost"/>
+            </Grid>
         </Grid>
-    </Grid>
+    </DockPanel>
 </ui:FluentWindow>
