@@ -36,6 +36,7 @@ preview/
 secrets.*
 credentials.*
 
-# Vue UI 依赖与构建产物（不入库；package.json/package-lock.json 保留）
-app/ui/node_modules/
-app/ui/dist/
+# .NET / WinUI 3 构建产物
+bin/
+obj/
+*.suo
