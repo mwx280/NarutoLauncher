@@ -4,35 +4,82 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="using:NarutoLauncher.Views"
     mc:Ignorable="d"
     Title="火影忍者OL 启动器">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Grid Background="#0D0F14">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- 标题栏 -->
-        <Grid Grid.Row="0" Height="48" Background="Transparent"
-              VerticalAlignment="Top">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="火影忍者OL"
-                       FontSize="16" FontWeight="SemiBold"
-                       VerticalAlignment="Center" Margin="16,0,0,0"/>
-            <TextBlock Grid.Column="1" Text="启动器"
-                       Foreground="#888888" FontSize="12"
-                       VerticalAlignment="Center" Margin="4,0,0,0"/>
-        </Grid>
+        <!-- 左侧导航 -->
+        <Border Grid.Column="0" Width="200"
+                Background="#12141C"
+                BorderBrush="#2A3040" BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+                <!-- 品牌 -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10"
+                            Padding="16,22,16,18">
+                    <Border Width="26" Height="26" CornerRadius="7"
+                            Background="#E8482C">
+                        <TextBlock Text="忍" FontSize="13" FontWeight="Bold"
+                                   Foreground="White" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="火影忍者OL" FontSize="14" FontWeight="SemiBold"
+                               Foreground="White" VerticalAlignment="Center"/>
+                </StackPanel>
 
-        <!-- 主内容 -->
-        <Grid Grid.Row="1">
-            <TextBlock Text="启动器开发中..." HorizontalAlignment="Center"
-                       VerticalAlignment="Center" FontSize="18"/>
+                <!-- 导航项 -->
+                <StackPanel Grid.Row="1" Spacing="2">
+                    <ToggleButton x:Name="NavHome" Click="OnNavClicked" Tag="home"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Padding="18,12" Background="Transparent" BorderThickness="0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="🏠" FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="首页" FontSize="13" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="NavGames" Click="OnNavClicked" Tag="games"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Padding="18,12" Background="Transparent" BorderThickness="0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="🎮" FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="游戏" FontSize="13" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="NavAccounts" Click="OnNavClicked" Tag="accounts"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Padding="18,12" Background="Transparent" BorderThickness="0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="👥" FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="账号管理" FontSize="13" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton x:Name="NavSettings" Click="OnNavClicked" Tag="settings"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Padding="18,12" Background="Transparent" BorderThickness="0">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="⚙️" FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="设置" FontSize="13" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                </StackPanel>
+
+                <!-- 底部 -->
+                <TextBlock Grid.Row="3" Text="NarutoLauncher v0.1 · 本地加密存储"
+                           FontSize="11" Foreground="#4A5165"
+                           Padding="16,0,16,16" TextWrapping="Wrap"/>
+            </Grid>
+        </Border>
+
+        <!-- 右侧内容 -->
+        <Grid Grid.Column="1">
+            <Frame x:Name="ContentFrame" Navigating="OnFrameNavigating"/>
         </Grid>
     </Grid>
 </Window>
+
+

@@ -1,0 +1,145 @@
+<Page
+    x:Class="NarutoLauncher.Views.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:NarutoLauncher.Models"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Padding="24,20,24,32" Spacing="0">
+
+            <!-- Banner -->
+            <Border Height="200" CornerRadius="16"
+                    BorderBrush="#4A3A30" BorderThickness="1">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#2A0F0C" Offset="0"/>
+                        <GradientStop Color="#4A1410" Offset="0.45"/>
+                        <GradientStop Color="#7A1C10" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid>
+                    <StackPanel VerticalAlignment="Center" Margin="32,0,0,0">
+                        <TextBlock Text="火影忍者OL" FontSize="34" FontWeight="Bold"
+                                   Foreground="White" CharacterSpacing="200"/>
+                        <TextBlock Text="忍界大战 · 多开登录 · 一键加速 · 自动挂机"
+                                   FontSize="13" Foreground="#B8FFFFFF" Margin="2,12,0,0"/>
+                    </StackPanel>
+                    <Button Content="开始游戏" Margin="0,0,32,0"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Height="46" Padding="40,0"
+                            CornerRadius="10"
+                            FontSize="15" FontWeight="SemiBold"
+                            Foreground="White">
+                        <Button.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#FF6A3D" Offset="0"/>
+                                <GradientStop Color="#E8482C" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Button.Background>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- 账号区 -->
+            <TextBlock Text="我的账号" FontSize="15" FontWeight="SemiBold"
+                       Foreground="White" Margin="2,28,0,12"/>
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Accounts}">
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Horizontal" Spacing="14"/>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="models:Account">
+                        <Border Width="224" CornerRadius="14"
+                                Background="#181B24"
+                                BorderBrush="#2A3040" BorderThickness="1"
+                                Padding="16">
+                            <StackPanel>
+                                <Grid>
+                                    <Border Width="46" Height="46" CornerRadius="12"
+                                            Background="{StaticResource HyAvatarBrush}">
+                                        <TextBlock Text="{x:Bind AvatarChar}" FontSize="18"
+                                                   FontWeight="Bold" Foreground="White"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                    <Button Content="编辑" HorizontalAlignment="Right"
+                                            VerticalAlignment="Top" FontSize="11"
+                                            Background="Transparent" BorderThickness="0"
+                                            Foreground="#8A91A5" Padding="6,2"/>
+                                </Grid>
+                                <TextBlock Text="{x:Bind DisplayName}" FontSize="13"
+                                           FontWeight="SemiBold" Foreground="White"
+                                           Margin="0,12,0,0"/>
+                                <TextBlock Text="{x:Bind InfoText}" FontSize="11"
+                                           Foreground="#8A91A5" Margin="0,4,0,0"/>
+                                <Border Margin="0,12,0,0" CornerRadius="8" Padding="0,7"
+                                        Background="{x:Bind Running, Mode=OneWay, Converter={StaticResource RunBgConverter}}">
+                                    <TextBlock Text="{x:Bind RunText}" FontSize="12"
+                                               HorizontalAlignment="Center"
+                                               Foreground="{x:Bind Running, Mode=OneWay, Converter={StaticResource RunFgConverter}}"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+
+            <!-- 功能设置 -->
+            <TextBlock Text="功能设置" FontSize="15" FontWeight="SemiBold"
+                       Foreground="White" Margin="2,32,0,12"/>
+            <Grid ColumnSpacing="14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <!-- 加速 -->
+                <Border Grid.Column="0" CornerRadius="14" Background="#181B24"
+                        BorderBrush="#2A3040" BorderThickness="1" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="加速 / 变速" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="White" Margin="0,0,0,10"/>
+                        <Grid><TextBlock Text="游戏变速" FontSize="12" Foreground="#8A91A5"
+                                         VerticalAlignment="Center"/><ToggleSwitch
+                                         HorizontalAlignment="Right" IsOn="True"/></Grid>
+                        <Grid><TextBlock Text="挂机防掉线" FontSize="12" Foreground="#8A91A5"
+                                         VerticalAlignment="Center"/><ToggleSwitch
+                                         HorizontalAlignment="Right" IsOn="True"/></Grid>
+                    </StackPanel>
+                </Border>
+                <!-- 自动化 -->
+                <Border Grid.Column="1" CornerRadius="14" Background="#181B24"
+                        BorderBrush="#2A3040" BorderThickness="1" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="自动化" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="White" Margin="0,0,0,10"/>
+                        <Grid><TextBlock Text="自动脚本" FontSize="12" Foreground="#8A91A5"
+                                         VerticalAlignment="Center"/><ToggleSwitch
+                                         HorizontalAlignment="Right"/></Grid>
+                        <Grid><TextBlock Text="自动任务" FontSize="12" Foreground="#8A91A5"
+                                         VerticalAlignment="Center"/><ToggleSwitch
+                                         HorizontalAlignment="Right"/></Grid>
+                    </StackPanel>
+                </Border>
+                <!-- 界面 -->
+                <Border Grid.Column="2" CornerRadius="14" Background="#181B24"
+                        BorderBrush="#2A3040" BorderThickness="1" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="界面" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="White" Margin="0,0,0,10"/>
+                        <Grid><TextBlock Text="深色主题" FontSize="12" Foreground="#8A91A5"
+                                         VerticalAlignment="Center"/><ToggleSwitch
+                                         HorizontalAlignment="Right" IsOn="True"/></Grid>
+                        <Grid><TextBlock Text="最小化到托盘" FontSize="12" Foreground="#8A91A5"
+                                         VerticalAlignment="Center"/><ToggleSwitch
+                                         HorizontalAlignment="Right" IsOn="True"/></Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
