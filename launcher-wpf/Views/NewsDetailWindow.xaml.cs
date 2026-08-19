@@ -21,11 +21,7 @@ public partial class NewsDetailWindow : HandyControl.Controls.Window
 
         Loaded += async (_, _) =>
         {
-            // 优先使用共享环境（App 启动时已预创建，可减少延迟）
-            if (App.WebViewEnv != null)
-                await Browser.EnsureCoreWebView2Async(App.WebViewEnv);
-            else
-                await Browser.EnsureCoreWebView2Async();
+            await Browser.EnsureCoreWebView2Async();
 
             Browser.NavigationCompleted += OnNavigationCompleted;
             Browser.NavigateToString(BuildHtml(htmlBody, isDark));
