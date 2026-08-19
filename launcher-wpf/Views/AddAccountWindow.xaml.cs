@@ -1,10 +1,14 @@
 using System.Windows;
 using NarutoLauncher.Models;
 using NarutoLauncher.Services;
+using Wpf.Ui.Controls;
+using MessageBox = System.Windows.MessageBox;
+using MessageBoxButton = System.Windows.MessageBoxButton;
+using MessageBoxImage = System.Windows.MessageBoxImage;
 
 namespace NarutoLauncher.Views;
 
-public partial class AddAccountWindow : HandyControl.Controls.Window
+public partial class AddAccountWindow : FluentWindow
 {
     /// <summary>添加成功后的账号（未成功为 null）。</summary>
     public Account? Result { get; private set; }

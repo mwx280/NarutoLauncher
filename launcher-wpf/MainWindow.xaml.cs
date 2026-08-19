@@ -1,10 +1,11 @@
 using System.Windows;
 using System.Windows.Controls;
 using NarutoLauncher.Views;
+using Wpf.Ui.Controls;
 
 namespace NarutoLauncher;
 
-public partial class MainWindow : HandyControl.Controls.Window
+public partial class MainWindow : FluentWindow
 {
     private readonly HomeView _home = new();
     private readonly GamesView _games = new();

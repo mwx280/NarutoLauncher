@@ -1,9 +1,10 @@
 using System.Windows;
 using NarutoLauncher.Services;
+using Wpf.Ui.Controls;
 
 namespace NarutoLauncher.Views;
 
-public partial class NewsDetailWindow : HandyControl.Controls.Window
+public partial class NewsDetailWindow : FluentWindow
 {
     public NewsDetailWindow(string title, string htmlBody)
     {

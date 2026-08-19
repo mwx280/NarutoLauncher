@@ -1,20 +1,13 @@
-using System.Windows;
 using System.Windows.Media;
+using Wpf.Ui.Appearance;
 
 namespace NarutoLauncher.Services;
 
 /// <summary>
-/// 主题管理器：切换深色/浅色主题与强调色。
+/// 主题管理器：基于 WPF-UI 切换深色/浅色主题与强调色。
 /// </summary>
 public static class ThemeManager
 {
-    private const string LightThemePath = "Themes/LightTheme.xaml";
-    private const string DarkThemePath = "Themes/DarkTheme.xaml";
-
-    private static ResourceDictionary? _lightDict;
-    private static ResourceDictionary? _darkDict;
-    private static ResourceDictionary? _currentTheme;
-
     private static ThemeMode _mode = ThemeMode.System;
     private static bool _useCustomAccent;
     private static Color _customAccent = Color.FromRgb(0xE8, 0x48, 0x2C);
@@ -37,36 +30,12 @@ public static class ThemeManager
             _ => SystemThemeIsDark(),
         };
 
-        if (_lightDict == null)
-            _lightDict = new ResourceDictionary { Source = new Uri(LightThemePath, UriKind.Relative) };
-        if (_darkDict == null)
-            _darkDict = new ResourceDictionary { Source = new Uri(DarkThemePath, UriKind.Relative) };
+        // WPF-UI 原生主题切换
+        ApplicationThemeManager.Apply(IsDark ? ApplicationTheme.Dark : ApplicationTheme.Light);
 
-        var app = Application.Current;
-        if (app == null) return;
-
-        // 移除当前主题字典
-        if (_currentTheme != null)
-            app.Resources.MergedDictionaries.Remove(_currentTheme);
-
-        _currentTheme = IsDark ? _darkDict : _lightDict;
-        app.Resources.MergedDictionaries.Add(_currentTheme);
-
-        ApplyAccent(useCustomAccent ? customAccent : SystemAccentColor());
-    }
-
-    /// <summary>应用强调色到 App.Resources。</summary>
-    private static void ApplyAccent(Color accent)
-    {
-        var app = Application.Current;
-        if (app == null) return;
-
-        // 生成强调色系
-        app.Resources["AccentBrush"] = new SolidColorBrush(accent);
-        app.Resources["AccentBrushHover"] = new SolidColorBrush(Lighten(accent, 0.08));
-        app.Resources["AccentBrushPressed"] = new SolidColorBrush(Darken(accent, 0.10));
-        app.Resources["AccentFaint"] = new SolidColorBrush(Color.FromArgb(
-            0x26, accent.R, accent.G, accent.B));
+        // 强调色（自定义优先，否则用系统）
+        var accent = useCustomAccent ? customAccent : SystemAccentColor();
+        ApplicationAccentColorManager.Apply(accent, ApplicationThemeManager.GetAppTheme());
     }
 
     // ---------- 系统检测 ----------
@@ -106,23 +75,5 @@ public static class ThemeManager
         }
         catch { }
         return Color.FromRgb(0x00, 0x78, 0xD4);  // Win11 默认蓝
-    }
-
-    // ---------- 颜色工具 ----------
-
-    private static Color Lighten(Color c, double amount)
-    {
-        return Color.FromRgb(
-            (byte)Math.Min(255, c.R + 255 * amount),
-            (byte)Math.Min(255, c.G + 255 * amount),
-            (byte)Math.Min(255, c.B + 255 * amount));
-    }
-
-    private static Color Darken(Color c, double amount)
-    {
-        return Color.FromRgb(
-            (byte)Math.Max(0, c.R - 255 * amount),
-            (byte)Math.Max(0, c.G - 255 * amount),
-            (byte)Math.Max(0, c.B - 255 * amount));
     }
 }
