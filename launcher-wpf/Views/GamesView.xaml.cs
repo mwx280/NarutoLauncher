@@ -175,7 +175,11 @@ public partial class GamesView : UserControl
 
     private void OnCloseTab(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement el && el.Tag is long id)
+        if (sender is not FrameworkElement btn) return;
+        // 在模板内，需向上找父级 TabItem 的 Tag
+        var tab = btn.TemplatedParent as TabItem;
+        if (tab == null) return;
+        if (tab.Tag is long id)
             CloseTab(id);
     }
 
