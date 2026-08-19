@@ -13,8 +13,14 @@ public partial class HomeView : UserControl
     public HomeView()
     {
         InitializeComponent();
-        // 启动时显示加载界面，网络抓取完成后再显示公告
-        Loaded += async (_, _) => await LoadNewsAsync();
+        // 每次进入首页时自动抓取最新公告（加载界面 → 完成后显示）
+        IsVisibleChanged += OnVisibilityChanged;
+    }
+
+    private async void OnVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (IsVisible)
+            await LoadNewsAsync();
     }
 
     private async Task LoadNewsAsync()
