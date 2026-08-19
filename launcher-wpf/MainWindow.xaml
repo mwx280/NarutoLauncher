@@ -23,22 +23,33 @@
                 <ListBox x:Name="NavList" BorderThickness="0" Background="Transparent"
                          SelectionChanged="OnNavChanged" SelectedIndex="0"
                          FontSize="14">
-                    <ListBox.Resources>
+                    <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
                             <Setter Property="Padding" Value="20,10"/>
                             <Setter Property="Margin" Value="8,2"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Background" Value="#E8482C"/>
-                                    <Setter Property="Foreground" Value="White"/>
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#F5E6E0"/>
-                                </Trigger>
-                            </Style.Triggers>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Bd" Background="Transparent"
+                                                CornerRadius="6" Padding="{TemplateBinding Padding}"
+                                                Margin="{TemplateBinding Margin}">
+                                            <ContentPresenter/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#DCE9FB"/>
+                                                <Setter Property="Foreground" Value="#1B5FA8"/>
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#F0F5FC"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
-                    </ListBox.Resources>
+                    </ListBox.ItemContainerStyle>
                     <ListBoxItem Content="🏠  首页"/>
                     <ListBoxItem Content="🎮  游戏"/>
                     <ListBoxItem Content="👥  账号管理"/>
