@@ -8,69 +8,55 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- 顶部标题栏 -->
-        <Grid Grid.Row="0" Margin="24,20,24,12">
+        <!-- 公告标题栏 -->
+        <Grid Grid.Row="0" Margin="24,16,24,8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0">
-                <TextBlock Text="火影忍者OL" FontSize="26" FontWeight="Bold" Foreground="#E8482C"/>
-                <TextBlock Text="官方公告 · 忍界大战 · 多开登录" Foreground="#8A7A66" Margin="0,4,0,0"/>
-            </StackPanel>
-            <Button Grid.Column="1" Content="开始游戏" Style="{StaticResource ButtonPrimary}"
-                    Width="150" Height="38" FontSize="14" FontWeight="Bold"
-                    VerticalAlignment="Center" Click="OnStartGame"/>
-        </Grid>
-
-        <!-- 公告列表 -->
-        <Grid Grid.Row="1" Margin="24,0,24,20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-                <TextBlock Text="最新公告" FontSize="16" FontWeight="SemiBold" Foreground="#333"
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <TextBlock Text="公告" FontSize="18" FontWeight="Bold" Foreground="#333"
                            VerticalAlignment="Center"/>
-                <Button x:Name="RefreshBtn" Content="刷新" Padding="12,4" Margin="12,0,0,0"
-                        VerticalAlignment="Center" Click="OnRefresh"/>
-                <ProgressBar x:Name="LoadingBar" Width="120" Height="4" IsIndeterminate="True"
+                <ProgressBar x:Name="LoadingBar" Width="100" Height="4" IsIndeterminate="True"
                              Margin="12,0,0,0" VerticalAlignment="Center"
                              Visibility="Collapsed"/>
             </StackPanel>
-
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
-                          Background="White" BorderBrush="#E0E0E0" BorderThickness="1">
-                <ItemsControl x:Name="NewsList" Background="White">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="12,10"
-                                    Background="White" Cursor="Hand"
-                                    PreviewMouseLeftButtonUp="OnNewsClick">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Background="#FDE8E3" CornerRadius="4"
-                                            Padding="6,2" Margin="0,0,10,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Category}" Foreground="#E8482C"
-                                                   FontSize="11"/>
-                                    </Border>
-                                    <TextBlock Grid.Column="1" Text="{Binding Title}"
-                                               Foreground="#333" FontSize="13"
-                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Date}"
-                                               Foreground="#999" FontSize="12"
-                                               Margin="10,0,0,0" VerticalAlignment="Center"/>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+            <Button Grid.Column="1" x:Name="RefreshBtn" Content="刷新" Padding="16,5"
+                    Click="OnRefresh"/>
         </Grid>
+
+        <!-- 公告列表 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      Background="White" BorderBrush="#E8E8E8" BorderThickness="1"
+                      Margin="24,0,24,20">
+            <ItemsControl x:Name="NewsList" Background="White">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="14,12"
+                                Background="White" Cursor="Hand"
+                                PreviewMouseLeftButtonUp="OnNewsClick">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#FDE8E3" CornerRadius="4"
+                                        Padding="6,2" Margin="0,0,10,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Category}" Foreground="#E8482C"
+                                               FontSize="12"/>
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                           Foreground="#333" FontSize="14"
+                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Date}"
+                                           Foreground="#999" FontSize="12"
+                                           Margin="12,0,0,0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
     </Grid>
 </UserControl>

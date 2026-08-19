@@ -14,6 +14,8 @@ public partial class MainWindow : HandyControl.Controls.Window
     public MainWindow()
     {
         InitializeComponent();
+        // 默认选中首页
+        NavList.SelectedIndex = 0;
         ContentHost.Content = _home;
     }
 

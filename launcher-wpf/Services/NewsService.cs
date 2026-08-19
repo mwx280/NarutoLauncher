@@ -100,11 +100,44 @@ public class NewsService
         var bodyM = Regex.Match(html,
             @"<div\s+class=""news-detail-con""\s+id=""detail_con"">([\s\S]*?)</div>",
             RegexOptions.IgnoreCase);
+        var body = bodyM.Success ? bodyM.Groups[1].Value.Trim() : "";
         return new NewsDetail
         {
             Title = titleM.Success ? HtmlDecode(titleM.Groups[1].Value.Trim()) : "公告",
-            HtmlBody = bodyM.Success ? bodyM.Groups[1].Value.Trim() : "",
+            HtmlBody = ResolveUrls(body),
         };
+    }
+
+    /// <summary>
+    /// 把正文中的相对/协议相对 URL 重写为完整 URL，
+    /// 使 WebBrowser 显示时图片等资源可正常加载。
+    /// </summary>
+    private static string ResolveUrls(string html)
+    {
+        if (string.IsNullOrEmpty(html))
+            return html;
+
+        // 协议相对 src/href="//host/..." → src="https://host/..."
+        html = Regex.Replace(html,
+            @"(?<=(?:src|href))=""//",
+            "=\"https://",
+            RegexOptions.IgnoreCase);
+        html = Regex.Replace(html,
+            @"(?<=(?:src|href))='//",
+            "='https://",
+            RegexOptions.IgnoreCase);
+
+        // 根相对 src/href="/..."（非 // 或 http）→ 补全域名
+        html = Regex.Replace(html,
+            @"(?<=(?:src|href))=""/(?!/)",
+            "=\"https://huoying.qq.com/",
+            RegexOptions.IgnoreCase);
+        html = Regex.Replace(html,
+            @"(?<=(?:src|href))='/",
+            "='https://huoying.qq.com/",
+            RegexOptions.IgnoreCase);
+
+        return html;
     }
 
     private static string HtmlDecode(string s) => WebUtility.HtmlDecode(s);

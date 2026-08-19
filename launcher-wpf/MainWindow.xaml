@@ -23,10 +23,26 @@
                 <ListBox x:Name="NavList" BorderThickness="0" Background="Transparent"
                          SelectionChanged="OnNavChanged" SelectedIndex="0"
                          FontSize="14">
-                    <ListBoxItem Content="🏠  首页" Padding="20,10"/>
-                    <ListBoxItem Content="🎮  游戏" Padding="20,10"/>
-                    <ListBoxItem Content="👥  账号管理" Padding="20,10"/>
-                    <ListBoxItem Content="⚙️  设置" Padding="20,10"/>
+                    <ListBox.Resources>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="20,10"/>
+                            <Setter Property="Margin" Value="8,2"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#E8482C"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#F5E6E0"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.Resources>
+                    <ListBoxItem Content="🏠  首页"/>
+                    <ListBoxItem Content="🎮  游戏"/>
+                    <ListBoxItem Content="👥  账号管理"/>
+                    <ListBoxItem Content="⚙️  设置"/>
                 </ListBox>
             </DockPanel>
         </Border>

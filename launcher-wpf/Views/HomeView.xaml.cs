@@ -62,10 +62,4 @@ public partial class HomeView : UserControl
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
-
-    private void OnStartGame(object sender, RoutedEventArgs e)
-    {
-        var win = Window.GetWindow(this) as MainWindow;
-        win?.NavigateTo(1);  // 游戏页
-    }
 }
