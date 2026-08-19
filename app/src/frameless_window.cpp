@@ -199,9 +199,12 @@ LRESULT FramelessWindow::HandleMessage(UINT msg, WPARAM w, LPARAM l) {
             bool top = pt.y < b;
             bool bottom = pt.y >= rc.bottom - b;
 
-            if (maximized_)
-                break;  // 最大化时禁止缩放
+            if (maximized_) {
+                // 最大化时禁止缩放，但标题栏仍可拖拽（拖动会自动还原）
+                break;
+            }
 
+            // 优先级：先判四角，再判四边。
             if (left && top) return kHtTopLeft;
             if (right && top) return kHtTopRight;
             if (left && bottom) return kHtBottomLeft;
@@ -210,6 +213,15 @@ LRESULT FramelessWindow::HandleMessage(UINT msg, WPARAM w, LPARAM l) {
             if (right) return kHtRight;
             if (top) return kHtTop;
             if (bottom) return kHtBottom;
+
+            // 标题栏区域（顶部 36px 内、非边缘缩放区）→ 返回 HTCAPTION 支持拖拽。
+            // 排除右侧窗口控制按钮区域，保证按钮可点击。
+            const int kTitleBarHeight = 36;
+            const int kWinButtonsArea = 40 * 4 + 8;  // 4 个按钮 + 间距
+            if (pt.y < kTitleBarHeight &&
+                pt.x < rc.right - kWinButtonsArea) {
+                return kHtCaption;
+            }
             break;
         }
         case WM_SIZE:

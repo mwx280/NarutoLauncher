@@ -33,9 +33,10 @@ namespace {
 const char* kFlashVersion = "34.0.0.380";
 }  // namespace
 
-// ---------- 应用级 CefApp（Flash 注册） ----------
+// ---------- 应用级 CefApp（Flash 注册 + 渲染进程 JS 桥） ----------
 class HostApp : public CefApp,
-                public CefBrowserProcessHandler {
+                public CefBrowserProcessHandler,
+                public CefRenderProcessHandler {
 public:
     // Flash 插件绝对路径（宽字符解析，避免中文路径编码问题）。
     static std::string FlashPluginPath() {
@@ -78,9 +79,51 @@ public:
         return this;
     }
 
+    CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override {
+        return this;
+    }
+
+    // ---- 渲染进程：注入 nativeQuery JS 桥 ----
+    void OnContextCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+                          CefRefPtr<CefV8Context> context) override {
+        if (!renderer_router_)
+            renderer_router_ = CefMessageRouterRendererSide::Create(config_);
+        renderer_router_->OnContextCreated(browser, frame, context);
+    }
+
+    void OnContextReleased(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+                           CefRefPtr<CefV8Context> context) override {
+        if (renderer_router_)
+            renderer_router_->OnContextReleased(browser, frame, context);
+    }
+
+    bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
+                                  CefRefPtr<CefFrame> frame,
+                                  CefProcessId source_process,
+                                  CefRefPtr<CefProcessMessage> message) override {
+        if (renderer_router_ &&
+            renderer_router_->OnProcessMessageReceived(browser, frame,
+                                                       source_process, message))
+            return true;
+        return false;
+    }
+
+    // 与浏览器进程保持一致的路由配置（构造函数统一初始化，跨进程一致）
+    static const CefMessageRouterConfig& RouterConfig() { return config_; }
+
 private:
+    static CefMessageRouterConfig config_;
+    CefRefPtr<CefMessageRouterRendererSide> renderer_router_;
     IMPLEMENT_REFCOUNTING(HostApp);
 };
+
+// 静态成员定义：构造函数里统一设置函数名，浏览器/渲染进程都会初始化。
+CefMessageRouterConfig HostApp::config_ = [] {
+    CefMessageRouterConfig c;
+    c.js_query_function = "nativeQuery";
+    c.js_cancel_function = "nativeQueryCancel";
+    return c;
+}();
 
 // ---------- 全局状态 ----------
 FramelessWindow g_window;
@@ -89,6 +132,7 @@ CefRefPtr<CefBrowser> g_ui_browser;
 CefRefPtr<CefBrowser> g_game_browser;
 HWND g_game_hwnd = nullptr;   // 游戏窗口句柄（从 CEF 回调获取）
 bool g_game_created = false;  // 游戏窗口是否已创建（用于嵌入）
+CefRefPtr<CefMessageRouterBrowserSide> g_router;
 
 // 把 CEF 子窗口嵌入主窗口客户区（由 WM_SIZE 同步尺寸）。
 void EmbedChild(HWND child) {
@@ -98,11 +142,14 @@ void EmbedChild(HWND child) {
 // ---------- 浏览器客户端 ----------
 class HostClient : public CefClient,
                    public CefLifeSpanHandler,
-                   public CefRequestContextHandler {
+                   public CefRequestContextHandler,
+                   public CefRequestHandler,
+                   public CefMessageRouterBrowserSide::Handler {
 public:
     explicit HostClient(bool is_game) : is_game_(is_game) {}
 
     CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
+    CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
 
     bool OnBeforePluginLoad(const CefString& mime_type,
                             const CefString& plugin_url,
@@ -115,6 +162,77 @@ public:
             return true;
         }
         return false;
+    }
+
+    // ---- CefRequestHandler：转发给消息路由器（页面导航/渲染进程退出清理） ----
+    bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+                        CefRefPtr<CefRequest> request, bool user_gesture,
+                        bool is_redirect) override {
+        if (g_router) {
+            g_router->OnBeforeBrowse(browser, frame);
+        }
+        return false;
+    }
+
+    void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
+                                   TerminationStatus status) override {
+        if (g_router) {
+            g_router->OnRenderProcessTerminated(browser);
+        }
+    }
+
+    // ---- CefClient：转发渲染进程消息给消息路由器 ----
+    bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
+                                  CefRefPtr<CefFrame> frame,
+                                  CefProcessId source_process,
+                                  CefRefPtr<CefProcessMessage> message) override {
+        if (g_router &&
+            g_router->OnProcessMessageReceived(browser, frame,
+                                               source_process, message))
+            return true;
+        return false;
+    }
+
+    // ---- CefMessageRouterBrowserSide::Handler：处理 JS 查询 ----
+    bool OnQuery(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+                 int64 query_id, const CefString& request, bool persistent,
+                 CefRefPtr<Callback> callback) override {
+        // 只有 UI 浏览器接收 JS 桥调用
+        if (is_game_)
+            return false;
+        const std::string req = request.ToString();
+        AppLog::Write("JS 桥调用: %s", req.c_str());
+
+        std::string result;
+        if (req == "win.min") {
+            g_window.Minimize();
+            result = "ok";
+        } else if (req == "win.max") {
+            g_window.ToggleMaximize();
+            result = "ok";
+        } else if (req == "win.full") {
+            g_window.ToggleFullscreen();
+            result = "ok";
+        } else if (req == "win.close") {
+            g_window.Close();
+            result = "ok";
+        } else if (req == "win.isMax") {
+            result = g_window.IsWindowMaximized() ? "true" : "false";
+        } else if (req == "win.isFull") {
+            result = g_window.IsWindowFullscreen() ? "true" : "false";
+        } else if (req == "app.version") {
+            result = "0.1.0";
+        } else {
+            result = "unknown:" + req;
+        }
+        callback->Success(result);
+        return true;
+    }
+
+    void OnQueryCanceled(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+                         int64 query_id) override {
+        // UI 浏览器查询取消时无需处理
+        (void)browser; (void)frame; (void)query_id;
     }
 
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
@@ -259,6 +377,15 @@ int RunBrowserProcess() {
     std::string ui_url = "http://127.0.0.1:" +
                          std::to_string(port) + "/index.html";
     AppLog::Write("创建 UI 浏览器: %s", ui_url.c_str());
+
+    // 创建 JS 桥（CefMessageRouterBrowserSide）。配置必须与渲染进程一致。
+    {
+        CefMessageRouterConfig config = HostApp::RouterConfig();
+        g_router = CefMessageRouterBrowserSide::Create(config);
+        // UI 客户端作为 handler（OnQuery 处理窗口控制）
+        g_router->AddHandler(ui_client.get(), true);
+    }
+
     CreateBrowserWindow(ui_client, ui_url, false);
 
     // 创建游戏浏览器（加载 Flash 游戏；后续由 JS 桥触发，先占位）
@@ -278,6 +405,23 @@ int RunBrowserProcess() {
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t*, int) {
     (void)hInstance;
+
+    // 文本模糊修复：声明 Per-Monitor DPI 感知，避免系统缩放导致的字体模糊。
+    {
+        // 优先用 Shcore.dll 的 SetProcessDpiAwareness（Win10+）
+        typedef HRESULT(WINAPI* SetProcessDpiAwarenessFn)(int);
+        HMODULE shcore = LoadLibraryW(L"shcore.dll");
+        if (shcore) {
+            auto fn = reinterpret_cast<SetProcessDpiAwarenessFn>(
+                GetProcAddress(shcore, "SetProcessDpiAwareness"));
+            if (fn)
+                fn(2);  // PROCESS_PER_MONITOR_DPI_AWARE
+            FreeLibrary(shcore);
+        } else {
+            // 旧系统 fallback
+            SetProcessDPIAware();
+        }
+    }
 
     CefMainArgs main_args(GetModuleHandle(nullptr));
     CefRefPtr<HostApp> app = new HostApp();

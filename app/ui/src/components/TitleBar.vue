@@ -1,9 +1,31 @@
 <script setup lang="ts">
-// 无边框窗口控制条（CEF 宿主拖拽区）
-// 实装后按钮通过 CEF 桥调用窗口控制；预览阶段 toast 提示。
+// 无边框窗口控制条（CEF 桥：window.nativeQuery 由 CefMessageRouter 注入）
+// CEF 约定调用方式：nativeQuery({ request, onSuccess, onFailure })
+declare global {
+  interface Window {
+    nativeQuery?: (params: {
+      request: string
+      onSuccess: (response: string) => void
+      onFailure: (errorCode: number, errorMessage: string) => void
+    }) => void
+  }
+}
+
+function nativeCall(cmd: string) {
+  const q = window.nativeQuery
+  if (q) {
+    q({
+      request: cmd,
+      onSuccess: () => {},
+      onFailure: (code, msg) => console.error('[native]', cmd, code, msg),
+    })
+  } else {
+    console.warn('[native] nativeQuery 未注入（浏览器预览环境）', cmd)
+  }
+}
+
 function onWin(action: string) {
-  // TODO: 接 CEF 桥后调用 window.naruto.win(action)
-  console.log('[win]', action)
+  nativeCall(`win.${action}`)
 }
 </script>
 
