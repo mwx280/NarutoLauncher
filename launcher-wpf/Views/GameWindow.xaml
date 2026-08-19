@@ -18,12 +18,8 @@
                 <ui:Button x:Name="PinBtn" Appearance="Transparent"
                            ToolTip="置顶" Click="OnToggleTopmost"
                            Width="34" Height="30" Padding="0">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="📌" FontSize="13" VerticalAlignment="Center"/>
-                        <TextBlock Text="置顶" FontSize="12" Margin="4,0,0,0"
-                                   VerticalAlignment="Center"
-                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                    </StackPanel>
+                    <TextBlock Text="📌" FontSize="13"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
                 </ui:Button>
             </ui:TitleBar.TrailingContent>
         </ui:TitleBar>
