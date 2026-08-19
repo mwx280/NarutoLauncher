@@ -67,6 +67,18 @@ public partial class AccountsView : UserControl
         }
     }
 
+    private void OnStartGame(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button b || b.Tag is not long id) return;
+        var acc = App.CurrentApp.Accounts.Accounts.FirstOrDefault(a => a.Id == id);
+        if (acc == null) return;
+        var win = new GameWindow(acc)
+        {
+            Owner = Window.GetWindow(this),
+        };
+        win.Show();
+    }
+
     private void OnEditAccount(object sender, RoutedEventArgs e)
     {
         if (sender is Button b && b.Tag is long id)
