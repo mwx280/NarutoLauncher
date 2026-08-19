@@ -28,8 +28,6 @@ add_executable(huoyin_launcher WIN32
     src/app_log.h
     src/frameless_window.cpp
     src/frameless_window.h
-    src/http_server.cpp
-    src/http_server.h
 )
 
 target_include_directories(huoyin_launcher PRIVATE
@@ -58,14 +56,11 @@ if(MSVC)
     target_compile_options(huoyin_launcher PRIVATE /utf-8)
 endif()
 
-# 构建后复制 CEF 运行时、Flash 插件、Vue UI 产物到可执行目录
+# 构建后复制 CEF 运行时、Flash 插件到可执行目录
 add_custom_command(TARGET huoyin_launcher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CEF_RUNTIME_DIR}" "$<TARGET_FILE_DIR:huoyin_launcher>"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${NARUTO_ROOT}/third_party/pepflashplayer.dll"
             "$<TARGET_FILE_DIR:huoyin_launcher>/pepflashplayer.dll"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${NARUTO_ROOT}/app/ui/dist"
-            "$<TARGET_FILE_DIR:huoyin_launcher>/ui/dist"
-    COMMENT "复制 CEF 运行时、Flash 插件与 Vue UI 到可执行目录"
+    COMMENT "复制 CEF 运行时与 Flash 插件到可执行目录"
 )
