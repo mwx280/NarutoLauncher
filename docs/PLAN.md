@@ -79,15 +79,18 @@ NarutoLauncher.exe（WPF · C# · x64）
 - 清理旧架构：Vue UI（app/ui/）、WinUI 3 启动器（launcher/）、旧构建产物（build/）、macOS 残留（._*）
 - WPF 启动器（launcher-wpf/）：四页面（首页/游戏/账号管理/设置）+ HwndHost 跨进程内嵌游戏窗口（已验证成功）
 - GameHost 内嵌模式：--embed/--parent 参数，WS_CHILD 子窗口 + 窗口句柄通知文件
+- **多开内嵌**：GameProcessService 管理多账号进程，每账号独立 userdata 隔离 cookie
+- **账号系统**：本地 JSON 持久化 + DPAPI 密码加密；QQ 扫码登录（ptlogin2.ptqrlogin 轮询）；记住密码设置
+- 公告抓取：官网 GBK 编码解析，首页自动加载 + 详情弹窗（WebView2 渲染）
+- 主题系统：深色/浅色/跟随系统 + 自定义强调色（WPF-UI FluentWindow）
+- GameHost cookie 注入：base64 JSON 格式，启动时注入免登录进游戏
 - 保留资产：favicon 图标（assets/）、账号业务逻辑参考（docs/reference_useAccounts.ts.txt）、CEF 宿主代码（app/）
 
 **待办（优先级从高到低）**：
-1. **多开内嵌**：每账号一个 GameHost 进程，多开标签切换内嵌窗口
-2. **账号系统**：本地加密存储、扫码登录（ptqrlogin 轮询）、记住密码
-3. **角色信息同步**：登录后调 `getRoleList` 更新区服/等级/战力
-4. **加速/变速、自动脚本、防掉线**：按调研高频诉求实装
-5. **Flash 音频崩溃**：解决 libcef CHECK 崩溃（上述候选方案）
-6. **打包分发**：GitHub Releases 整包 + version.json
+1. **角色信息同步**：登录后调 `getRoleList` 更新区服/等级/战力显示
+2. **加速/变速、自动脚本、防掉线**：Settings 开关已就位，后端 hook 未实现（MinHook 变速、AS3 ExternalInterface 脚本、心跳防掉线）
+3. **Flash 音频崩溃**：解决 libcef CHECK 崩溃（上述候选方案）
+4. **打包分发**：GitHub Releases 整包 + version.json
 
 ## 开发环境
 

@@ -1,11 +1,10 @@
-# 宿主（app）—— CEF 87 x86 单宿主：UI(HTML/Vue) + 游戏(Flash) 同进程
+# GameHost —— CEF 87 x86 独立游戏宿主，每账号一个进程。
 # 配置方式（x86 目标，MSVC 交叉环境）：
 #   以 vcvarsarm64_x86.bat / vcvars32.bat / vcvarsamd64_x86.bat 进入 MSVC 环境后：
 #   cmake -S app -B build/app -G Ninja
 #   cmake --build build/app
 #
-# 依赖：CEF 87 SDK（tools/download_deps.ps1 下载到 third_party/）
-#       Vue UI（先 cd app/ui && npm install && npm run build，产物在 app/ui/dist）
+# 依赖：CEF 87 SDK、Flash.cn PPAPI 34.0.0.380（tools/download_deps.ps1 下载至 third_party/）
 
 cmake_minimum_required(VERSION 3.16)
 project(huoyin_launcher VERSION 0.1.0 LANGUAGES CXX)

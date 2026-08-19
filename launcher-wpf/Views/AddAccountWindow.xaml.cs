@@ -105,7 +105,6 @@ public partial class AddAccountWindow : FluentWindow
 
         // 用主窗口句柄作为 GameHost 的 parent（与 GamesView 一致，跨进程 SetParent 可靠）
         var hostHwnd = App.CurrentApp.MainWindowHandle;
-        Log($"parentHwnd={hostHwnd}");
 
         var session = App.CurrentApp.Games.StartScanLogin(hostHwnd);
         if (session == null)
@@ -117,7 +116,6 @@ public partial class AddAccountWindow : FluentWindow
             return;
         }
         _scanSession = session;
-        Log($"扫码会话 userdata={session.UserdataDir}");
 
         // 等待 GameHost 主窗口句柄（window_hwnd.txt）并内嵌
         await Task.Run(async () =>
@@ -284,14 +282,4 @@ public partial class AddAccountWindow : FluentWindow
             QrHost.ChildWindowHandle = 0;
     }
 
-    private static void Log(string msg)
-    {
-        try
-        {
-            var logFile = Path.Combine(
-                Path.GetDirectoryName(AppContext.BaseDirectory) ?? ".", "scan_debug.log");
-            File.AppendAllText(logFile, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n");
-        }
-        catch { }
-    }
 }
