@@ -18,7 +18,8 @@
             </StackPanel>
 
             <Button Content="开始游戏" Style="{StaticResource AccentButtonStyle}"
-                    HorizontalAlignment="Left" MinWidth="160"/>
+                    HorizontalAlignment="Left" MinWidth="160"
+                    Click="OnStartGame"/>
 
             <!-- 账号区 -->
             <TextBlock Text="我的账号" Style="{StaticResource SubtitleTextBlockStyle}"/>
@@ -48,9 +49,8 @@
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="8"
                                         HorizontalAlignment="Right">
-                                <TextBlock Text="{x:Bind RunText}" FontSize="12"
-                                           VerticalAlignment="Center"/>
-                                <Button Content="编辑" FontSize="12" Padding="8,4"/>
+                                <Button Content="{x:Bind RunText}" Click="OnToggleRun"
+                                        Tag="{x:Bind Id}" FontSize="12" Padding="10,4"/>
                             </StackPanel>
                         </StackPanel>
                     </DataTemplate>
@@ -83,6 +83,8 @@
                 <ToggleSwitch Header="最小化到托盘" Grid.Row="1" Grid.Column="2"
                               IsOn="{x:Bind ViewModel.Settings.MinimizeToTray, Mode=TwoWay}"/>
             </Grid>
+
+            <InfoBar x:Name="TipInfoBar" IsClosable="True" IsOpen="False"/>
         </StackPanel>
     </ScrollViewer>
 </Page>

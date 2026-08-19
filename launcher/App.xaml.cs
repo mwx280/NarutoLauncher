@@ -12,6 +12,7 @@ public partial class App : Application
 
     public AccountService Accounts { get; } = new();
     public SettingsService Settings { get; } = new();
+    public GameProcessService Games { get; } = new();
 
     public App()
     {
