@@ -107,6 +107,23 @@ renderer.exe  C++ · CEF 87.1.13 · x86 单构建（三平台通用）
 - 注意：`windows.h` 的 `IsMaximized`/`IsZoomed` 宏会污染 Qt 成员名，成员已命名
   `IsWindowMaximized` 规避。
 
+**QML 方案评估（已放弃）**：
+- 曾尝试将外壳 UI 改为 QML 以获得更流畅的窗口动画（GPU 合成）。
+  预览工程可编译，但开发机（ARM64 VM x86 模拟）下 Qt Quick 的 Windows 窗口合成层
+  不稳定（D3D 后端崩溃，offscreen 模式正常），且 QML 与 Widgets 在动画上的收益
+  不足以抵消引入第二套 UI 技术栈的成本。最终定案：**Qt Widgets（Qt GUI）**。
+
+**外壳增强（本轮，待提交）**：
+- 窗口动画：最大化 / 还原 / 全屏 / 退出全屏使用 QPropertyAnimation 平滑缩放几何
+  （OutCubic 220ms），最小化做缩小 + 透明度淡出动画。
+- 拖拽修复：标题栏手动拖拽（Qt 事件实现）恢复；最大化状态拖动时先还原再跟手
+  （`RestoreForDrag`）。曾尝试 `WM_NCHITTEST` 返回 HTCAPTION 交系统拖拽，
+  实测不可靠，回退手动拖拽。
+- 窗口控制图标：改 QPainter 矢量绘制（16×16、1.6px 圆角线宽，setIsMask 随按钮
+  文字色变化），四个按钮统一尺寸 44×30，消除 Unicode 字符渲染大小不齐的问题。
+- 现代样式：深色蓝黑渐变 + 火焰橙点缀，更大圆角（窗口 14px），输入框/复选框/
+  滚动条细化，游戏视图区径向橙色光晕。
+
 **待做（阶段 3 剩余）**：
 - 渲染器进程拉起（shell 启动 renderer.exe）
 - Named Pipe 协议 v1：渲染器服务端 + 外壳 `QLocalSocket` 客户端
