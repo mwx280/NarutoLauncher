@@ -8,78 +8,30 @@
     mc:Ignorable="d"
     Title="火影忍者OL 启动器">
 
-    <Grid Background="#0D0F14">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <NavigationView x:Name="NavView"
+                    IsBackButtonVisible="Collapsed"
+                    IsSettingsVisible="True"
+                    PaneDisplayMode="Left"
+                    SelectionChanged="OnSelectionChanged">
 
-        <!-- 左侧导航 -->
-        <Border Grid.Column="0" Width="200"
-                Background="#12141C"
-                BorderBrush="#2A3040" BorderThickness="0,0,1,0">
-            <Grid RowDefinitions="Auto,Auto,*,Auto">
-                <!-- 品牌 -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10"
-                            Padding="16,22,16,18">
-                    <Border Width="26" Height="26" CornerRadius="7"
-                            Background="#E8482C">
-                        <TextBlock Text="忍" FontSize="13" FontWeight="Bold"
-                                   Foreground="White" HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
-                    </Border>
-                    <TextBlock Text="火影忍者OL" FontSize="14" FontWeight="SemiBold"
-                               Foreground="White" VerticalAlignment="Center"/>
-                </StackPanel>
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="首页" Tag="home">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Home"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="游戏" Tag="games">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Play"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="账号管理" Tag="accounts">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Contact"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.MenuItems>
 
-                <!-- 导航项 -->
-                <StackPanel Grid.Row="1" Spacing="2">
-                    <ToggleButton x:Name="NavHome" Click="OnNavClicked" Tag="home"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                            Padding="18,12" Background="Transparent" BorderThickness="0">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <TextBlock Text="🏠" FontSize="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="首页" FontSize="13" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </ToggleButton>
-                    <ToggleButton x:Name="NavGames" Click="OnNavClicked" Tag="games"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                            Padding="18,12" Background="Transparent" BorderThickness="0">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <TextBlock Text="🎮" FontSize="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="游戏" FontSize="13" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </ToggleButton>
-                    <ToggleButton x:Name="NavAccounts" Click="OnNavClicked" Tag="accounts"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                            Padding="18,12" Background="Transparent" BorderThickness="0">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <TextBlock Text="👥" FontSize="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="账号管理" FontSize="13" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </ToggleButton>
-                    <ToggleButton x:Name="NavSettings" Click="OnNavClicked" Tag="settings"
-                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                            Padding="18,12" Background="Transparent" BorderThickness="0">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <TextBlock Text="⚙️" FontSize="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="设置" FontSize="13" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </ToggleButton>
-                </StackPanel>
-
-                <!-- 底部 -->
-                <TextBlock Grid.Row="3" Text="NarutoLauncher v0.1 · 本地加密存储"
-                           FontSize="11" Foreground="#4A5165"
-                           Padding="16,0,16,16" TextWrapping="Wrap"/>
-            </Grid>
-        </Border>
-
-        <!-- 右侧内容 -->
-        <Grid Grid.Column="1">
-            <Frame x:Name="ContentFrame" Navigating="OnFrameNavigating"/>
-        </Grid>
-    </Grid>
+        <Frame x:Name="ContentFrame"/>
+    </NavigationView>
 </Window>
-
-
