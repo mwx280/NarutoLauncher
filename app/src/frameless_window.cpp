@@ -44,9 +44,12 @@ bool FramelessWindow::Create(int width, int height, bool embed, HWND parent) {
     if (!reg_ok && reg_err != ERROR_CLASS_ALREADY_EXISTS)
         return false;
 
-    DWORD style = embed ? (WS_CHILD | WS_VISIBLE) : WS_POPUP;  // 无边框
+    // 无边框窗口。embed 模式下为子窗口，由启动器内嵌后再显示，
+    // 创建时不带 WS_VISIBLE / 不 ShowWindow，避免内嵌前以独立黑窗口闪现。
+    DWORD style = embed ? WS_CHILD : (WS_POPUP | WS_VISIBLE);
     DWORD ex_style = embed ? 0 : WS_EX_APPWINDOW;
 
+    AppLog::Write("创建窗口: embed=%d parent=%p", embed ? 1 : 0, parent);
     hwnd_ = CreateWindowEx(
         ex_style, kClassName, L"火影忍者Online",
         style, 0, 0, width, height,
@@ -57,8 +60,10 @@ bool FramelessWindow::Create(int width, int height, bool embed, HWND parent) {
     if (!hwnd_)
         return false;
 
-    ShowWindow(hwnd_, SW_SHOW);
-    UpdateWindow(hwnd_);
+    if (!embed) {
+        ShowWindow(hwnd_, SW_SHOW);
+        UpdateWindow(hwnd_);
+    }
     return true;
 }
 
