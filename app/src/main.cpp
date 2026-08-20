@@ -211,8 +211,6 @@ std::string BuildAutoLoginJs() {
         "u.dispatchEvent(new Event('change',{bubbles:true}));}"
         "if(p.value!==pwd){p.value=pwd;p.dispatchEvent(new Event('input',{bubbles:true}));"
         "p.dispatchEvent(new Event('change',{bubbles:true}));}"
-        "var btn=document.getElementById('login_button');"
-        "if(btn&&!btn.disabled){btn.click();}"
         "}catch(e){}"
         "}"
         "})();";
