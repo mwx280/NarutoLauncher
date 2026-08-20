@@ -19,6 +19,7 @@
                 <Button x:Name="FullscreenBtn"
                         Width="44" Height="30" Padding="0"
                         VerticalAlignment="Top"
+                        Background="Transparent"
                         ToolTip="全屏"
                         Click="OnToggleFullscreen">
                     <Button.Template>
