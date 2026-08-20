@@ -235,8 +235,11 @@ CefRefPtr<CefFrame> FindLoginFrame(CefRefPtr<CefBrowser> browser) {
     return nullptr;
 }
 
-// Flash 画质级别（对应 Flash object/embed 的 quality 参数）。
-const char* kFlashQualityNames[] = {"low", "medium", "high", "best"};
+// Flash 画质级别（Flash object/embed 的 quality 参数只有 低/中/高）。
+const char* kFlashQualityNames[] = {"low", "medium", "high"};
+
+// 当前 Flash 画质（默认最低）。
+std::string g_flash_quality = "low";
 
 // 刷新当前游戏页面。
 void ReloadGame() {
@@ -246,19 +249,14 @@ void ReloadGame() {
     }
 }
 
-// 设置 Flash 画质（quality 参数：low/medium/high/best），
-// 通过主框架 JS 重新创建/更新 Flash 嵌入参数实现。
-void SetFlashQuality(int level) {
-    if (level < 0) level = 0;
-    if (level > 3) level = 3;
-    const char* q = kFlashQualityNames[level];
-    AppLog::Write("命令: 设置 Flash 画质=%s (%d)", q, level);
+// 向主框架注入设置 Flash 画质的 JS（轮询查找 Flash 容器，最多 20 次/10 秒）。
+void InjectFlashQuality(const std::string& q) {
     if (!g_game_browser || !g_game_browser->GetMainFrame()) return;
-    // 找到 Flash 嵌入容器并修改 quality 参数（游戏用 swfobject 加载 id=entry）
     std::string js =
-        "(function(){"
+        "(function(q,max){"
+        "var n=0;"
+        "function t(){"
         "try{"
-        "var q='" + std::string(q) + "';"
         "var swf=document.getElementById('entry');"
         "if(!swf)swf=document.getElementsByTagName('object')[0];"
         "if(!swf)swf=document.getElementsByTagName('embed')[0];"
@@ -270,10 +268,24 @@ void SetFlashQuality(int level) {
         "params[i].value=q;found=true;}}"
         "if(!found&&swf.setAttribute){swf.setAttribute('quality',q);}"
         "try{swf.quality=q;}catch(e){}"
+        "return;"
         "}"
-        "}catch(e){}})();";
+        "}catch(e){}"
+        "if(++n<max)setTimeout(t,500);"
+        "}"
+        "t();"
+        "})('" + q + "',20);";
     g_game_browser->GetMainFrame()->ExecuteJavaScript(js,
         g_game_browser->GetMainFrame()->GetURL(), 0);
+}
+
+// 设置 Flash 画质（quality 参数：low/medium/high）。
+void SetFlashQuality(int level) {
+    if (level < 0) level = 0;
+    if (level > 2) level = 2;
+    g_flash_quality = kFlashQualityNames[level];
+    AppLog::Write("命令: 设置 Flash 画质=%s (%d)", g_flash_quality.c_str(), level);
+    InjectFlashQuality(g_flash_quality);
 }
 
 // 主窗口自定义命令消息回调（cmd: 1=刷新, 2=画质调节）。
@@ -359,6 +371,8 @@ public:
                 "*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}';"
                 "document.head.appendChild(s);}",
                 frame->GetURL(), 0);
+            // 页面加载后应用当前 Flash 画质（默认最低，刷新后保持用户选择）
+            InjectFlashQuality(g_flash_quality);
         }
         if ((g_login_mode || g_auto_login) && !_login_detected &&
             frame->IsMain()) {
