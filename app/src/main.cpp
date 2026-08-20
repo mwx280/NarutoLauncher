@@ -249,6 +249,39 @@ void ReloadGame() {
     }
 }
 
+// 崩溃自动恢复：Flash 插件进程或渲染进程崩溃后，自动重新加载页面。
+// 短时间内连续崩溃超过上限则停止，避免无限刷新循环。
+namespace {
+const int kMaxCrashReloads = 3;       // 连续崩溃自动重载上限
+const DWORD kCrashWindowMs = 60000;   // 崩溃统计时间窗（60 秒）
+DWORD g_last_crash_tick = 0;          // 上次崩溃时间（TickCount）
+int g_crash_reload_count = 0;         // 时间窗内崩溃次数
+
+// 延迟执行页面重载的任务（等崩溃进程清理完再刷新）。
+class ReloadTask : public CefTask {
+public:
+    void Execute() override { ReloadGame(); }
+    IMPLEMENT_REFCOUNTING(ReloadTask);
+};
+}  // namespace
+
+// 处理崩溃并决定是否自动重载（UI 线程调用）。
+void HandleProcessCrashed(const char* what) {
+    DWORD now = ::GetTickCount();
+    if (g_last_crash_tick == 0 ||
+        now - g_last_crash_tick > kCrashWindowMs) {
+        g_crash_reload_count = 0;  // 上一窗口已过期，重置计数
+    }
+    g_last_crash_tick = now;
+    ++g_crash_reload_count;
+    AppLog::Write("崩溃自动恢复: %s (第 %d 次)", what, g_crash_reload_count);
+    if (g_crash_reload_count > kMaxCrashReloads) {
+        AppLog::Write("崩溃自动恢复: 连续崩溃次数超限，停止自动重载");
+        return;
+    }
+    CefPostDelayedTask(TID_UI, new ReloadTask(), 800);
+}
+
 // 向主框架注入设置 Flash 画质的 JS（轮询查找 Flash 容器，最多 20 次/10 秒）。
 void InjectFlashQuality(const std::string& q) {
     if (!g_game_browser || !g_game_browser->GetMainFrame()) return;
@@ -336,6 +369,28 @@ public:
             g_game_hwnd = game_hwnd;
             EmbedChild(game_hwnd);
         }
+    }
+
+    // Flash 插件进程崩溃（pepflashplayer 崩溃导致黑屏）：自动重载恢复。
+    void OnPluginCrashed(CefRefPtr<CefBrowser> browser,
+                         const CefString& plugin_path) override {
+        AppLog::Write("崩溃自动恢复: Flash 插件崩溃, plugin=%s",
+                      CefString(plugin_path).ToString().c_str());
+        HandleProcessCrashed("Flash 插件崩溃");
+    }
+
+    // 渲染进程异常终止（如崩溃、被杀）：自动重载恢复。
+    void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
+                                   TerminationStatus status) override {
+        const char* reason = "未知";
+        switch (status) {
+            case TS_ABNORMAL_TERMINATION: reason = "异常退出"; break;
+            case TS_PROCESS_WAS_KILLED:   reason = "进程被终止"; break;
+            case TS_PROCESS_CRASHED:      reason = "渲染进程崩溃"; break;
+            default: break;
+        }
+        AppLog::Write("崩溃自动恢复: 渲染进程终止 (%s)", reason);
+        HandleProcessCrashed(reason);
     }
 
     // 页面开始加载：注入滚动条隐藏脚本（DOM 就绪后立即执行，避免加载过程出现滚动条）
