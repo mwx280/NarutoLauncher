@@ -84,7 +84,7 @@ public partial class AddAccountWindow : FluentWindow
 
     protected override void OnClosed(EventArgs e)
     {
-        StopScanLogin();
+        _ = StopScanLogin();
         base.OnClosed(e);
     }
 
@@ -248,7 +248,7 @@ public partial class AddAccountWindow : FluentWindow
         if (Result != null)
             Result.ScanUserDataDir = userdata;
 
-        StopScanLogin();
+        await StopScanLogin();
         DialogResult = true;
     }
 
@@ -267,13 +267,13 @@ public partial class AddAccountWindow : FluentWindow
         }
     }
 
-    /// <summary>停止扫码登录进程。</summary>
-    private void StopScanLogin()
+    /// <summary>停止扫码登录进程（等待 GameHost 优雅退出以刷盘 cookie，不阻塞 UI）。</summary>
+    private async Task StopScanLogin()
     {
         _pollCts?.Cancel();
         if (_scanSession != null && !_scanSession.Process.HasExited)
         {
-            App.CurrentApp.Games.StopSession(_scanSession);
+            await App.CurrentApp.Games.StopSession(_scanSession);
         }
         _scanSession = null;
         if (QrHost != null)

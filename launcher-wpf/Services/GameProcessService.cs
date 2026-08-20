@@ -130,12 +130,12 @@ public class GameProcessService
         }
     }
 
-    /// <summary>停止一个账号的游戏进程。</summary>
+    /// <summary>停止一个账号的游戏进程（异步，不阻塞 UI）。</summary>
     public void StopGame(Account account)
     {
         if (_sessions.TryGetValue(account.Id, out var session))
         {
-            StopSession(session);
+            _ = StopSession(session);
             _sessions.Remove(account.Id);
         }
         account.Running = false;
@@ -143,17 +143,29 @@ public class GameProcessService
 
     /// <summary>
     /// 优雅停止进程：发送 WM_CLOSE 让 GameHost 正常退出（CEF 刷盘 cookie），
-    /// 超时后强杀整个进程树（含 CEF renderer/gpu 子进程），并清理孤儿进程。
+    /// 等待/强杀全部在后台线程执行，UI 立即返回。
     /// </summary>
-    public void StopSession(GameSession session, int timeoutMs = 3000)
+    public Task StopSession(GameSession session, int timeoutMs = 3000)
     {
         if (session == null || session.Process.HasExited)
-            return;
+            return Task.CompletedTask;
+        // 同步快速发送 WM_CLOSE（不耗时），让 GameHost 开始优雅退出
         try
         {
             var hwnd = session.ReadWindowHandle();
             if (hwnd != 0)
                 PostMessage(hwnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+        }
+        catch { }
+        // 等待退出与超时强杀放到后台线程，避免阻塞 UI
+        return Task.Run(() => StopSessionCore(session, timeoutMs));
+    }
+
+    /// <summary>后台执行等待退出 / 超时强杀整个进程树 / 清理孤儿进程。</summary>
+    private static void StopSessionCore(GameSession session, int timeoutMs)
+    {
+        try
+        {
             if (session.Process.WaitForExit(timeoutMs))
             {
                 session.Process.Dispose();
@@ -181,7 +193,7 @@ public class GameProcessService
     }
 
     /// <summary>清理已变成孤儿的 GameHost 进程（主进程已死但 CEF 子进程残留）。</summary>
-    private void KillOrphanedGameHosts()
+    private static void KillOrphanedGameHosts()
     {
         try
         {
@@ -265,7 +277,7 @@ public class GameProcessService
     {
         foreach (var (id, session) in _sessions.ToList())
         {
-            StopSession(session);
+            _ = StopSession(session);
             var acc = App.CurrentApp.Accounts.Accounts.FirstOrDefault(a => a.Id == id);
             if (acc != null)
                 acc.Running = false;
