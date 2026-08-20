@@ -21,10 +21,12 @@
 #include "include/cef_browser.h"
 #include "include/cef_command_line.h"
 #include "include/cef_cookie.h"
+#include "include/cef_request_context.h"
 #include "include/cef_request_context_handler.h"
 #include "include/cef_task.h"
 #include "include/cef_web_plugin.h"
 #include "include/cef_parser.h"
+#include "include/cef_values.h"
 #include "include/internal/cef_win.h"
 
 #include "frameless_window.h"
@@ -421,12 +423,29 @@ public:
     CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
     CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
 
+    // 请求上下文初始化完成后调用（UI 线程）：把 Flash 插件的 content setting
+    // 设为 ALLOW，避免 Chromium 默认的 click-to-play 策略导致
+    // "Right-click to run Adobe Flash Player" 占位提示。
+    void OnRequestContextInitialized(
+        CefRefPtr<CefRequestContext> request_context) override {
+        // CONTENT_SETTING_ALLOW = 1
+        CefRefPtr<CefValue> allow = CefValue::Create();
+        allow->SetInt(1);
+        CefString error;
+        bool ok = request_context->SetPreference(
+            "profile.default_content_setting_values.plugins", allow, error);
+        AppLog::Write("设置 plugins content setting=ALLOW: %s (%s)",
+                      ok ? "成功" : "失败", error.ToString().c_str());
+    }
+
     bool OnBeforePluginLoad(const CefString& mime_type,
                             const CefString& plugin_url,
                             bool is_main_frame,
                             const CefString& top_origin_url,
                             CefRefPtr<CefWebPluginInfo> plugin_info,
                             PluginPolicy* plugin_policy) override {
+        AppLog::Write("OnBeforePluginLoad: mime=%S main=%d",
+                      mime_type.c_str(), is_main_frame ? 1 : 0);
         if (mime_type == "application/x-shockwave-flash") {
             *plugin_policy = PLUGIN_POLICY_ALLOW;
             return true;
@@ -748,8 +767,15 @@ int RunBrowserProcess(const std::wstring& url,
     settings2.plugins = STATE_ENABLED;
 
     CefString url_str(url);
+    // 绑定 request context handler（HostClient 实现 CefRequestContextHandler）：
+    // 使 OnBeforePluginLoad 生效，确保 Flash 插件策略为 ALLOW（否则出现
+    // "Right-click to run Adobe Flash Player" click-to-play 提示）。
+    // 复用全局 context 的存储，避免丢失 cookie/缓存（免登录态跨启动保留）。
+    CefRefPtr<CefRequestContext> request_context =
+        CefRequestContext::CreateContext(CefRequestContext::GetGlobalContext(),
+                                         game_client);
     CefBrowserHost::CreateBrowser(info, game_client, url_str, settings2,
-                                  nullptr, nullptr);
+                                  nullptr, request_context);
     AppLog::Write("创建游戏浏览器: %S", url.c_str());
 
     // CEF 消息循环
