@@ -77,13 +77,19 @@ NarutoLauncher.exe（WPF · C# · x64）
 **已完成**：
 - 调研问卷分析（12 份，指导功能与风格）
 - 清理旧架构：Vue UI（app/ui/）、WinUI 3 启动器（launcher/）、旧构建产物（build/）、macOS 残留（._*）
-- WPF 启动器（launcher-wpf/）：四页面（首页/游戏/账号管理/设置）+ HwndHost 跨进程内嵌游戏窗口（已验证成功）
+- WPF 启动器（NarutoLauncher/）：四页面（首页/游戏/账号管理/设置）+ HwndHost 跨进程内嵌游戏窗口（已验证成功）
 - GameHost 内嵌模式：--embed/--parent 参数，WS_CHILD 子窗口 + 窗口句柄通知文件
 - **多开内嵌**：GameProcessService 管理多账号进程，每账号独立 userdata 隔离 cookie
 - **账号系统**：本地 JSON 持久化 + DPAPI 密码加密；QQ 扫码登录（ptlogin2.ptqrlogin 轮询）；记住密码设置
 - 公告抓取：官网 GBK 编码解析，首页自动加载 + 详情弹窗（WebView2 渲染）
 - 主题系统：深色/浅色/跟随系统 + 自定义强调色（WPF-UI FluentWindow）
 - GameHost cookie 注入：base64 JSON 格式，启动时注入免登录进游戏
+- **自动登录**：无 cookie 时自动填表登录（只注入账号密码，登录按钮由用户手动点击；密码账号先切换密码登录界面）
+- **扫码登录持久化**：扫码目录持久化 + GameHost 优雅退出刷盘 cookie，重启后登录态保留
+- **自动补 zone_id**：main.html 缺 zone_id 时 fcgi 500 导致 Flash 不加载（黑屏），从 cookie 读 sServerID 自动补参重载
+- **崩溃自动恢复**：Flash 插件/渲染进程崩溃后自动重载页面
+- **独立游戏窗口**：标题栏图标、全屏按钮、刷新与画质调节菜单栏（低/中/高三档，默认低）、恢复游戏声音
+- **重开游戏防黑屏**：停止游戏时清理 CEF 孤儿子进程
 - 保留资产：favicon 图标（assets/）、账号业务逻辑参考（docs/reference_useAccounts.ts.txt）、CEF 宿主代码（app/）
 
 **待办（优先级从高到低）**：

@@ -1,6 +1,6 @@
-# 火影忍者OL 启动器（naruto-launcher）
+# 火影忍者OL 启动器（NarutoLauncher）
 
-高性能火影忍者OL Flash 游戏启动器。WPF 启动器 + 分离 CEF 87 x86 游戏宿主，游戏窗口通过 HwndHost 内嵌在界面中，支持多账号多开、扫码登录、记住密码。
+高性能火影忍者OL Flash 游戏启动器。WPF 启动器 + 分离 CEF 87 x86 游戏宿主，游戏窗口通过 HwndHost 内嵌在界面中，支持多账号多开、扫码登录、记住密码、自动登录。
 
 ## 架构
 
@@ -29,13 +29,13 @@ NarutoLauncher.exe   WPF · C# · x64
 ## 目录结构
 
 ```
-naruto-launcher/
-├── app/           CEF 游戏宿主（C++，独立进程）
-├── launcher-wpf/  WPF 启动器（C#，含 HwndHost 内嵌）
-├── assets/        图标等静态资源（favicon.png）
-├── third_party/   第三方依赖（CEF SDK、Flash 插件，.gitignore，由脚本下载）
-├── tools/         依赖下载 / 提取脚本
-└── docs/          文档（PLAN 实施计划 / 调研数据参考）
+NarutoLauncher/
+├── app/            CEF 游戏宿主（C++，独立进程）
+├── NarutoLauncher/ WPF 启动器（C#，含 HwndHost 内嵌）
+├── assets/         图标等静态资源（favicon.png）
+├── third_party/    第三方依赖（CEF SDK、Flash 插件，.gitignore，由脚本下载）
+├── tools/          依赖下载 / 提取脚本
+└── docs/           文档（PLAN 实施计划 / 调研数据参考）
 ```
 
 ## 构建
@@ -51,8 +51,10 @@ cmake -S app -B build/app -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build/app
 
 # 3. 构建 WPF 启动器，并把 GameHost 复制到其输出目录的 GameHost/ 下
-dotnet build launcher-wpf -c Release
+dotnet build NarutoLauncher -c Release
 ```
+
+> 一键构建（依赖下载 + GameHost x86 + WPF + GameHost 复制）见 [build.ps1](build.ps1)。
 
 ## 环境要求
 
