@@ -24,7 +24,7 @@
                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                        VerticalAlignment="Center"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <ComboBox x:Name="AvatarDisplayBox" Width="110" Height="34" Margin="0,0,14,0"
+                <ComboBox x:Name="AvatarDisplayBox" Width="120" Height="34" Margin="0,0,14,0"
                           Padding="10,0" VerticalContentAlignment="Center"
                           Background="{DynamicResource ControlFillColorDefaultBrush}"
                           BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
