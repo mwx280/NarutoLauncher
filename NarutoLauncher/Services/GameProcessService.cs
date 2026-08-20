@@ -98,6 +98,7 @@ public class GameProcessService
             FileName = exe,
             WorkingDirectory = Path.GetDirectoryName(exe)!,
             UseShellExecute = false,
+            CreateNoWindow = true,
         };
         psi.ArgumentList.Add($"--url={DefaultGameUrl}");
         psi.ArgumentList.Add($"--userdata={userdata}");
