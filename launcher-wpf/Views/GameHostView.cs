@@ -11,6 +11,7 @@ namespace NarutoLauncher.Views;
 public class GameHostView : HwndHost
 {
     private nint _childHwnd;
+    private nint _hostHwnd;
     private bool _attached;
 
     // ---- Win32 P/Invoke ----
@@ -46,44 +47,32 @@ public class GameHostView : HwndHost
         set
         {
             _childHwnd = value;
-            // 宿主窗口已就绪即可内嵌（AttachChild 幂等）
-            if (_childHwnd != 0 && Handle != 0)
+            // 宿主占位窗口已就绪即可内嵌（AttachChild 幂等）
+            if (_childHwnd != 0 && _hostHwnd != 0)
                 AttachChild();
         }
     }
 
     protected override HandleRef BuildWindowCore(HandleRef hwndParent)
     {
-        // 占位窗口（HwndHost 要求一个宿主窗口）
-        var hwnd = CreatePlaceholderWindow(hwndParent.Handle);
+        // 始终创建独立的占位窗口作为 HwndHost 宿主（不能把外部窗口直接当宿主，
+        // 否则 SetParent 会变成对自身操作，导致子窗口停留在原位置）。
+        _hostHwnd = CreateWindowEx(0, "static", "", WS_CHILD | WS_VISIBLE,
+            0, 0, 1, 1, hwndParent.Handle, 0, IntPtr.Zero, IntPtr.Zero);
         if (_childHwnd != 0)
             AttachChild();
-        return new HandleRef(this, hwnd);
-    }
-
-    private nint CreatePlaceholderWindow(nint parent)
-    {
-        // 用已有的子类化窗口：此处直接返回一个简单的占位窗口
-        // 但更简单的方式：把 child SetParent 到 parent。
-        // HwndHost 需要一个有效 HWND；我们用 child 本身（若已提供），否则建一个隐藏窗口。
-        if (_childHwnd != 0 && IsWindow(_childHwnd))
-            return _childHwnd;
-
-        // 临时占位：直接创建一个普通窗口类
-        var hwnd = CreateWindowEx(0, "static", "", WS_CHILD | WS_VISIBLE,
-            0, 0, 100, 100, parent, 0, IntPtr.Zero, IntPtr.Zero);
-        return hwnd;
+        return new HandleRef(this, _hostHwnd);
     }
 
     private void AttachChild()
     {
-        if (_childHwnd == 0 || Handle == 0 || _attached)
+        if (_childHwnd == 0 || _hostHwnd == 0 || _attached)
             return;
         // 强制为子窗口 + 可见
         var style = GetWindowLong(_childHwnd, GWL_STYLE);
         style = new nint(style.ToInt64() | WS_CHILD | WS_VISIBLE);
         SetWindowLong(_childHwnd, GWL_STYLE, style);
-        SetParent(_childHwnd, Handle);
+        SetParent(_childHwnd, _hostHwnd);
         UpdateChildBounds();
         ShowWindow(_childHwnd, SW_SHOW);
         _attached = true;
@@ -97,14 +86,15 @@ public class GameHostView : HwndHost
 
     private void UpdateChildBounds()
     {
-        if (_childHwnd != 0 && Handle != 0)
-        {
-            // WPF 的 ActualWidth/Height 是 DIP，MoveWindow 需要物理像素
-            var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(this);
-            int pw = (int)Math.Round(ActualWidth * dpi.DpiScaleX);
-            int ph = (int)Math.Round(ActualHeight * dpi.DpiScaleY);
-            MoveWindow(_childHwnd, 0, 0, Math.Max(1, pw), Math.Max(1, ph), true);
-        }
+        if (_childHwnd == 0 || _hostHwnd == 0)
+            return;
+        // WPF 的 ActualWidth/Height 是 DIP，MoveWindow 需要物理像素
+        var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(this);
+        int pw = (int)Math.Round(ActualWidth * dpi.DpiScaleX);
+        int ph = (int)Math.Round(ActualHeight * dpi.DpiScaleY);
+        if (pw <= 0 || ph <= 0)
+            return;
+        MoveWindow(_childHwnd, 0, 0, pw, ph, true);
     }
 
     protected override void DestroyWindowCore(HandleRef hwnd)
@@ -115,6 +105,7 @@ public class GameHostView : HwndHost
             SetParent(_childHwnd, IntPtr.Zero);
         }
         DestroyWindow(hwnd.Handle);
+        _hostHwnd = 0;
     }
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
