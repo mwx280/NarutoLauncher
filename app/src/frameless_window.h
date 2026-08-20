@@ -38,12 +38,17 @@ public:
     void Minimize();
     void Close();
 
+    // 窗口收到 WM_CLOSE 时的回调（用于先关闭 CEF 浏览器再退出）。
+    typedef void (*CloseHandler)(void);
+    void SetCloseHandler(CloseHandler handler);
+
 private:
     HWND hwnd_ = nullptr;
     HWND child_ = nullptr;
     bool maximized_ = false;
     bool fullscreen_ = false;
     RECT normal_rect_;  // 普通状态几何（还原/退全屏目标）
+    CloseHandler close_handler_ = nullptr;
 
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
                                     WPARAM w, LPARAM l);

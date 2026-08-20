@@ -158,6 +158,10 @@ void FramelessWindow::Close() {
     PostMessage(hwnd_, WM_CLOSE, 0, 0);
 }
 
+void FramelessWindow::SetCloseHandler(CloseHandler handler) {
+    close_handler_ = handler;
+}
+
 LRESULT CALLBACK FramelessWindow::WndProc(HWND hwnd, UINT msg,
                                           WPARAM w, LPARAM l) {
     FramelessWindow* self = nullptr;
@@ -239,7 +243,9 @@ LRESULT FramelessWindow::HandleMessage(UINT msg, WPARAM w, LPARAM l) {
             PostQuitMessage(0);
             break;
         case WM_CLOSE:
-            // 隐藏到托盘语义由上层决定；此处直接关闭进程消息循环。
+            // 先通知上层关闭 CEF 浏览器（刷盘 cookie 等），再销毁窗口。
+            if (close_handler_)
+                close_handler_();
             DestroyWindow(hwnd_);
             return 0;
         default:

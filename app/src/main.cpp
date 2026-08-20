@@ -100,6 +100,15 @@ void EmbedChild(HWND child) {
     g_window.SetClientChild(child);
 }
 
+// 主窗口收到 WM_CLOSE：优雅关闭 CEF 浏览器（触发 cookie 刷盘），随后退出消息循环。
+void OnMainWindowClose() {
+    AppLog::Write("收到 WM_CLOSE，关闭 CEF 浏览器");
+    if (g_game_browser) {
+        g_game_browser->GetHost()->CloseBrowser(true);
+    }
+    // 浏览器关闭后 OnBeforeClose 会 CefQuitMessageLoop，这里不重复退出
+}
+
 // 登录成功：把 QQ 号写入 userdata/login_result.txt
 void WriteLoginResult(const CefString& qq) {
     if (g_userdata_dir.empty()) return;
@@ -338,7 +347,12 @@ public:
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
-        g_game_browser = nullptr;
+        if (g_game_browser && g_game_browser->IsSame(browser)) {
+            g_game_browser = nullptr;
+            AppLog::Write("浏览器已关闭，退出消息循环");
+            // 所有浏览器关闭后退出 CefRunMessageLoop，让 CEF 正常刷盘 cookie
+            CefQuitMessageLoop();
+        }
     }
 
     // 登录检测完成后写结果（由 cookie 遍历结束触发）
@@ -387,6 +401,7 @@ int RunBrowserProcess(const std::wstring& url,
     }
     ::SetWindowTextW(g_window.Handle(), g_window_title.c_str());
     AppLog::Write("主窗口创建成功, HWND=%p", g_window.Handle());
+    g_window.SetCloseHandler(&OnMainWindowClose);
 
     // 初始化 CEF（浏览器进程）
     CefMainArgs main_args(GetModuleHandle(nullptr));

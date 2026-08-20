@@ -246,7 +246,11 @@ public partial class AddAccountWindow : FluentWindow
             _scannedQq, ScanNameBox.Text.Trim(), "",
             scanLogin: true);
         if (Result != null)
+        {
             Result.ScanUserDataDir = userdata;
+            // 关键：立即持久化，否则重启后扫码目录丢失、cookie 不生效
+            App.CurrentApp.Accounts.Save();
+        }
 
         await StopScanLogin();
         DialogResult = true;
