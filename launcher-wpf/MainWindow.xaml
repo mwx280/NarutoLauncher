@@ -4,6 +4,7 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:views="clr-namespace:NarutoLauncher.Views"
                  Title="火影忍者OL 启动器" Height="720" Width="1200"
+                 Icon="/assets/favicon.png"
                  WindowStartupLocation="CenterScreen"
                  MinHeight="600" MinWidth="900"
                  ExtendsContentIntoTitleBar="True"
