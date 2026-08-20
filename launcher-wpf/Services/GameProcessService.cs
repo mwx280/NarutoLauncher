@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using NarutoLauncher.Models;
 
 namespace NarutoLauncher.Services;
@@ -14,6 +16,9 @@ public class GameSession
 
     public string WindowHandleFile => Path.Combine(UserdataDir, "window_hwnd.txt");
 
+    [DllImport("user32.dll")]
+    private static extern bool IsWindow(nint hWnd);
+
     /// <summary>读取 GameHost 写入的窗口句柄（返回 0 表示尚未就绪）。</summary>
     public nint ReadWindowHandle()
     {
@@ -22,7 +27,11 @@ public class GameSession
             if (!File.Exists(WindowHandleFile))
                 return 0;
             var text = File.ReadAllText(WindowHandleFile).Trim();
-            return long.TryParse(text, out var v) ? new nint(v) : 0;
+            if (!long.TryParse(text, out var v) || v == 0)
+                return 0;
+            var hwnd = new nint(v);
+            // 校验句柄确实对应一个现存窗口（避免读到上次运行遗留的过期句柄）
+            return IsWindow(hwnd) ? hwnd : 0;
         }
         catch
         {
@@ -91,6 +100,12 @@ public class GameProcessService
         psi.ArgumentList.Add($"--userdata={userdata}");
         psi.ArgumentList.Add($"--title=火影忍者OL - {account.DisplayName}");
         psi.ArgumentList.Add("--embed");
+        // 账号有保存的 cookie 时注入（域分组的 JSON，base64 编码后传给 GameHost）
+        if (!string.IsNullOrEmpty(account.Cookies))
+        {
+            var b64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(account.Cookies));
+            psi.ArgumentList.Add($"--cookie={b64}");
+        }
         // 把内嵌父窗口句柄传给 GameHost（缺省用主窗口）
         var parent = parentHwnd != 0 ? parentHwnd : App.CurrentApp.MainWindowHandle;
         if (parent != 0)

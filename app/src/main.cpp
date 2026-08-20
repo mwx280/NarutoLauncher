@@ -377,6 +377,8 @@ int RunBrowserProcess(const std::wstring& url,
     // 嵌入模式：把主窗口 HWND 写入 userdata 目录，供启动器桥接读取
     if (embed && !userdata_dir.empty()) {
         std::wstring hwnd_file = userdata_dir + L"\\window_hwnd.txt";
+        // 先删除上次运行遗留的过期句柄文件，避免启动器读到旧句柄
+        ::DeleteFileW(hwnd_file.c_str());
         FILE* f = nullptr;
         if (_wfopen_s(&f, hwnd_file.c_str(), L"w") == 0 && f) {
             fprintf(f, "%llu", (unsigned long long)g_window.Handle());

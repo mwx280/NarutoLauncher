@@ -66,7 +66,7 @@ public class Account : INotifyPropertyChanged
     /// <summary>扫码登录的 userdata 目录（cookie 持久化，游戏启动复用）。</summary>
     public string ScanUserDataDir { get => _scanUserDataDir; set { _scanUserDataDir = value; OnChanged(); } }
 
-    /// <summary>登录 cookie 文本（key=value; ...，游戏启动时注入 GameHost）。</summary>
+    /// <summary>登录 cookie（按域名分组的 JSON，如 {"https://ptlogin2.qq.com":{"skey":".."}}），启动游戏时 base64 后注入 GameHost。</summary>
     public string Cookies { get => _cookies; set { _cookies = value; OnChanged(); } }
 
     /// <summary>头像显示类型。</summary>
