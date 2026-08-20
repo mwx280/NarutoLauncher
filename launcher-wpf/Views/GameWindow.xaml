@@ -22,19 +22,26 @@
                         Click="OnToggleFullscreen">
                     <Button.Template>
                         <ControlTemplate TargetType="{x:Type Button}">
-                            <Grid Background="{TemplateBinding Background}">
-                                <ContentPresenter HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"/>
+                            <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
+                                <Viewbox Width="11" Height="11"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"
+                                         Focusable="False"
+                                         RenderOptions.BitmapScalingMode="HighQuality">
+                                    <Canvas Width="72" Height="72" Focusable="False">
+                                        <Path Data="M0,0 H28 L20,8 H8 V20 L0,28 Z M72,0 H44 L52,8 H64 V20 L72,28 Z M0,72 H28 L20,64 H8 V52 L0,44 Z M72,72 H44 L52,64 H64 V52 L72,44 Z"
+                                              Fill="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                                    </Canvas>
+                                </Viewbox>
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                                    <Setter TargetName="LayoutRoot" Property="Background"
+                                            Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Button.Template>
-                    <ui:SymbolIcon Symbol="FullScreenMaximize20" FontSize="12"
-                                   Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
                 </Button>
             </ui:TitleBar.TrailingContent>
         </ui:TitleBar>

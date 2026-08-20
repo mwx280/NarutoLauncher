@@ -29,8 +29,7 @@ public partial class GameWindow : FluentWindow
             Width = SystemParameters.PrimaryScreenWidth;
             Height = SystemParameters.PrimaryScreenHeight;
             _isFullScreen = true;
-            if (FullscreenBtn.Content is SymbolIcon icon)
-                icon.Symbol = SymbolRegular.FullScreenMinimize20;
+            FullscreenBtn.ToolTip = "退出全屏";
         }
         else
         {
@@ -40,8 +39,7 @@ public partial class GameWindow : FluentWindow
             Width = _normalBounds.Width;
             Height = _normalBounds.Height;
             _isFullScreen = false;
-            if (FullscreenBtn.Content is SymbolIcon icon)
-                icon.Symbol = SymbolRegular.FullScreenMaximize20;
+            FullscreenBtn.ToolTip = "全屏";
         }
     }
 }
