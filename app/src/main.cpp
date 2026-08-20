@@ -282,6 +282,78 @@ void HandleProcessCrashed(const char* what) {
     CefPostDelayedTask(TID_UI, new ReloadTask(), 800);
 }
 
+// ---- 自动补 zone_id（修复 main.html 无 zone_id 时 fcgi 500 导致 Flash 不加载的黑屏） ----
+// main.html 通过 fcgi-bin/query_svr_info.fcgi?svr_id=<zone_id> 获取服务器信息后才创建
+// Flash（loadSwf）。URL 缺少 zone_id 时 fcgi 返回 500，页面保持纯黑。这里从 cookie 读取
+// 上次选服的 sServerID 并拼到 URL 重载，避免用户每次手动选区。首次登录（cookie 无
+// sServerID）的账号不会触发重载，需先在官网选区后 cookie 才有 sServerID。
+
+// 遍历 cookie 收集 sServerID，结束后在 UI 线程补 zone_id 重载。
+class ZoneIdVisitor : public CefCookieVisitor {
+public:
+    ZoneIdVisitor() = default;
+
+    bool Visit(const CefCookie& cookie, int count, int total,
+               bool& deleteCookie) override {
+        deleteCookie = false;
+        std::string name = CefString(&cookie.name);
+        if (name == "sServerID")
+            _server_id = CefString(&cookie.value);
+        // 遍历到最后一个 cookie 时提交任务（CEF 可能不回调 count<0 结束信号）
+        if (count >= 0 && total > 0 && count == total - 1) {
+            AppLog::Write("自动补 zone_id: 遍历完成, sServerID=%s",
+                          _server_id.empty() ? "(空)" : _server_id.c_str());
+            if (!_server_id.empty())
+                CefPostTask(TID_UI, new ApplyZoneIdTask(_server_id));
+            return false;
+        }
+        return true;
+    }
+
+private:
+    class ApplyZoneIdTask : public CefTask {
+    public:
+        explicit ApplyZoneIdTask(const std::string& server_id)
+            : server_id_(server_id) {}
+        void Execute() override {
+            if (!g_game_browser) return;
+            CefRefPtr<CefFrame> frame = g_game_browser->GetMainFrame();
+            if (!frame || !frame->IsValid()) return;
+            std::string url = frame->GetURL().ToString();
+            // 已在重载流程或 URL 已带 zone_id，避免死循环
+            if (url.find("zone_id") != std::string::npos) return;
+            std::string sep =
+                (url.find('?') == std::string::npos) ? "?" : "&";
+            std::string new_url = url + sep + "zone_id=" + server_id_;
+            AppLog::Write("自动补 zone_id: %s -> %s", url.c_str(),
+                          new_url.c_str());
+            frame->LoadURL(new_url);
+        }
+        IMPLEMENT_REFCOUNTING(ApplyZoneIdTask);
+
+    private:
+        std::string server_id_;
+    };
+
+    std::string _server_id;
+    IMPLEMENT_REFCOUNTING(ZoneIdVisitor);
+};
+
+// 从 cookie 管理器读取 sServerID（存于 .huoying.qq.com 父域，用 VisitAllCookies 全量遍历）。
+void CheckAndApplyZoneId() {
+    CefRefPtr<CefCookieManager> mgr =
+        CefCookieManager::GetGlobalManager(nullptr);
+    if (mgr)
+        mgr->VisitAllCookies(new ZoneIdVisitor());
+}
+
+// 在 UI 线程执行 zone_id 检查的任务。
+class CheckAndApplyZoneIdTask : public CefTask {
+public:
+    void Execute() override { CheckAndApplyZoneId(); }
+    IMPLEMENT_REFCOUNTING(CheckAndApplyZoneIdTask);
+};
+
 // 向主框架注入设置 Flash 画质的 JS（轮询查找 Flash 容器，最多 20 次/10 秒）。
 void InjectFlashQuality(const std::string& q) {
     if (!g_game_browser || !g_game_browser->GetMainFrame()) return;
@@ -428,6 +500,14 @@ public:
                 frame->GetURL(), 0);
             // 页面加载后应用当前 Flash 画质（默认最低，刷新后保持用户选择）
             InjectFlashQuality(g_flash_quality);
+            // main.html 缺 zone_id 时 fcgi 返回 500 导致 Flash 不加载（黑屏），
+            // 从 cookie 读取 sServerID 自动补 zone_id 重载（仅当 URL 未带 zone_id）。
+            std::string url = frame->GetURL().ToString();
+            if (url.find("main.html") != std::string::npos &&
+                url.find("zone_id") == std::string::npos) {
+                AppLog::Write("自动补 zone_id: main.html 无 zone_id, 启动检查");
+                CefPostTask(TID_UI, new CheckAndApplyZoneIdTask());
+            }
         }
         if ((g_login_mode || g_auto_login) && !_login_detected &&
             frame->IsMain()) {
