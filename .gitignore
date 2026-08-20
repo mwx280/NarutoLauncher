@@ -36,6 +36,9 @@ preview/
 secrets.*
 credentials.*
 
+# AI 代理约定文件（本机配置，不入库）
+AGENTS.md
+
 # .NET / WPF 构建产物
 bin/
 obj/
