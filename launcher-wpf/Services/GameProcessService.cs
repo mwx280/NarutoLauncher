@@ -109,6 +109,12 @@ public class GameProcessService
             var b64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(account.Cookies));
             psi.ArgumentList.Add($"--cookie={b64}");
         }
+        // 账号密码账号（无扫码 cookie 目录）：传 QQ 号/密码，GameHost 检测未登录时自动填表登录
+        if (!account.ScanLogin && !string.IsNullOrEmpty(account.Password))
+        {
+            psi.ArgumentList.Add($"--user={Convert.ToBase64String(Encoding.UTF8.GetBytes(account.QQ))}");
+            psi.ArgumentList.Add($"--pass={Convert.ToBase64String(Encoding.UTF8.GetBytes(account.Password))}");
+        }
         // 把内嵌父窗口句柄传给 GameHost（缺省用主窗口）
         var parent = parentHwnd != 0 ? parentHwnd : App.CurrentApp.MainWindowHandle;
         if (parent != 0)

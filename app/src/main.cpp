@@ -92,6 +92,9 @@ CefRefPtr<CefBrowser> g_game_browser;
 HWND g_game_hwnd = nullptr;   // 游戏窗口句柄（从 CEF 回调获取）
 std::wstring g_window_title = L"火影忍者OL";
 bool g_login_mode = false;    // 扫码登录模式（加载 QQ 登录页，登录成功写 login_result.txt）
+bool g_auto_login = false;    // 账号密码自动登录模式（有 --user/--pass 参数）
+std::string g_auto_user_b64;  // QQ 号（base64，注入登录框 JS 时 atob 解码）
+std::string g_auto_pass_b64;  // 密码（base64）
 std::wstring g_userdata_dir;  // userdata 目录（登录结果写入）
 std::string g_cookie_json;    // 启动时注入的 cookie（base64 编码的 JSON）
 HWND g_parent_hwnd = nullptr; // 内嵌父窗口
@@ -186,6 +189,52 @@ void InjectCookies(const std::string& json) {
     }
 }
 
+// ---- 账号密码自动登录（无 cookie 时自动填表登录） ----
+
+// 构建登录框内执行的自动填表 JS（登录框为 xui.ptlogin2.qq.com 的跨域 iframe，
+// 通过 frame->ExecuteJavaScript 直接在其上下文执行，绕过同源限制）。
+// 账号密码以 base64 内嵌，JS 内 atob 解码，避免引号/换行转义问题。
+std::string BuildAutoLoginJs() {
+    std::string js =
+        "(function(){"
+        "try{"
+        "var sw=document.getElementById('switcher_plogin');"
+        "if(sw&&sw.offsetParent&&sw.offsetParent.style.display!=='none'){sw.click();}"
+        "}catch(e){}"
+        "var u=document.getElementById('u');"
+        "var p=document.getElementById('p');"
+        "if(u&&p){"
+        "try{"
+        "var usr=atob('" + g_auto_user_b64 + "');"
+        "var pwd=atob('" + g_auto_pass_b64 + "');"
+        "if(u.value!==usr){u.value=usr;u.dispatchEvent(new Event('input',{bubbles:true}));"
+        "u.dispatchEvent(new Event('change',{bubbles:true}));}"
+        "if(p.value!==pwd){p.value=pwd;p.dispatchEvent(new Event('input',{bubbles:true}));"
+        "p.dispatchEvent(new Event('change',{bubbles:true}));}"
+        "var btn=document.getElementById('login_button');"
+        "if(btn&&!btn.disabled){btn.click();}"
+        "}catch(e){}"
+        "}"
+        "})();";
+    return js;
+}
+
+// 遍历 frame 列表，返回 URL 匹配 ptlogin2.qq.com 的登录框 frame。
+CefRefPtr<CefFrame> FindLoginFrame(CefRefPtr<CefBrowser> browser) {
+    if (!browser) return nullptr;
+    std::vector<CefString> names;
+    browser->GetFrameNames(names);
+    for (const CefString& name : names) {
+        CefRefPtr<CefFrame> f = browser->GetFrame(name);
+        if (f && f->IsValid()) {
+            std::string url = f->GetURL().ToString();
+            if (url.find("ptlogin2.qq.com") != std::string::npos)
+                return f;
+        }
+    }
+    return nullptr;
+}
+
 // ---------- 浏览器客户端 ----------
 class HostClient : public CefClient,
                    public CefLifeSpanHandler,
@@ -256,11 +305,19 @@ public:
                 "document.head.appendChild(s);}",
                 frame->GetURL(), 0);
         }
-        if (g_login_mode && !_login_detected && frame->IsMain()) {
+        if ((g_login_mode || g_auto_login) && !_login_detected &&
+            frame->IsMain()) {
             AppLog::Write("登录检测: OnLoadEnd 主框架, status=%d", httpStatusCode);
             _pending_qq = "";
             CefPostDelayedTask(TID_UI,
                                new ReadLoginCookiesTask(this), 2000);
+        }
+        // 账号密码自动登录模式：启动填表轮询（每 500ms 尝试一次，直到登录成功）
+        if (g_auto_login && !_auto_login_started && !_login_detected &&
+            frame->IsMain()) {
+            _auto_login_started = true;
+            AppLog::Write("自动登录: OnLoadEnd 主框架, status=%d", httpStatusCode);
+            CefPostDelayedTask(TID_UI, new AutoLoginTask(this, 120), 500);
         }
     }
 
@@ -279,6 +336,34 @@ public:
     private:
         HostClient* client_;
         IMPLEMENT_REFCOUNTING(ReadLoginCookiesTask);
+    };
+
+    // 账号密码自动登录：周期执行登录框填表脚本，直到登录成功（cookie 出现 skey）
+    class AutoLoginTask : public CefTask {
+    public:
+        AutoLoginTask(HostClient* client, int attempts)
+            : client_(client), attempts_(attempts) {}
+        void Execute() override {
+            if (attempts_ <= 0 || client_->IsAutoLoginDone()) {
+                AppLog::Write("自动登录: 停止轮询 (attempts=%d)", attempts_);
+                return;
+            }
+            if (g_game_browser) {
+                CefRefPtr<CefFrame> login_frame = FindLoginFrame(g_game_browser);
+                if (login_frame) {
+                    AppLog::Write("自动登录: 向登录框注入填表脚本 (attempt=%d)",
+                                  attempts_);
+                    login_frame->ExecuteJavaScript(BuildAutoLoginJs(),
+                                                   login_frame->GetURL(), 0);
+                }
+            }
+            CefPostDelayedTask(TID_UI, new AutoLoginTask(client_, attempts_ - 1),
+                               500);
+        }
+    private:
+        HostClient* client_;
+        int attempts_;
+        IMPLEMENT_REFCOUNTING(AutoLoginTask);
     };
 
     // 延迟写登录结果的任务
@@ -303,31 +388,37 @@ public:
                           _login_detected ? 1 : 0, _pending_qq.c_str());
             if (_login_detected) {
                 OnCookieVisitedDone();
-            } else if (g_login_mode) {
+            } else if (g_login_mode || g_auto_login) {
                 CefPostDelayedTask(TID_UI,
                                    new ReadLoginCookiesTask(this), 2000);
             }
             return false;
         }
-        if (g_login_mode) {
+        if (g_login_mode || g_auto_login) {
             std::string name = CefString(&cookie.name);
             std::string value = CefString(&cookie.value);
-            AppLog::Write("登录检测: cookie %s=%s (detected=%d)",
-                          name.c_str(), value.c_str(),
-                          _login_detected ? 1 : 0);
+            if (g_login_mode)
+                AppLog::Write("登录检测: cookie %s=%s (detected=%d)",
+                              name.c_str(), value.c_str(),
+                              _login_detected ? 1 : 0);
             if (!_login_detected &&
                 (name == "skey" || name == "p_skey" || name == "pt4_token" ||
                  name == "supertoken" || name == "superuin")) {
                 if (!value.empty() && value[0] != '\0' &&
                     value != "0" && value.find("login_fail") == std::string::npos) {
                     _login_detected = true;
-                    // 延迟 800ms 写结果，确保 QQ 已从后续 cookie 提取
-                    CefPostDelayedTask(TID_UI,
-                                       new WriteResultTask(this), 800);
+                    if (g_login_mode) {
+                        // 延迟 800ms 写结果，确保 QQ 已从后续 cookie 提取
+                        CefPostDelayedTask(TID_UI,
+                                           new WriteResultTask(this), 800);
+                    } else {
+                        // 自动登录成功：cookie 已持久化，停止填表轮询
+                        AppLog::Write("自动登录: 检测到登录态，停止轮询");
+                    }
                 }
             }
-            if (name == "uin" || name == "ptui_loginuin" ||
-                name == "pt2gguin" || name == "superuin") {
+            if (g_login_mode && (name == "uin" || name == "ptui_loginuin" ||
+                                 name == "pt2gguin" || name == "superuin")) {
                 if (!value.empty() && value[0] != '\0') {
                     std::string qq;
                     for (char ch : value) {
@@ -341,6 +432,9 @@ public:
         }
         return true;
     }
+
+    // 自动登录轮询是否已结束（cookie 出现登录态）。
+    bool IsAutoLoginDone() const { return _login_detected; }
 
     bool DoClose(CefRefPtr<CefBrowser> browser) override {
         return false;
@@ -367,6 +461,7 @@ public:
 
 private:
     bool _login_detected = false;
+    bool _auto_login_started = false;
     std::string _pending_qq;
     IMPLEMENT_REFCOUNTING(HostClient);
 };
@@ -491,6 +586,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     {
         int argc = 0;
         wchar_t** argv = CommandLineToArgvW(lpCmdLine, &argc);
+        auto utf8_of = [](const std::wstring& ws) -> std::string {
+            if (ws.empty()) return "";
+            int len = ::WideCharToMultiByte(CP_UTF8, 0, ws.c_str(),
+                                            (int)ws.size(), nullptr, 0,
+                                            nullptr, nullptr);
+            if (len <= 0) return "";
+            std::vector<char> buf(len);
+            ::WideCharToMultiByte(CP_UTF8, 0, ws.c_str(),
+                                  (int)ws.size(), buf.data(), len,
+                                  nullptr, nullptr);
+            return std::string(buf.data(), len);
+        };
         for (int i = 0; i < argc; ++i) {
             std::wstring arg = argv[i];
             auto val = [&arg](const wchar_t* key) -> std::wstring {
@@ -520,6 +627,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
                     cookie_b64.assign(buf.data(), len);
                 }
             }
+            auto usr = val(L"user");
+            if (!usr.empty())
+                g_auto_user_b64 = utf8_of(usr);
+            auto psw = val(L"pass");
+            if (!psw.empty())
+                g_auto_pass_b64 = utf8_of(psw);
             if (arg == L"--embed")
                 embed = true;
             if (arg == L"--login")
@@ -535,6 +648,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
         if (url == kDefaultUrl) {
             url = L"https://huoying.qq.com/server/website/";
         }
+    }
+    // 账号密码自动登录模式：有 --user/--pass 参数即开启（无 cookie 时自动填表登录）
+    if (!g_auto_user_b64.empty() && !g_auto_pass_b64.empty()) {
+        g_auto_login = true;
     }
     g_cookie_json = cookie_b64;
     g_parent_hwnd = parent;
@@ -555,8 +672,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     }
     AppLog::Init();
     AppLog::Write("== GameHost 入口 ==");
-    AppLog::Write("URL=%S userdata=%S embed=%d parent=%llu login=%d",
+    AppLog::Write("URL=%S userdata=%S embed=%d parent=%llu login=%d autologin=%d",
                   url.c_str(), userdata.c_str(), embed ? 1 : 0,
-                  (unsigned long long)parent, login ? 1 : 0);
+                  (unsigned long long)parent, login ? 1 : 0,
+                  g_auto_login ? 1 : 0);
     return RunBrowserProcess(url, userdata, title, embed, parent);
 }
