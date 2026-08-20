@@ -193,26 +193,28 @@ void InjectCookies(const std::string& json) {
 
 // 构建登录框内执行的自动填表 JS（登录框为 xui.ptlogin2.qq.com 的跨域 iframe，
 // 通过 frame->ExecuteJavaScript 直接在其上下文执行，绕过同源限制）。
+// 分两步执行，保证顺序：先点击"账号密码登录"切换到密码登录界面，
+// 待输入框可见后再注入账号密码（轮询机制每 500ms 重试一次）。
 // 账号密码以 base64 内嵌，JS 内 atob 解码，避免引号/换行转义问题。
 std::string BuildAutoLoginJs() {
     std::string js =
         "(function(){"
         "try{"
         "var sw=document.getElementById('switcher_plogin');"
-        "if(sw&&sw.offsetParent&&sw.offsetParent.style.display!=='none'){sw.click();}"
-        "}catch(e){}"
         "var u=document.getElementById('u');"
         "var p=document.getElementById('p');"
-        "if(u&&p){"
-        "try{"
+        "var showPsw=sw&&sw.getClientRects().length>0;"
+        "var showInput=u&&p&&u.getClientRects().length>0&&p.getClientRects().length>0;"
+        "if(showPsw&&!showInput){sw.click();return;}"
+        "if(showInput){"
         "var usr=atob('" + g_auto_user_b64 + "');"
         "var pwd=atob('" + g_auto_pass_b64 + "');"
         "if(u.value!==usr){u.value=usr;u.dispatchEvent(new Event('input',{bubbles:true}));"
         "u.dispatchEvent(new Event('change',{bubbles:true}));}"
         "if(p.value!==pwd){p.value=pwd;p.dispatchEvent(new Event('input',{bubbles:true}));"
         "p.dispatchEvent(new Event('change',{bubbles:true}));}"
-        "}catch(e){}"
         "}"
+        "}catch(e){}"
         "})();";
     return js;
 }
