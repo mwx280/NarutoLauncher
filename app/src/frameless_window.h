@@ -42,6 +42,10 @@ public:
     typedef void (*CloseHandler)(void);
     void SetCloseHandler(CloseHandler handler);
 
+    // 窗口收到自定义命令消息（WM_APP+n）时的回调：cmd = 消息序号（1 起）。
+    typedef void (*CommandHandler)(int cmd, WPARAM w, LPARAM l);
+    void SetCommandHandler(CommandHandler handler);
+
 private:
     HWND hwnd_ = nullptr;
     HWND child_ = nullptr;
@@ -49,6 +53,7 @@ private:
     bool fullscreen_ = false;
     RECT normal_rect_;  // 普通状态几何（还原/退全屏目标）
     CloseHandler close_handler_ = nullptr;
+    CommandHandler command_handler_ = nullptr;
 
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
                                     WPARAM w, LPARAM l);

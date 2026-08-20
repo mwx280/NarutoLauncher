@@ -51,6 +51,26 @@
             </ui:TitleBar.TrailingContent>
         </ui:TitleBar>
 
+        <!-- 顶部菜单栏：刷新 / 画质调节 -->
+        <Border DockPanel.Dock="Top" Background="#252526"
+                BorderBrush="#3A3A3A" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Margin="8,4">
+                <Button x:Name="RefreshBtn" Content="刷新" Padding="10,4"
+                        Margin="0,0,12,0" Click="OnRefreshGame"
+                        ToolTip="重新加载游戏页面"/>
+                <TextBlock Text="画质：" VerticalAlignment="Center" Foreground="#CCC"
+                           Margin="4,0,4,0"/>
+                <ComboBox x:Name="QualitySelector" Width="110"
+                          VerticalAlignment="Center"
+                          SelectionChanged="OnQualityChanged">
+                    <ComboBoxItem Content="流畅（低）" Tag="0"/>
+                    <ComboBoxItem Content="均衡（中）" Tag="1"/>
+                    <ComboBoxItem Content="高清（高）" Tag="2" IsSelected="True"/>
+                    <ComboBoxItem Content="极致（超高）" Tag="3"/>
+                </ComboBox>
+            </StackPanel>
+        </Border>
+
         <!-- 内嵌游戏窗口区域（CEF GameHost 通过 HwndHost 嵌入） -->
         <Border Background="#1E1E1E" ClipToBounds="True">
             <Grid>

@@ -162,6 +162,10 @@ void FramelessWindow::SetCloseHandler(CloseHandler handler) {
     close_handler_ = handler;
 }
 
+void FramelessWindow::SetCommandHandler(CommandHandler handler) {
+    command_handler_ = handler;
+}
+
 LRESULT CALLBACK FramelessWindow::WndProc(HWND hwnd, UINT msg,
                                           WPARAM w, LPARAM l) {
     FramelessWindow* self = nullptr;
@@ -249,6 +253,11 @@ LRESULT FramelessWindow::HandleMessage(UINT msg, WPARAM w, LPARAM l) {
             DestroyWindow(hwnd_);
             return 0;
         default:
+            // 自定义命令消息（WM_APP+n）转发给上层处理（刷新/画质调节等）。
+            if (msg >= WM_APP && command_handler_) {
+                command_handler_(static_cast<int>(msg - WM_APP), w, l);
+                return 0;
+            }
             break;
     }
     return DefWindowProc(hwnd_, msg, w, l);

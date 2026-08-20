@@ -72,7 +72,6 @@ public:
                                             kFlashVersion);
         command_line->AppendSwitch("enable-gpu");
         command_line->AppendSwitch("persist-session-cookies");
-        command_line->AppendSwitch("mute-audio");  // Flash 音频崩溃 workaround
         // 日志写文件而非控制台，避免弹出 cmd 窗口
         command_line->AppendSwitchWithValue("log-file",
             "GameHost_cef.log");
@@ -98,6 +97,7 @@ std::string g_auto_pass_b64;  // 密码（base64）
 std::wstring g_userdata_dir;  // userdata 目录（登录结果写入）
 std::string g_cookie_json;    // 启动时注入的 cookie（base64 编码的 JSON）
 HWND g_parent_hwnd = nullptr; // 内嵌父窗口
+
 // 把 CEF 子窗口嵌入主窗口客户区（由 WM_SIZE 同步尺寸）。
 void EmbedChild(HWND child) {
     g_window.SetClientChild(child);
@@ -233,6 +233,61 @@ CefRefPtr<CefFrame> FindLoginFrame(CefRefPtr<CefBrowser> browser) {
         }
     }
     return nullptr;
+}
+
+// Flash 画质级别（对应 Flash object/embed 的 quality 参数）。
+const char* kFlashQualityNames[] = {"low", "medium", "high", "best"};
+
+// 刷新当前游戏页面。
+void ReloadGame() {
+    if (g_game_browser && g_game_browser->GetMainFrame()) {
+        AppLog::Write("命令: 刷新游戏页面");
+        g_game_browser->Reload();
+    }
+}
+
+// 设置 Flash 画质（quality 参数：low/medium/high/best），
+// 通过主框架 JS 重新创建/更新 Flash 嵌入参数实现。
+void SetFlashQuality(int level) {
+    if (level < 0) level = 0;
+    if (level > 3) level = 3;
+    const char* q = kFlashQualityNames[level];
+    AppLog::Write("命令: 设置 Flash 画质=%s (%d)", q, level);
+    if (!g_game_browser || !g_game_browser->GetMainFrame()) return;
+    // 找到 Flash 嵌入容器并修改 quality 参数（游戏用 swfobject 加载 id=entry）
+    std::string js =
+        "(function(){"
+        "try{"
+        "var q='" + std::string(q) + "';"
+        "var swf=document.getElementById('entry');"
+        "if(!swf)swf=document.getElementsByTagName('object')[0];"
+        "if(!swf)swf=document.getElementsByTagName('embed')[0];"
+        "if(swf){"
+        "var params=swf.getElementsByTagName('param');"
+        "var found=false;"
+        "for(var i=0;i<params.length;i++){"
+        "if(params[i].name&&params[i].name.toLowerCase()==='quality'){"
+        "params[i].value=q;found=true;}}"
+        "if(!found&&swf.setAttribute){swf.setAttribute('quality',q);}"
+        "try{swf.quality=q;}catch(e){}"
+        "}"
+        "}catch(e){}})();";
+    g_game_browser->GetMainFrame()->ExecuteJavaScript(js,
+        g_game_browser->GetMainFrame()->GetURL(), 0);
+}
+
+// 主窗口自定义命令消息回调（cmd: 1=刷新, 2=画质调节）。
+void OnWindowCommand(int cmd, WPARAM w, LPARAM l) {
+    switch (cmd) {
+        case 1:
+            ReloadGame();
+            break;
+        case 2:
+            SetFlashQuality(static_cast<int>(w));
+            break;
+        default:
+            break;
+    }
 }
 
 // ---------- 浏览器客户端 ----------
@@ -497,6 +552,7 @@ int RunBrowserProcess(const std::wstring& url,
     ::SetWindowTextW(g_window.Handle(), g_window_title.c_str());
     AppLog::Write("主窗口创建成功, HWND=%p", g_window.Handle());
     g_window.SetCloseHandler(&OnMainWindowClose);
+    g_window.SetCommandHandler(&OnWindowCommand);
 
     // 初始化 CEF（浏览器进程）
     CefMainArgs main_args(GetModuleHandle(nullptr));

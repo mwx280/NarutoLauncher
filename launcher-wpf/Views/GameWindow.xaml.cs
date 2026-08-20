@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using NarutoLauncher.Models;
 using NarutoLauncher.Services;
@@ -16,6 +17,14 @@ public partial class GameWindow : FluentWindow
     private GameSession? _session;
     private bool _isFullScreen;
     private Rect _normalBounds;
+
+    // 与 GameHost 主窗口通信的自定义消息（WM_APP + n，n=1 刷新，n=2 画质调节）
+    private const int WM_APP = 0x8000;
+    private const int CmdRefresh = 1;
+    private const int CmdQuality = 2;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool PostMessage(nint hWnd, int msg, nint wParam, nint lParam);
 
     public GameWindow(Account account)
     {
@@ -71,6 +80,28 @@ public partial class GameWindow : FluentWindow
             App.CurrentApp.Games.StopGame(_account);
             _session = null;
         }
+    }
+
+    /// <summary>发送自定义命令消息给 GameHost 主窗口（无会话则忽略）。</summary>
+    private void SendCommand(int cmd, nint wParam = 0)
+    {
+        var hwnd = _session?.ReadWindowHandle() ?? 0;
+        if (hwnd == 0)
+            return;
+        PostMessage(hwnd, WM_APP + cmd, wParam, IntPtr.Zero);
+    }
+
+    private void OnRefreshGame(object sender, RoutedEventArgs e)
+    {
+        SendCommand(CmdRefresh);
+    }
+
+    private void OnQualityChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (QualitySelector.SelectedItem is not ComboBoxItem item ||
+            !int.TryParse(item.Tag?.ToString(), out var level))
+            return;
+        SendCommand(CmdQuality, (nint)level);
     }
 
     private void OnToggleFullscreen(object sender, RoutedEventArgs e)
