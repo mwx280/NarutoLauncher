@@ -66,7 +66,7 @@ public class GameProcessService
     /// <summary>
     /// 启动一个账号的游戏窗口（内嵌模式）。
     /// </summary>
-    public GameSession? StartGame(Account account)
+    public GameSession? StartGame(Account account, nint parentHwnd = 0)
     {
         var exe = GameHostPath;
         if (exe == null)
@@ -91,9 +91,10 @@ public class GameProcessService
         psi.ArgumentList.Add($"--userdata={userdata}");
         psi.ArgumentList.Add($"--title=火影忍者OL - {account.DisplayName}");
         psi.ArgumentList.Add("--embed");
-        // 把启动器主窗口句柄传给 GameHost（作为嵌入父窗口）
-        if (App.CurrentApp.MainWindowHandle != 0)
-            psi.ArgumentList.Add($"--parent={App.CurrentApp.MainWindowHandle}");
+        // 把内嵌父窗口句柄传给 GameHost（缺省用主窗口）
+        var parent = parentHwnd != 0 ? parentHwnd : App.CurrentApp.MainWindowHandle;
+        if (parent != 0)
+            psi.ArgumentList.Add($"--parent={parent}");
 
         try
         {
