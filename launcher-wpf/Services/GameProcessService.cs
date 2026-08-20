@@ -81,6 +81,9 @@ public class GameProcessService
         if (exe == null)
             return null;
 
+        // 清理上次运行残留的孤儿 GameHost 进程（CEF 子进程），避免争用 userdata 目录
+        KillOrphanedGameHosts();
+
         // 每账号独立缓存目录（多开 cookie 隔离）；扫码登录账号复用扫码时的 userdata
         var userdata = !string.IsNullOrEmpty(account.ScanUserDataDir)
             ? account.ScanUserDataDir
@@ -130,20 +133,19 @@ public class GameProcessService
     /// <summary>停止一个账号的游戏进程。</summary>
     public void StopGame(Account account)
     {
-        if (_sessions.TryGetValue(account.Id, out var session) && !session.Process.HasExited)
+        if (_sessions.TryGetValue(account.Id, out var session))
         {
-            session.Process.Kill();
-            session.Process.Dispose();
+            StopSession(session);
             _sessions.Remove(account.Id);
         }
         account.Running = false;
     }
 
     /// <summary>
-    /// 优雅停止扫码登录进程：发送 WM_CLOSE 让 GameHost 正常退出（CEF 刷盘 cookie），
-    /// 超时后才强杀。
+    /// 优雅停止进程：发送 WM_CLOSE 让 GameHost 正常退出（CEF 刷盘 cookie），
+    /// 超时后强杀整个进程树（含 CEF renderer/gpu 子进程），并清理孤儿进程。
     /// </summary>
-    public void StopScanGracefully(GameSession session, int timeoutMs = 3000)
+    public void StopSession(GameSession session, int timeoutMs = 3000)
     {
         if (session == null || session.Process.HasExited)
             return;
@@ -159,9 +161,46 @@ public class GameProcessService
             }
         }
         catch { }
-        if (!session.Process.HasExited)
-            session.Process.Kill();
+        // 超时未退出：用 taskkill 强杀整个进程树
+        try
+        {
+            var psi = new ProcessStartInfo("taskkill.exe",
+                $"/PID {session.Process.Id} /T /F")
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+            };
+            using var tk = Process.Start(psi);
+            tk?.WaitForExit(3000);
+        }
+        catch { }
+        try { if (!session.Process.HasExited) session.Process.Kill(); } catch { }
         session.Process.Dispose();
+        KillOrphanedGameHosts();
+    }
+
+    /// <summary>清理已变成孤儿的 GameHost 进程（主进程已死但 CEF 子进程残留）。</summary>
+    private void KillOrphanedGameHosts()
+    {
+        try
+        {
+            var procs = Process.GetProcessesByName("huoyin_launcher");
+            if (procs.Length == 0) return;
+            // 所有存活进程 PID 集合：父进程不在其中即视为孤儿
+            var liveIds = new HashSet<int>(Process.GetProcesses().Select(p => p.Id));
+            foreach (var p in procs)
+            {
+                try
+                {
+                    var ppid = GetParentProcessId(p.Id);
+                    if (ppid == 0 || !liveIds.Contains(ppid))
+                        p.Kill();
+                }
+                catch { }
+            }
+        }
+        catch { }
     }
 
     private const int WM_CLOSE = 0x0010;
@@ -169,16 +208,64 @@ public class GameProcessService
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool PostMessage(nint hWnd, int msg, nint wParam, nint lParam);
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ProcessEntry32
+    {
+        public uint dwSize;
+        public uint cntUsage;
+        public uint th32ProcessID;
+        public IntPtr th32DefaultHeapID;
+        public uint th32ModuleID;
+        public uint cntThreads;
+        public uint th32ParentProcessID;
+        public int pcPriClassBase;
+        public uint dwFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+        public string szExeFile;
+    }
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+    private static extern nint CreateToolhelp32Snapshot(uint dwFlags, uint th32ProcessID);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool Process32First(nint hSnapshot, ref ProcessEntry32 lppe);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool Process32Next(nint hSnapshot, ref ProcessEntry32 lppe);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    private static extern bool CloseHandle(nint hObject);
+
+    private const uint TH32CS_SNAPPROCESS = 0x00000002;
+
+    /// <summary>获取进程的父进程 PID（失败返回 0）。</summary>
+    private static int GetParentProcessId(int pid)
+    {
+        var snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if (snap == nint.Zero) return 0;
+        try
+        {
+            var entry = new ProcessEntry32 { dwSize = (uint)Marshal.SizeOf<ProcessEntry32>() };
+            if (!Process32First(snap, ref entry)) return 0;
+            do
+            {
+                if (entry.th32ProcessID == (uint)pid)
+                    return (int)entry.th32ParentProcessID;
+            } while (Process32Next(snap, ref entry));
+        }
+        finally
+        {
+            CloseHandle(snap);
+        }
+        return 0;
+    }
+
     /// <summary>停止全部游戏进程。</summary>
     public void StopAll()
     {
         foreach (var (id, session) in _sessions.ToList())
         {
-            if (!session.Process.HasExited)
-            {
-                session.Process.Kill();
-                session.Process.Dispose();
-            }
+            StopSession(session);
             var acc = App.CurrentApp.Accounts.Accounts.FirstOrDefault(a => a.Id == id);
             if (acc != null)
                 acc.Running = false;
