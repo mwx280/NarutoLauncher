@@ -144,6 +144,7 @@ public class AccountService
         public bool ScanLogin { get; set; }
         public int Seed { get; set; }
         public string Cookies { get; set; } = "";
+        public string ScanUserDataDir { get; set; } = "";
         public AvatarType AvatarType { get; set; } = AvatarType.NameChar;
 
         public static AccountDto FromAccount(Account a) => new()
@@ -159,6 +160,7 @@ public class AccountService
             ScanLogin = a.ScanLogin,
             Seed = a.Seed,
             Cookies = a.Cookies,
+            ScanUserDataDir = a.ScanUserDataDir,
             AvatarType = a.AvatarType,
         };
 
@@ -175,6 +177,7 @@ public class AccountService
             ScanLogin = ScanLogin,
             Seed = Seed,
             Cookies = Cookies,
+            ScanUserDataDir = ScanUserDataDir,
             AvatarType = AvatarType,
         };
     }

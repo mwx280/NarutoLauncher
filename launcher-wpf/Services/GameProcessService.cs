@@ -139,6 +139,36 @@ public class GameProcessService
         account.Running = false;
     }
 
+    /// <summary>
+    /// 优雅停止扫码登录进程：发送 WM_CLOSE 让 GameHost 正常退出（CEF 刷盘 cookie），
+    /// 超时后才强杀。
+    /// </summary>
+    public void StopScanGracefully(GameSession session, int timeoutMs = 3000)
+    {
+        if (session == null || session.Process.HasExited)
+            return;
+        try
+        {
+            var hwnd = session.ReadWindowHandle();
+            if (hwnd != 0)
+                PostMessage(hwnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+            if (session.Process.WaitForExit(timeoutMs))
+            {
+                session.Process.Dispose();
+                return;
+            }
+        }
+        catch { }
+        if (!session.Process.HasExited)
+            session.Process.Kill();
+        session.Process.Dispose();
+    }
+
+    private const int WM_CLOSE = 0x0010;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool PostMessage(nint hWnd, int msg, nint wParam, nint lParam);
+
     /// <summary>停止全部游戏进程。</summary>
     public void StopAll()
     {

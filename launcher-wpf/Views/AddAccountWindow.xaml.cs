@@ -273,8 +273,7 @@ public partial class AddAccountWindow : FluentWindow
         _pollCts?.Cancel();
         if (_scanSession != null && !_scanSession.Process.HasExited)
         {
-            _scanSession.Process.Kill();
-            _scanSession.Process.Dispose();
+            App.CurrentApp.Games.StopScanGracefully(_scanSession);
         }
         _scanSession = null;
         if (QrHost != null)
