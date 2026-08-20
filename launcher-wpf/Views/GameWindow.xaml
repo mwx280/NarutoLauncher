@@ -6,6 +6,7 @@
                  Height="800" Width="1200"
                  MinHeight="400" MinWidth="600"
                  WindowStartupLocation="CenterOwner"
+                 WindowStyle="None"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round">
