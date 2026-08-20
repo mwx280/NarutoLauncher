@@ -31,6 +31,7 @@
 
 #include "frameless_window.h"
 #include "app_log.h"
+#include "no_console_hook.h"
 
 // ---------- 常量 ----------
 namespace {
@@ -887,20 +888,42 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     g_cookie_json = cookie_b64;
     g_parent_hwnd = parent;
 
+    // 阻止 Flash 插件（ppapi 子进程）加载时弹 cmd 窗口：Flash 会执行
+    // cmd.exe /c echo NOT SANDBOXED 做沙箱探测，未设置 CREATE_NO_WINDOW
+    // 导致控制台窗口一闪而过。对 ppapi 子进程 hook CreateProcessW/A，
+    // 强制隐藏子进程控制台窗口。
+    {
+        int argc2 = 0;
+        wchar_t** argv2 = CommandLineToArgvW(lpCmdLine, &argc2);
+        bool is_ppapi = false;
+        if (argv2) {
+            for (int i = 0; i < argc2; ++i) {
+                if (wcsstr(argv2[i], L"--type=ppapi") != nullptr) {
+                    is_ppapi = true;
+                    break;
+                }
+            }
+            LocalFree(argv2);
+        }
+        if (is_ppapi)
+            InstallNoConsoleHooks();
+    }
+
     CefMainArgs main_args(GetModuleHandle(nullptr));
     CefRefPtr<HostApp> app = new HostApp();
 
-    int exit_code = CefExecuteProcess(main_args, app.get(), nullptr);
-    if (exit_code >= 0)
-        return exit_code;
-
-    // 仅浏览器进程初始化日志（子进程会走 CefExecuteProcess 提前返回）
-    // 隐藏可能存在的控制台窗口（CEF 子进程或系统为 GUI 分配的 console）
+    // 隐藏可能存在的控制台窗口（浏览器进程与所有 CEF 子进程在进入
+    // CefExecuteProcess 前统一隐藏，避免 Flash 等子进程闪现 cmd 窗口）。
     {
         HWND console = ::GetConsoleWindow();
         if (console)
             ::ShowWindow(console, SW_HIDE);
     }
+
+    int exit_code = CefExecuteProcess(main_args, app.get(), nullptr);
+    if (exit_code >= 0)
+        return exit_code;
+
     AppLog::Init();
     AppLog::Write("== GameHost 入口 ==");
     AppLog::Write("URL=%S userdata=%S embed=%d parent=%llu login=%d autologin=%d",
