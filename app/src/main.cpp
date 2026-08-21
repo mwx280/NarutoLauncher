@@ -43,6 +43,10 @@ const wchar_t* kDefaultUrl = L"https://game.huoying.qq.com/main.html";
 // 供 OnBeforeCommandLineProcessing 在浏览器进程创建时读取。
 bool g_flash_gpu = false;
 
+// CEF DevTools 远程调试端口（--debug-port=<port>，0 表示不启用）。
+// 需在 HostApp 前声明，供 OnBeforeCommandLineProcessing 透传。
+int g_debug_port = 0;
+
 // ---------- 应用级 CefApp（Flash 注册） ----------
 class HostApp : public CefApp,
                 public CefBrowserProcessHandler {
@@ -89,6 +93,12 @@ public:
         // 兼容性问题。此设置需重新进入游戏才生效（浏览器进程创建时读取）。
         // 仅在浏览器进程（process_type 为空）设置，子进程会自动继承该开关。
         if (process_type.empty()) {
+            // CEF DevTools 远程调试（--debug-port=<port>），用于注入脚本分析游戏内部对象
+            if (g_debug_port > 0) {
+                command_line->AppendSwitchWithValue("remote-debugging-port",
+                                                    std::to_string(g_debug_port));
+                command_line->AppendSwitch("remote-allow-origins=*");
+            }
             if (g_flash_gpu) {
                 command_line->AppendSwitch("enable-gpu");
             } else {
@@ -938,6 +948,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
             auto fg = val(L"flash-gpu");
             if (!fg.empty())
                 g_flash_gpu = (fg == L"1");
+            auto dp = val(L"debug-port");
+            if (!dp.empty()) {
+                int port = _wtoi(dp.c_str());
+                if (port > 0 && port < 65536)
+                    g_debug_port = port;
+            }
         }
         LocalFree(argv);
     }
