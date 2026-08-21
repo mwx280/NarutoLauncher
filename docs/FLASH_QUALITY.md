@@ -103,3 +103,35 @@
 - Adobe AS3 文档 `flash.display.Stage.quality`：非同沙箱调用抛 `SecurityError`；
   `StageQuality` 值：low / medium / high / best
 - PLAN.md「游戏技术事实」：游戏入口 `game.huoying.qq.com/main.html` → swfobject 加载 entry.swf
+
+## 六、流畅性优化（已实施，2026-08-21）
+
+> 目标：保证游戏不卡、流畅。改动均在 `app/src/main.cpp`，不涉及资源拦截。
+
+### CEF 命令行优化（浏览器进程设置，子进程自动继承）
+
+| 开关 | 作用 |
+|---|---|
+| `disable-background-timer-throttling` | 窗口失焦/遮挡时 Flash 定时器不被 Chromium 降频（默认降 60fps→1fps），切回窗口即时恢复流畅 |
+| `disable-renderer-backgrounding` | 渲染进程不因后台而被降优先级 |
+| `disable-backgrounding-occluded-windows` | 被遮挡窗口不暂停渲染 |
+| `disable-frame-rate-limit` | 解除 Chromium 合成器默认 60fps 上限，Flash SWF 帧率不被内核节流 |
+
+### CefSettings / CefBrowserSettings
+
+- `background_color = 0xFF000000`（不透明黑）：Flash 画面全屏不透明，消除透明合成（alpha blend）开销。CEF 官方注释建议窗口内嵌浏览器设不透明背景色。
+
+### 进程优先级
+
+- 浏览器进程与所有子进程（renderer/gpu/utility，承载 Flash 渲染）统一提升为
+  `ABOVE_NORMAL_PRIORITY_CLASS`。
+- 注意：CEF 87 子进程**不继承**父进程优先级（默认 NORMAL），须在子进程自身
+  （`wWinMain` 检测到 `--type=` 参数）进入消息循环前设置。
+- 验证：全部 5 个进程均为 AboveNormal。
+
+### 验证结论
+
+- x86/x64 均编译通过，已部署到 `win-x64/GameHost`（默认）与 `win-x86/GameHost`。
+- 实际启动：窗口正常、5 进程稳定、Flash 插件就绪（`navigator.plugins` 含
+  Shockwave Flash）、优化开关已传入 renderer 进程命令行。
+- 游戏停在选区页（该 userdata 无选区 cookie），Flash 环境正常，不影响优化生效。
