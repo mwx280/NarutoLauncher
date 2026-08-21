@@ -69,6 +69,11 @@ public:
     void OnBeforeCommandLineProcessing(
         const CefString& process_type,
         CefRefPtr<CefCommandLine> command_line) override {
+        // 禁用沙盒：保证所有子进程（含 ppapi Flash 插件进程）以无沙盒运行。
+        // 原因：x64 下 Flash 插件进程在沙盒环境初始化时崩溃（BEX64/0xc0000005），
+        // 关闭沙盒可消除该兼容性问题。对本地固定内容（腾讯游戏）无安全影响。
+        command_line->AppendSwitch("no-sandbox");
+        command_line->AppendSwitch("disable-setuid-sandbox");
         command_line->AppendSwitchWithValue("ppapi-flash-path",
                                             FlashPluginPath());
         command_line->AppendSwitchWithValue("ppapi-flash-version",

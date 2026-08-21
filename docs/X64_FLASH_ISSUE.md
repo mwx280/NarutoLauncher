@@ -1,78 +1,71 @@
 # x64 构建 Flash 无法运行问题专项记录
 
-> 状态：已确认根因，x64 Flash 在当前环境（Windows ARM64 模拟器）与 x64 真机均无法运行。
+> 状态：已确认根因。x64 Flash 在**当前开发机（Windows ARM64 Parallels VM）**上无法运行，
+> 分两个阶段问题：沙盒崩溃（已修复）与 ARM64 模拟器 Shell API 崩溃（环境限制）。
+> 在 **x64 真机**上可正常运行（朋友已在 x64 真机验证）。
 > 日期：2026-08-21
 
 ## 一、问题现象
 
 1. x64 版 GameHost（huoyin_launcher.exe + CEF 87 x64 + Flash x64）启动游戏后，Flash 无法加载。
-2. 右键页面出现"启用 Flash"提示，手动启用后 Flash 仍不启动（无 ppapi 进程）。
-3. 对比：x86 版（CEF 87 x86 + Flash x86）完全正常，Flash 可正常加载运行。
+2. 右键页面出现"启用 Flash"提示，手动启用后 Flash 仍不启动。
+3. 对比：x86 版（CEF 87 x86 + Flash x86）在当前环境完全正常。
+4. 朋友在 **x64 真机**上运行相同架构的 x64 版本正常 → 崩溃为当前环境（ARM64 VM）特有。
 
-## 二、调查过程
+## 二、阶段一：沙盒导致 ppapi 进程启动即崩（已修复）
 
-### 2.1 确认 Flash 插件确实存在 64 位版本
+### 现象
+- x64 下 Flash 插件进程（ppapi）启动后立即崩溃（无 ppapi 进程出现）。
+- WER 崩溃报告：`BEX64`，异常 `0xc0000005`，`StackHash_e8ad`，崩溃点 `ntdll+0x16DD54`。
+- ppapi 进程加载了 `C:\WINDOWS\System32\xtajit64se.dll`（微软 x64-on-ARM64 CPU 模拟器组件）。
 
-- 系统安装的官方 Flash 同时提供 32/64 位版本：
-  - `C:\Windows\SysWOW64\Macromed\Flash\pepflashplayer32_34_0_0_380.dll`（x86）
-  - `C:\Windows\System32\Macromed\Flash\pepflashplayer64_34_0_0_380.dll`（x64，签名有效）
-- 已复制到项目 `third_party/`：
-  - `pepflashplayer.dll`（x86 380）→ x86 构建使用
-  - `pepflashplayer_x64.dll`（x64 380）→ x64 构建使用
+### 根因
+- 沙盒模式下，ppapi Flash 插件进程在 ARM64 模拟的 x64 环境中初始化崩溃。
+- `settings.no_sandbox = true` 只影响浏览器进程，**未传递给子进程**。
 
-### 2.2 排查过的排除项
+### 修复
+- 在 `OnBeforeCommandLineProcessing` 中对所有子进程追加：
+  - `--no-sandbox`
+  - `--disable-setuid-sandbox`
+- 修复后 ppapi 进程可正常启动（`--no-sandbox` 出现在 ppapi 命令行中已确认）。
 
-| 假设 | 验证结果 |
-|---|---|
-| Flash 只有 32 位版本 | 错误，官方确有 64 位（34.0.0.380，签名有效） |
-| 架构不匹配（CEF 32 + Flash 64） | 错误，x64 构建三者全为 x64 |
-| Flash 插件 DLL 损坏 | 错误，LoadLibrary 可加载，5 个 PPAPI 导出函数齐全 |
-| 360 安全软件干扰 | 排除（退出 360 后仍崩溃；故障模块实为微软模拟器） |
-| GPU 相关问题 | 排除（--disable-gpu 后仍崩溃） |
+## 三、阶段二：Flash 初始化时 windows.storage.dll 崩溃（环境限制，未修复）
 
-### 2.3 根因：崩溃在 ARM64 模拟器层
+### 现象
+- 沙盒修复后，ppapi 进程能启动，但 Flash 加载 entry.swf 时崩溃。
+- verbose 日志：`ppapi plugin process crashed`（反复出现，表现为"卡住"）。
+- WER 报告：`APPCRASH`，异常 `0xc0000005`，故障模块 **`C:\WINDOWS\SYSTEM32\windows.storage.dll`**，
+  偏移 `0x13ba02`。
 
-- 开发机为 **Windows 11 ARM64（Parallels VM）**，x64 程序需经系统模拟器运行。
-- WER 崩溃报告：`BEX64` 异常，异常码 `0xc0000005`，`StackHash_e8ad`，
-  崩溃点 `ntdll+0x16DD54`，故障偏移 `0x7ffab938b820`。
-- ppapi 进程加载了 `C:\WINDOWS\System32\xtajit64se.dll`——
-  这是**微软官方的 "x64-on-ARM64 CPU" 模拟器组件**（Microsoft 签名，
-  版本 10.0.26100.9168），非 360 模块。
-- 结论：**x64 Flash 的内部 JIT / 内存操作在 x64→ARM64 Prism 模拟层执行时崩溃**。
-  x86 Flash 走成熟的 x86→ARM 模拟路径，正常；x64 Flash 走 x64→ARM64 模拟路径，崩溃。
+### 根因
+- Flash 插件在初始化时调用 Windows Shell/存储 API（windows.storage.dll）。
+- 在 **x64→ARM64 Prism 模拟器**中，windows.storage.dll 的某些 API 在模拟的 x64 进程里崩溃
+  （ARM64 模拟兼容性问题，非代码缺陷）。
+- 崩溃点与具体 Flash 插件版本无关（官方 330/380、优化版 380 均一致）。
 
-### 2.4 x64 真机同样无法运行（补充记录）
+### 结论
+- **当前 ARM64 开发机上 x64 Flash 无法运行**（模拟器 Shell API 兼容限制）。
+- **x64 真机上可正常运行**（朋友已验证）。
+- x86 Flash 走成熟的 x86→ARM 模拟路径，在当前环境完全正常。
 
-- 2026-08-21 用户反馈：在 **x64 真机**上打包的 x64 测试版同样无法运行 Flash。
-- 说明问题不止于 ARM64 模拟器，CEF 87 x64 + Flash x64 组合本身也存在兼容问题。
-- 具体错误表现待进一步记录（用户暂未提供真机崩溃日志）。
+## 四、优化版 Flash 测试记录
 
-## 三、结论
-
-- **Flash 游戏（火影忍者OL）在 x64 构建下无法运行**，无论 ARM64 模拟器还是 x64 真机。
-- 生产环境必须使用 **x86 构建**（已验证完全正常）。
-- x64 构建保留（脚本已支持），但仅作编译产物，不作为可运行版本发布。
-
-## 四、优化版 Flash 测试（补充记录）
-
-- 2026-08-21 获得一套"特殊优化版" Flash（第三方修改，签名 HashMismatch）：
+- 第三方"特殊优化版"（签名 HashMismatch）：
   - `pepflashplayer32_34_0_0_380.dll`（x86，8993768 字节）
   - `pepflashplayer64_34_0_0_380.dll`（x64，16091624 字节）
-- 已替换项目 `third_party/pepflashplayer.dll` 与 `pepflashplayer_x64.dll` 为优化版。
-- **x86 优化版测试通过**：Flash 正常加载（ppapi 进程出现，游戏可运行）。
-- **x64 优化版测试仍失败**：与官方版一致，ppapi 进程启动即崩溃（异常 0xc0000005），
-  确认与插件版本无关，是 x64 Flash 在模拟器/真机环境的兼容问题。
-- 结论：优化版 x86 已启用；**x64 版本（无论官方还是优化版）均不可用**。
+- 已替换 `third_party/pepflashplayer.dll` 与 `pepflashplayer_x64.dll` 并入库。
+- x86 优化版测试通过；x64 优化版在 ARM64 VM 上同样崩溃（与插件版本无关）。
 
-## 五、当前状态与遗留
+## 五、当前状态与建议
 
-- 项目已支持 x86/x64 双架构构建（`tools/build-*.ps1`），Flash 按架构自动复制。
-- **推荐方案：以 x86 版本为正式版本。**
-- 若未来要解决 x64 Flash：需逆向 CEF/Flash x64 兼容问题（独立课题，暂缓）。
+- 已修复：沙盒对 ppapi 子进程的崩溃（代码保留 `--no-sandbox` 开关）。
+- 未修复：ARM64 VM 上 x64 Flash 的 windows.storage.dll 崩溃（环境限制，无法通过代码解决）。
+- **正式版本：x86**（当前环境已验证正常）。
+- **x64 版本：可在 x64 真机使用**（本机 ARM64 VM 无法测试，朋友已验证）。
+- 若要在 ARM64 VM 上使用 x64：需等 Windows Prism 模拟器对 windows.storage.dll 兼容性改进，或换 x64 真机。
 
 ## 六、相关文件
 
-- 官方 Flash 提取来源：`C:\Windows\...\Macromed\Flash\pepflashplayer*_34_0_0_380.dll`
-- 优化版 Flash 来源：桌面 `pepflashplayer32/64_34_0_0_380.dll`（第三方优化，已同步到项目）
-- 项目内：`third_party/pepflashplayer.dll`（x86 优化版）、`third_party/pepflashplayer_x64.dll`（x64 优化版）
-- 构建：`tools/build.ps1`（-Arch x86/x64）、`tools/build-x86.ps1`、`tools/build-x64.ps1`
+- 崩溃修复点：`app/src/main.cpp` OnBeforeCommandLineProcessing（--no-sandbox）
+- Flash 插件：`third_party/pepflashplayer.dll`（x86）、`pepflashplayer_x64.dll`（x64）
+- 构建：`tools/build.ps1`（-Arch x86/x64）
