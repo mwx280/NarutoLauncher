@@ -40,6 +40,7 @@ public partial class SettingsView : UserControl
         // 功能开关
         GameSpeedBox.IsChecked = s.GameSpeed;
         AntiDropBox.IsChecked = s.AntiDrop;
+        FlashGpuBox.IsChecked = s.FlashHardwareAcceleration;
         AutoScriptBox.IsChecked = s.AutoScript;
         AutoTaskBox.IsChecked = s.AutoTask;
         TrayBox.IsChecked = s.MinimizeToTray;
@@ -58,6 +59,8 @@ public partial class SettingsView : UserControl
         TrayBox.Unchecked += SaveSwitches;
         RememberPwdBox.Checked += SaveSwitches;
         RememberPwdBox.Unchecked += SaveSwitches;
+        FlashGpuBox.Checked += OnFlashGpuChecked;
+        FlashGpuBox.Unchecked += SaveSwitches;
     }
 
     private void SaveSwitches(object? sender, RoutedEventArgs e)
@@ -66,10 +69,40 @@ public partial class SettingsView : UserControl
         var s = App.CurrentApp.Settings;
         s.GameSpeed = GameSpeedBox.IsChecked == true;
         s.AntiDrop = AntiDropBox.IsChecked == true;
+        s.FlashHardwareAcceleration = FlashGpuBox.IsChecked == true;
         s.AutoScript = AutoScriptBox.IsChecked == true;
         s.AutoTask = AutoTaskBox.IsChecked == true;
         s.MinimizeToTray = TrayBox.IsChecked == true;
         s.RememberPassword = RememberPwdBox.IsChecked == true;
+    }
+
+    /// <summary>
+    /// Flash 硬件加速开启确认：默认关闭，开启前弹窗说明副作用（对传统 Flash 页游
+    /// 基本无提升，可能引发花屏/兼容问题），需用户明确确认，且需重新进入游戏才生效。
+    /// </summary>
+    private void OnFlashGpuChecked(object sender, RoutedEventArgs e)
+    {
+        if (_initializing) return;
+        var msg =
+            "开启 Flash 硬件加速对火影忍者OL 这类传统 Flash 页游基本没有提升，\n" +
+            "游戏画面主要由 CPU 渲染，GPU 帮不上忙。\n\n" +
+            "开启后可能带来副作用：\n" +
+            "· 画面花屏、闪烁或黑屏\n" +
+            "· 游戏崩溃或加载异常\n" +
+            "· 占用更多内存和资源\n\n" +
+            "不建议开启。此设置需要重新进入游戏才会生效。\n\n" +
+            "确定要开启吗？";
+        var r = MessageBox.Show(msg, "Flash 硬件加速",
+            MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+        if (r == MessageBoxResult.Yes)
+        {
+            App.CurrentApp.Settings.FlashHardwareAcceleration = true;
+        }
+        else
+        {
+            FlashGpuBox.IsChecked = false;
+            App.CurrentApp.Settings.FlashHardwareAcceleration = false;
+        }
     }
 
     // ---- 主题模式切换 ----

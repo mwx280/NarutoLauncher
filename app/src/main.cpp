@@ -39,6 +39,10 @@ const char* kFlashVersion = "34.0.0.380";
 const wchar_t* kDefaultUrl = L"https://game.huoying.qq.com/main.html";
 }  // namespace
 
+// Flash 硬件加速（--flash-gpu=1 开启，默认关闭）。需在 HostApp 前声明，
+// 供 OnBeforeCommandLineProcessing 在浏览器进程创建时读取。
+bool g_flash_gpu = false;
+
 // ---------- 应用级 CefApp（Flash 注册） ----------
 class HostApp : public CefApp,
                 public CefBrowserProcessHandler {
@@ -78,7 +82,16 @@ public:
                                             FlashPluginPath());
         command_line->AppendSwitchWithValue("ppapi-flash-version",
                                             kFlashVersion);
-        command_line->AppendSwitch("enable-gpu");
+        // Flash 硬件加速：默认关闭（disable-gpu，软件渲染）。开启时用 GPU 渲染，
+        // 但传统 Flash 页游画面主要由 CPU 渲染，开启基本无提升，反而可能花屏/
+        // 兼容性问题。此设置需重新进入游戏才生效（浏览器进程创建时读取）。
+        // 仅在浏览器进程（process_type 为空）设置，子进程会自动继承该开关。
+        if (process_type.empty()) {
+            if (g_flash_gpu)
+                command_line->AppendSwitch("enable-gpu");
+            else
+                command_line->AppendSwitch("disable-gpu");
+        }
         command_line->AppendSwitch("persist-session-cookies");
         // 日志写文件而非控制台，避免弹出 cmd 窗口
         command_line->AppendSwitchWithValue("log-file",
@@ -916,6 +929,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
                 embed = true;
             if (arg == L"--login")
                 login = true;
+            auto fg = val(L"flash-gpu");
+            if (!fg.empty())
+                g_flash_gpu = (fg == L"1");
         }
         LocalFree(argv);
     }

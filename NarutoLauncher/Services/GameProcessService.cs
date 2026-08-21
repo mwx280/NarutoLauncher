@@ -104,6 +104,9 @@ public class GameProcessService
         psi.ArgumentList.Add($"--userdata={userdata}");
         psi.ArgumentList.Add($"--title=火影忍者OL - {account.DisplayName}");
         psi.ArgumentList.Add("--embed");
+        // Flash 硬件加速开关（默认关闭；开启需重新进入游戏才生效）
+        psi.ArgumentList.Add(App.CurrentApp.Settings.FlashHardwareAcceleration
+            ? "--flash-gpu=1" : "--flash-gpu=0");
         // 账号有保存的 cookie 时注入（域分组的 JSON，base64 编码后传给 GameHost）
         if (!string.IsNullOrEmpty(account.Cookies))
         {
@@ -319,6 +322,9 @@ public class GameProcessService
         psi.ArgumentList.Add($"--userdata={userdata}");
         psi.ArgumentList.Add("--title=QQ 扫码登录");
         psi.ArgumentList.Add("--embed");
+        // Flash 硬件加速开关（默认关闭；开启需重新进入游戏才生效）
+        psi.ArgumentList.Add(App.CurrentApp.Settings.FlashHardwareAcceleration
+            ? "--flash-gpu=1" : "--flash-gpu=0");
         if (parentHwnd != 0)
             psi.ArgumentList.Add($"--parent={parentHwnd}");
 

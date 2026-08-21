@@ -40,6 +40,7 @@ public class SettingsService
     private bool _autoTask;
     private bool _minimizeToTray = true;
     private bool _rememberPassword = true;
+    private bool _flashHardwareAcceleration;
     private ThemeMode _themeMode = ThemeMode.System;
     private AccentMode _accentMode = AccentMode.System;
     private string _accentColor = "#E8482C";
@@ -61,6 +62,20 @@ public class SettingsService
     public bool AutoTask { get => _autoTask; set { if (_autoTask != value) { _autoTask = value; Save(); } } }
     public bool MinimizeToTray { get => _minimizeToTray; set { if (_minimizeToTray != value) { _minimizeToTray = value; Save(); } } }
     public bool RememberPassword { get => _rememberPassword; set { if (_rememberPassword != value) { _rememberPassword = value; Save(); } } }
+
+    /// <summary>Flash 硬件加速（默认关闭，开启可能引发画面/兼容性问题）。</summary>
+    public bool FlashHardwareAcceleration
+    {
+        get => _flashHardwareAcceleration;
+        set
+        {
+            if (_flashHardwareAcceleration != value)
+            {
+                _flashHardwareAcceleration = value;
+                Save();
+            }
+        }
+    }
 
     /// <summary>界面主题模式。</summary>
     public ThemeMode ThemeMode
@@ -130,6 +145,7 @@ public class SettingsService
                 AutoTask = _autoTask,
                 MinimizeToTray = _minimizeToTray,
                 RememberPassword = _rememberPassword,
+                FlashHardwareAcceleration = _flashHardwareAcceleration,
                 ThemeMode = _themeMode,
                 AccentMode = _accentMode,
                 AccentColor = _accentColor,
@@ -158,6 +174,7 @@ public class SettingsService
             _autoTask = dto.AutoTask;
             _minimizeToTray = dto.MinimizeToTray;
             _rememberPassword = dto.RememberPassword;
+            _flashHardwareAcceleration = dto.FlashHardwareAcceleration;
             _themeMode = dto.ThemeMode;
             _accentMode = dto.AccentMode;
             _accentColor = string.IsNullOrEmpty(dto.AccentColor) ? "#E8482C" : dto.AccentColor;
@@ -178,6 +195,7 @@ public class SettingsService
         public bool AutoTask { get; set; }
         public bool MinimizeToTray { get; set; } = true;
         public bool RememberPassword { get; set; } = true;
+        public bool FlashHardwareAcceleration { get; set; }
         public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
         public AccentMode AccentMode { get; set; } = AccentMode.System;
         public string AccentColor { get; set; } = "#E8482C";
