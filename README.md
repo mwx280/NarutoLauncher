@@ -62,9 +62,8 @@ powershell -ExecutionPolicy Bypass -File tools/build-x64.ps1
 powershell -ExecutionPolicy Bypass -File tools/pull.ps1 -Arch x86
 ```
 
-> 说明：x86 与 x64 的 GameHost 均使用各自架构的 Flash 插件（官方同时发布 32/64 位版本）。
-> **重要：x64 构建的 Flash 无法运行**（ARM64 模拟器与 x64 真机均已验证失败），
-> 正式使用请构建 x86 版本。详见 [docs/X64_FLASH_ISSUE.md](docs/X64_FLASH_ISSUE.md)。
+> 说明：x86 与 x64 的 GameHost 均使用各自架构的 Flash 插件（官方同时发布 32/64 位版本），
+> 两种架构均可正常运行 Flash 游戏。x64 兼容问题的修复过程见 [docs/X64_FLASH_ISSUE.md](docs/X64_FLASH_ISSUE.md)。
 
 ## 环境要求
 
