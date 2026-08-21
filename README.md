@@ -34,7 +34,7 @@ NarutoLauncher/
 ├── NarutoLauncher/ WPF 启动器（C#，含 HwndHost 内嵌）
 ├── assets/         图标等静态资源（favicon.png）
 ├── third_party/    第三方依赖（CEF SDK、Flash 插件，.gitignore，由脚本下载）
-├── tools/          依赖下载 / 提取脚本
+├── tools/          构建 / 拉取 / 依赖脚本
 └── docs/           文档（PLAN 实施计划 / 调研数据参考）
 ```
 
@@ -43,18 +43,27 @@ NarutoLauncher/
 > 详细计划见 [docs/PLAN.md](docs/PLAN.md)。
 
 ```powershell
-# 1. 准备依赖（下载 CEF SDK、提取 Flash 插件）
-powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1
+# 1. 准备依赖（下载 CEF SDK 运行时，-Arch 可选 x86/x64）
+powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1 -Arch x86
+#    Flash 插件为系统安装（C:\Windows\...\Macromed\Flash），需手动复制，见 tools/extract_flash.ps1
 
-# 2. 构建 CEF 游戏宿主（x86，MSVC 交叉环境 vcvarsarm64_x86.bat）
-cmake -S app -B build/app -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build/app
-
-# 3. 构建 WPF 启动器，并把 GameHost 复制到其输出目录的 GameHost/ 下
-dotnet build NarutoLauncher -c Release
+# 2. 一键构建（依赖下载 + GameHost + WPF + GameHost 复制，-Arch 可选 x86/x64）
+powershell -ExecutionPolicy Bypass -File tools/build.ps1 -Arch x86
 ```
 
-> 一键构建（依赖下载 + GameHost x86 + WPF + GameHost 复制）见 [build.ps1](build.ps1)。
+快捷脚本：
+
+```powershell
+# 构建全 x86 / 全 x64 版本（推荐直接使用）
+powershell -ExecutionPolicy Bypass -File tools/build-x86.ps1
+powershell -ExecutionPolicy Bypass -File tools/build-x64.ps1
+
+# 拉取最新代码并一键构建
+powershell -ExecutionPolicy Bypass -File tools/pull.ps1 -Arch x86
+```
+
+> 说明：x86 与 x64 的 GameHost 均使用各自架构的 Flash 插件（官方同时发布 32/64 位版本）。
+> 注意：x64 Flash 在 Windows ARM64（Prism 模拟器）上可能崩溃，建议在 x64 真机使用 x64 版本。
 
 ## 环境要求
 

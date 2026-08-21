@@ -11,7 +11,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+# 脚本目录（tools/）与项目根目录（上一级）
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Root = Split-Path -Parent $ScriptDir
 
 Write-Host "==> 拉取最新代码 (git pull)" -ForegroundColor Cyan
 $Status = git -C $Root status --porcelain
@@ -22,4 +24,4 @@ git -C $Root pull
 if ($LASTEXITCODE -ne 0) { throw "git pull 失败（退出码 $LASTEXITCODE）" }
 
 Write-Host "==> 构建版本: $Arch" -ForegroundColor Cyan
-& powershell -ExecutionPolicy Bypass -File (Join-Path $Root 'build.ps1') -Arch $Arch $(if ($Clean) { '-Clean' })
+& powershell -ExecutionPolicy Bypass -File (Join-Path $ScriptDir 'build.ps1') -Arch $Arch $(if ($Clean) { '-Clean' })

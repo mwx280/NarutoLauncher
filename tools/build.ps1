@@ -1,5 +1,5 @@
 ﻿# NarutoLauncher 一键构建脚本
-# 用法：powershell -ExecutionPolicy Bypass -File build.ps1 [-Arch x86|x64] [-Clean]
+# 用法：powershell -ExecutionPolicy Bypass -File tools/build.ps1 [-Arch x86|x64] [-Clean]
 #
 # 说明：
 #   - 构建 CEF 游戏宿主（app/，按 -Arch 选择 x86/x64，MSVC 交叉工具链 vcvarsall）
@@ -7,7 +7,8 @@
 #   - 把 GameHost 输出复制到启动器输出目录的 GameHost/
 #   - 首次构建前需运行 tools/download_deps.ps1 -Arch x86/x64 准备 third_party/ 依赖
 #
-# 注意：PPAPI Flash 插件（pepflashplayer.dll）只有 32 位版本，x64 构建无法运行 Flash 游戏。
+# 注意：Flash 插件官方同时提供 32/64 位版本（pepflashplayer.dll / pepflashplayer_x64.dll），
+#       由 CMake 按架构自动复制，两种架构均可运行 Flash 游戏。
 
 param(
     [ValidateSet('x86', 'x64')]
@@ -17,7 +18,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+# 项目根目录（本脚本位于 tools/ 下，取上一级）
+$Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $Vcvars = 'C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat'
 $Ninja = 'C:\Users\xiaowu\Dev\Qt\Tools\Ninja\ninja.exe'
 $Cmake = 'C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
@@ -90,9 +92,5 @@ Invoke-Step '复制 GameHost 到启动器输出目录 GameHost/' {
     }
 }
 Write-Host "构建完成：$GameHostDir" -ForegroundColor Green
-
-if ($Arch -eq 'x64') {
-    Write-Host "[!] 注意：x64 构建的 GameHost 无法加载 Flash 插件（pepflashplayer 仅有 32 位），游戏不可运行。" -ForegroundColor Red
-}
 
 Write-Host "全部完成。" -ForegroundColor Green
