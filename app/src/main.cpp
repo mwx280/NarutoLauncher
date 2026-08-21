@@ -113,6 +113,12 @@ public:
                 command_line->AppendSwitch("disable-flash-stage3d");
                 command_line->AppendSwitch("disable-3d-apis");
             }
+            // 强制 device-scale-factor=1：让 Flash 以 1 倍分辨率渲染，
+            // quality=low 真正生效（渲染量减半）。配合移除 DPI 感知，
+            // 游戏页面视口保持大尺寸（Flash 固定 1920x1080 stage），
+            // 布局完整。
+            command_line->AppendSwitchWithValue("force-device-scale-factor",
+                                                "1");
         }
         // 透传 Flash 渲染质量到子进程（ppapi Flash 插件进程据此 hook 改写 quality）。
         command_line->AppendSwitchWithValue("flash-quality",
@@ -875,20 +881,11 @@ int RunBrowserProcess(const std::wstring& url,
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     (void)hInstance;
 
-    // DPI 感知（文本模糊修复）
-    {
-        typedef HRESULT(WINAPI* SetProcessDpiAwarenessFn)(int);
-        HMODULE shcore = LoadLibraryW(L"shcore.dll");
-        if (shcore) {
-            auto fn = reinterpret_cast<SetProcessDpiAwarenessFn>(
-                GetProcAddress(shcore, "SetProcessDpiAwareness"));
-            if (fn)
-                fn(2);  // PROCESS_PER_MONITOR_DPI_AWARE
-            FreeLibrary(shcore);
-        } else {
-            SetProcessDPIAware();
-        }
-    }
+    // DPI 感知说明：此处不设置 PROCESS_PER_MONITOR_DPI_AWARE。
+    // 原因：DPI 感知 + force-device-scale-factor=1 会使游戏页面视口（1280）
+    // 与窗口物理尺寸（1512）不匹配导致画面不完整；Flash 页游为全屏画面，
+    // 保持系统位图拉伸（与独立测试宿主一致），配合 --force-device-scale-factor=1
+    // 让 Flash 以 1 倍分辨率渲染、quality=low 真正生效（渲染量减半）。
 
     // 解析命令行参数
     std::wstring url = kDefaultUrl;

@@ -168,6 +168,21 @@
 - 命令行：`--flash-quality=<low/medium/high>`（默认 low，流畅优先）。
 - 启动器：游戏窗口顶部「画质」下拉（低/中/高），切换时**重启 GameHost** 生效
   （quality 只在 Flash 实例创建时读取）。
+- **低/中/高三档统一由本 Flash hook 控制**（唯一有效路径）。
+  旧的 JS 层方案（改 createEntrySwfObject）只作用于 60×60 加载器且会被
+  游戏运行期覆盖，从未真正生效。
+
+### 与 DPI 感知的配合（重要）
+
+- GameHost **不再设置 PROCESS_PER_MONITOR_DPI_AWARE**，并强制
+  `--force-device-scale-factor=1`。
+- 原因：若保留 DPI 感知，CEF 按系统 DPI（VM 常为 200%）设 DPR=2，
+  Flash 以 2 倍物理分辨率渲染——既更耗 CPU，又让 quality=low 的降质
+  不明显（看起来像中画质）。
+- 若 DPI 感知 + 强制 DPR=1 组合：游戏页面视口（1280）与窗口物理尺寸
+  （1512）不匹配 → 画面不完整/截断。
+- 正确组合：**无 DPI 感知 + force-device-scale-factor=1**（与独立测试宿主
+  一致）——Flash 以 1 倍分辨率渲染，low 画质真正生效且布局完整。
 
 ### 实测验证
 
