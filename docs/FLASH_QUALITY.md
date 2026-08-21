@@ -168,9 +168,6 @@
 - 命令行：`--flash-quality=<low/medium/high>`（默认 low，流畅优先）。
 - 启动器：游戏窗口顶部「画质」下拉（低/中/高），切换时**重启 GameHost** 生效
   （quality 只在 Flash 实例创建时读取）。
-- **低/中/高三档统一由本 Flash hook 控制**（唯一有效路径）。
-  旧的 JS 层方案（BuildQualityHookScript 改 createEntrySwfObject）已移除——
-  它只作用于 60×60 加载器且会被游戏运行期覆盖，从未真正生效。
 
 ### 实测验证
 
