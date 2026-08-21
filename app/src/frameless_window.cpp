@@ -27,7 +27,8 @@ FramelessWindow::~FramelessWindow() {
     Destroy();
 }
 
-bool FramelessWindow::Create(int width, int height, bool embed, HWND parent) {
+bool FramelessWindow::Create(int width, int height, bool embed, HWND parent,
+                             bool windowed) {
     // 无边框窗口类
     static const wchar_t kClassName[] = L"HuoYinFramelessWindow";
     WNDCLASSEX wc = {};
@@ -44,12 +45,22 @@ bool FramelessWindow::Create(int width, int height, bool embed, HWND parent) {
     if (!reg_ok && reg_err != ERROR_CLASS_ALREADY_EXISTS)
         return false;
 
-    // 无边框窗口。embed 模式下为子窗口，由启动器内嵌后再显示，
-    // 创建时不带 WS_VISIBLE / 不 ShowWindow，避免内嵌前以独立黑窗口闪现。
-    DWORD style = embed ? WS_CHILD : (WS_POPUP | WS_VISIBLE);
-    DWORD ex_style = embed ? 0 : WS_EX_APPWINDOW;
+    // 窗口样式：
+    //   embed     -> WS_CHILD（由启动器内嵌，创建时不显示）
+    //   windowed  -> 标准有边框窗口（调试/独立会话，可拖动调整关闭）
+    //   其他      -> 无边框 WS_POPUP
+    DWORD style;
+    if (embed) {
+        style = WS_CHILD;
+    } else if (windowed) {
+        style = WS_OVERLAPPEDWINDOW;
+    } else {
+        style = WS_POPUP | WS_VISIBLE;
+    }
+    DWORD ex_style = (embed || windowed) ? 0 : WS_EX_APPWINDOW;
 
-    AppLog::Write("创建窗口: embed=%d parent=%p", embed ? 1 : 0, parent);
+    AppLog::Write("创建窗口: embed=%d windowed=%d parent=%p", embed ? 1 : 0,
+                  windowed ? 1 : 0, parent);
     hwnd_ = CreateWindowEx(
         ex_style, kClassName, L"火影忍者Online",
         style, 0, 0, width, height,
@@ -61,6 +72,21 @@ bool FramelessWindow::Create(int width, int height, bool embed, HWND parent) {
         return false;
 
     if (!embed) {
+        // windowed 标准窗口居中显示；无边框窗口直接显示
+        if (windowed) {
+            RECT wr = {0, 0, width, height};
+            AdjustWindowRect(&wr, style, FALSE);
+            int win_w = wr.right - wr.left;
+            int win_h = wr.bottom - wr.top;
+            int sw = GetSystemMetrics(SM_CXSCREEN);
+            int sh = GetSystemMetrics(SM_CYSCREEN);
+            int x = (sw - win_w) / 2;
+            int y = (sh - win_h) / 2;
+            if (x < 0) x = 0;
+            if (y < 0) y = 0;
+            SetWindowPos(hwnd_, nullptr, x, y, win_w, win_h,
+                         SWP_NOZORDER);
+        }
         ShowWindow(hwnd_, SW_SHOW);
         UpdateWindow(hwnd_);
     }

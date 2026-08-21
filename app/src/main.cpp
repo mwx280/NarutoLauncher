@@ -771,14 +771,15 @@ int RunBrowserProcess(const std::wstring& url,
                       const std::wstring& userdata_dir,
                       const std::wstring& title,
                       bool embed,
-                      HWND parent) {
+                      HWND parent,
+                      bool windowed) {
     AppLog::Write("== GameHost 开始 ==");
     if (!title.empty())
         g_window_title = title;
 
     // 主窗口（在 CefInitialize 之前创建，规避 CEF 环境对窗口创建的影响）
     AppLog::Write("创建主窗口...");
-    if (!g_window.Create(1280, 800, embed, parent)) {
+    if (!g_window.Create(1280, 800, embed, parent, windowed)) {
         DWORD err = GetLastError();
         AppLog::Write("创建窗口失败, GetLastError=%lu", err);
         return 1;
@@ -888,6 +889,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     std::wstring userdata;
     std::wstring title;
     bool embed = false;
+    bool windowed = false;
     bool login = false;
     HWND parent = nullptr;
     std::string cookie_b64;
@@ -945,6 +947,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
                 embed = true;
             if (arg == L"--login")
                 login = true;
+            if (arg == L"--windowed")
+                windowed = true;
             auto fg = val(L"flash-gpu");
             if (!fg.empty())
                 g_flash_gpu = (fg == L"1");
@@ -1020,5 +1024,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
                   url.c_str(), userdata.c_str(), embed ? 1 : 0,
                   (unsigned long long)parent, login ? 1 : 0,
                   g_auto_login ? 1 : 0);
-    return RunBrowserProcess(url, userdata, title, embed, parent);
+    return RunBrowserProcess(url, userdata, title, embed, parent, windowed);
 }
