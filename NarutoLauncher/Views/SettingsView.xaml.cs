@@ -14,8 +14,6 @@ namespace NarutoLauncher.Views;
 public partial class SettingsView : UserControl
 {
     private bool _initializing;
-    // 防重入：确认后重新打开开关时跳过二次弹窗
-    private bool _flashGpuApplying;
 
     public SettingsView()
     {
@@ -64,8 +62,9 @@ public partial class SettingsView : UserControl
         TrayBox.Unchecked += SaveSwitches;
         RememberPwdBox.Checked += SaveSwitches;
         RememberPwdBox.Unchecked += SaveSwitches;
-        FlashGpuBox.Checked += OnFlashGpuChecked;
-        FlashGpuBox.Unchecked += SaveSwitches;
+        // Flash 硬件加速：拦截点击（开关不随点击翻转），确认后才开启/关闭
+        FlashGpuBox.PreviewMouseLeftButtonDown += OnFlashGpuPreviewMouseDown;
+        FlashGpuBox.PreviewKeyDown += OnFlashGpuPreviewKeyDown;
     }
 
     private void SaveSwitches(object? sender, RoutedEventArgs e)
@@ -74,7 +73,6 @@ public partial class SettingsView : UserControl
         var s = App.CurrentApp.Settings;
         s.GameSpeed = GameSpeedBox.IsChecked == true;
         s.AntiDrop = AntiDropBox.IsChecked == true;
-        s.FlashHardwareAcceleration = FlashGpuBox.IsChecked == true;
         s.AutoScript = AutoScriptBox.IsChecked == true;
         s.AutoTask = AutoTaskBox.IsChecked == true;
         s.MinimizeToTray = TrayBox.IsChecked == true;
@@ -82,43 +80,54 @@ public partial class SettingsView : UserControl
     }
 
     /// <summary>
-    /// Flash 硬件加速开启确认：默认关闭。用户滑动到开启时立即回弹开关，
-    /// 弹出 UI 风格确认框说明副作用，用户确认后才真正开启（防重入避免递归）。
+    /// Flash 硬件加速：点击开关时不让开关直接翻转（避免取消/关闭后开关仍打开）。
+    /// 鼠标按下即拦截，弹出确认框，用户确认后才开启/关闭。
     /// </summary>
-    private async void OnFlashGpuChecked(object sender, RoutedEventArgs e)
+    private async void OnFlashGpuPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (_initializing || _flashGpuApplying) return;
-        // 先回弹开关，等用户确认后再重新打开，避免"点否后开关仍是开"。
-        // 必须在进入确认流程前回弹，否则 ToggleSwitch 视觉状态已翻转。
-        FlashGpuBox.IsChecked = false;
+        if (_initializing) return;
+        e.Handled = true;
+        await ToggleFlashGpuAsync();
+    }
 
-        var options = new SimpleContentDialogCreateOptions
-        {
-            Title = "Flash 硬件加速",
-            Content =
-                "开启 Flash 硬件加速对火影忍者OL 这类传统 Flash 页游基本没有提升，\n" +
-                "游戏画面主要由 CPU 渲染，GPU 帮不上忙。\n\n" +
-                "开启后可能带来副作用：\n" +
-                "· 画面花屏、闪烁或黑屏\n" +
-                "· 游戏崩溃或加载异常\n" +
-                "· 占用更多内存和资源\n\n" +
-                "不建议开启。此设置需要重新进入游戏才会生效。\n\n" +
-                "确定要开启吗？",
-            CloseButtonText = "关闭",
-            PrimaryButtonText = "开启",
-            SecondaryButtonText = "取消",
-            DefaultButton = ContentDialogButton.Secondary,
-        };
-        var result = await App.CurrentApp.DialogService.ShowSimpleDialogAsync(options);
+    /// <summary>键盘（空格）切换时同样拦截，行为与鼠标一致。</summary>
+    private async void OnFlashGpuPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (_initializing || e.Key != Key.Space) return;
+        e.Handled = true;
+        await ToggleFlashGpuAsync();
+    }
 
-        if (result == ContentDialogResult.Primary)
+    private async Task ToggleFlashGpuAsync()
+    {
+        var target = FlashGpuBox.IsChecked != true;
+        if (target)
         {
-            _flashGpuApplying = true;
-            FlashGpuBox.IsChecked = true;
-            _flashGpuApplying = false;
-            App.CurrentApp.Settings.FlashHardwareAcceleration = true;
+            var options = new SimpleContentDialogCreateOptions
+            {
+                Title = "Flash 硬件加速",
+                Content =
+                    "此开关控制 Flash 的 GPU 硬件加速（3D/Stage3D 渲染）。\n" +
+                    "火影忍者OL 这类传统 Flash 页游画面主要由 CPU 渲染，\n" +
+                    "开启硬件加速基本没有提升。\n\n" +
+                    "开启后可能带来副作用：\n" +
+                    "· 画面花屏、闪烁或黑屏\n" +
+                    "· 游戏崩溃或加载异常\n" +
+                    "· 占用更多内存和资源\n\n" +
+                    "不建议开启。此设置需要重新进入游戏才会生效。\n\n" +
+                    "确定要开启吗？",
+                CloseButtonText = "关闭",
+                PrimaryButtonText = "开启",
+                SecondaryButtonText = "取消",
+                DefaultButton = ContentDialogButton.Secondary,
+            };
+            var result = await App.CurrentApp.DialogService.ShowSimpleDialogAsync(options);
+            if (result != ContentDialogResult.Primary)
+                return;
         }
-        // 用户取消：开关已回弹，无需额外处理
+        // 确认开启，或直接关闭（关闭无需确认）
+        FlashGpuBox.IsChecked = target;
+        App.CurrentApp.Settings.FlashHardwareAcceleration = target;
     }
 
     // ---- 主题模式切换 ----

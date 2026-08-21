@@ -82,15 +82,21 @@ public:
                                             FlashPluginPath());
         command_line->AppendSwitchWithValue("ppapi-flash-version",
                                             kFlashVersion);
-        // Flash 硬件加速：默认关闭（disable-gpu，软件渲染）。开启时用 GPU 渲染，
-        // 但传统 Flash 页游画面主要由 CPU 渲染，开启基本无提升，反而可能花屏/
+        // Flash 硬件加速：默认关闭（软件渲染）。
+        // 关闭时同时禁用 CEF 全局 GPU 与 Flash 的 GPU 加速（Stage3D/3D API/
+        // GPU 合成），确保 Flash 完全走 CPU 渲染。开启时恢复 GPU 加速。
+        // 传统 Flash 页游画面主要由 CPU 渲染，开启基本无提升，反而可能花屏/
         // 兼容性问题。此设置需重新进入游戏才生效（浏览器进程创建时读取）。
         // 仅在浏览器进程（process_type 为空）设置，子进程会自动继承该开关。
         if (process_type.empty()) {
-            if (g_flash_gpu)
+            if (g_flash_gpu) {
                 command_line->AppendSwitch("enable-gpu");
-            else
+            } else {
                 command_line->AppendSwitch("disable-gpu");
+                command_line->AppendSwitch("disable-gpu-compositing");
+                command_line->AppendSwitch("disable-flash-stage3d");
+                command_line->AppendSwitch("disable-3d-apis");
+            }
         }
         command_line->AppendSwitch("persist-session-cookies");
         // 日志写文件而非控制台，避免弹出 cmd 窗口

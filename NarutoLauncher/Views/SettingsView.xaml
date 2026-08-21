@@ -208,7 +208,7 @@
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="Flash 硬件加速" Style="{StaticResource ItemNameStyle}"/>
-                        <TextBlock Text="尝试用 GPU 渲染 Flash 画面（默认关闭）" Style="{StaticResource ItemDescStyle}"/>
+                        <TextBlock Text="控制 Flash 的 GPU 硬件加速（3D/Stage3D 渲染，默认关闭）" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ui:ToggleSwitch Grid.Column="2" x:Name="FlashGpuBox"/>
                 </Grid>
