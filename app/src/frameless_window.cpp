@@ -61,6 +61,16 @@ bool FramelessWindow::Create(int width, int height, bool embed, HWND parent,
 
     AppLog::Write("创建窗口: embed=%d windowed=%d parent=%p", embed ? 1 : 0,
                   windowed ? 1 : 0, parent);
+    // embed 模式：若指定了父窗口，窗口尺寸跟随父窗口客户区（物理像素），
+    // 避免固定 1280x800 在父窗口（如 WPF HwndHost，DPI 感知）内显示偏小。
+    if (embed && parent) {
+        RECT prc;
+        if (::GetClientRect(parent, &prc) && prc.right > 0 && prc.bottom > 0) {
+            width = prc.right;
+            height = prc.bottom;
+            AppLog::Write("embed 跟随父窗口客户区: %dx%d", width, height);
+        }
+    }
     hwnd_ = CreateWindowEx(
         ex_style, kClassName, L"火影忍者Online",
         style, 0, 0, width, height,
