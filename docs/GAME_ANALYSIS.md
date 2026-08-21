@@ -90,3 +90,45 @@ sServerName=(公测856区 光刃那都)  skey/p_skey/access_token 等
 - GameHost 支持 `--debug-port=<port>` 启用 CEF DevTools 远程调试
 - CDP 可：执行 JS、hook Flash 回调、监听 HTTP 网络
 - 启动示例：`huoyin_launcher.exe --debug-port=9222 --flash-gpu=0 ...`
+
+## 八、缓存解密（重大发现）
+
+**游戏运行时会把加密的 SWF/配置解密后加载，Chromium 将解密结果缓存到本地，
+其中大量是标准 LZMA/Zlib 压缩的明文，可直接还原。**
+
+- 位置：`userdata/<账号>/Cache/f_*`
+- 类型分布（725 账号实测 526 个缓存条目）：
+  - `SWF-CWS`（标准 zlib 压缩，**可解压**）：约 60 个
+  - `ZLIB`/`LZMA`（**明文配置数据**）：约 25 个
+  - `SWF-ZWS`（LZMA 自定义头，**仍加密**）：核心逻辑 SWF
+  - 图片/其他
+- 已还原的明文配置（示例）：
+  - `config/user/NinjaInfoCFG.cfg`、`NinjaLevelInfoCFG.cfg`（忍者/等级）
+  - `config/skill/SkillCFG.cfg`（技能，含 `tupoSkillId` 突破、`awakenSkillNum` 觉醒）
+  - `config/battle/*.xml`（NinjaInfos、SkillInfos、BuffRefInfo、Battlestance）
+  - `config/dungeon/DungeonInfoCFG.cfg`（副本）、`EquipmentItemCFG.cfg`（装备）
+  - `config/task/taskConditionTypeConfig.xml`（任务）、NPC 表、BUFF 效果表
+  - 忍者字段：`baseNinjaAttack/growthNinjaAttack`、`baseNinjaDefense`、
+    `baseNinjaStrike`、`waterResist`、`maxLeaderShip`、`maxNinjaOnFormation` 等
+- **工具**：`tools/analyze_cache.py <userdata_dir>` 一键还原全部可解压缓存
+  （输出到 `<userdata_dir>/Cache/decoded/`）
+
+**结论**：SWF 本体加密无法静态分析，但**运行时解密的数据可在本地缓存还原**，
+游戏全部静态配置（忍者/技能/副本/装备/任务/战斗数值）均可获取。玩家动态数据
+（战力/等级/背包）仍走加密 Socket，不在缓存中。
+
+## 九、赛尔号对比（独立测试 seer_test）
+
+在独立宿主（`C:\Users\xiaowu\Desktop\seer_test`，加载 `https://seer.61.com`）分析：
+
+| 项目 | 火影忍者OL | 赛尔号 |
+|---|---|---|
+| SWF 压缩 | ZWS+LZMA 自定义（加密） | CWS+Zlib（明文） |
+| 类名 | 无法解析 | 明文（`com.robot.app.MainEntry` 等） |
+| 核心库 | 全部加密 | 仅 `TaomeeLibraryDLL.swf` 加密 |
+| 登录协议 | 不可静态分析 | `Login.swf` 明文，可反编译 |
+| 游戏 Socket | 183.194.190.49:10741 | 111.229.85.11:1218 |
+| 本地缓存 | **运行时解密后明文可还原** | 待验证 |
+
+赛尔号外围（加载/登录/资源）明文可分析，核心库单个加密；火影全加密但运行时
+缓存可还原配置。两者玩家动态数据均走 Socket。
