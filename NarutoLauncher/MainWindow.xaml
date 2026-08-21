@@ -81,6 +81,9 @@
             <Grid Grid.Column="1">
                 <ContentControl x:Name="ContentHost"/>
             </Grid>
+
+            <!-- 对话框宿主（UI 风格 ContentDialog 提示框），覆盖整个主体区域 -->
+            <ui:ContentDialogHost x:Name="ContentDialogHost" Grid.ColumnSpan="2" IsDisableSiblingsEnabled="True"/>
         </Grid>
     </DockPanel>
 </ui:FluentWindow>

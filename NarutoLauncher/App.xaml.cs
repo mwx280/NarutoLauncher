@@ -1,6 +1,7 @@
 using System.Text;
 using System.Windows;
 using NarutoLauncher.Services;
+using Wpf.Ui;
 
 namespace NarutoLauncher;
 
@@ -12,6 +13,9 @@ public partial class App : Application
     public AccountService Accounts { get; } = new();
     public SettingsService Settings { get; } = new();
     public GameProcessService Games { get; } = new();
+
+    /// <summary>对话框服务（UI 风格 ContentDialog 提示框宿主）。</summary>
+    public ContentDialogService DialogService { get; } = new();
 
     /// <summary>主窗口句柄（供 GameHost 嵌入）。</summary>
     public nint MainWindowHandle { get; set; }

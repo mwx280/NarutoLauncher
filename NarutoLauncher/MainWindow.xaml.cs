@@ -15,6 +15,8 @@ public partial class MainWindow : FluentWindow
     public MainWindow()
     {
         InitializeComponent();
+        // 绑定全局对话框服务的宿主（UI 风格提示框）
+        App.CurrentApp.DialogService.SetDialogHost(ContentDialogHost);
         // 默认选中首页
         NavList.SelectedIndex = 0;
         ContentHost.Content = _home;

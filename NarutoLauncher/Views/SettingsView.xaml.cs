@@ -3,6 +3,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using NarutoLauncher.Services;
+using Wpf.Ui;
+using Wpf.Ui.Controls;
+using Wpf.Ui.Extensions;
 using ThemeMode = NarutoLauncher.Services.ThemeMode;
 using AccentMode = NarutoLauncher.Services.AccentMode;
 
@@ -11,6 +14,8 @@ namespace NarutoLauncher.Views;
 public partial class SettingsView : UserControl
 {
     private bool _initializing;
+    // 防重入：确认后重新打开开关时跳过二次弹窗
+    private bool _flashGpuApplying;
 
     public SettingsView()
     {
@@ -77,32 +82,43 @@ public partial class SettingsView : UserControl
     }
 
     /// <summary>
-    /// Flash 硬件加速开启确认：默认关闭，开启前弹窗说明副作用（对传统 Flash 页游
-    /// 基本无提升，可能引发花屏/兼容问题），需用户明确确认，且需重新进入游戏才生效。
+    /// Flash 硬件加速开启确认：默认关闭。用户滑动到开启时立即回弹开关，
+    /// 弹出 UI 风格确认框说明副作用，用户确认后才真正开启（防重入避免递归）。
     /// </summary>
-    private void OnFlashGpuChecked(object sender, RoutedEventArgs e)
+    private async void OnFlashGpuChecked(object sender, RoutedEventArgs e)
     {
-        if (_initializing) return;
-        var msg =
-            "开启 Flash 硬件加速对火影忍者OL 这类传统 Flash 页游基本没有提升，\n" +
-            "游戏画面主要由 CPU 渲染，GPU 帮不上忙。\n\n" +
-            "开启后可能带来副作用：\n" +
-            "· 画面花屏、闪烁或黑屏\n" +
-            "· 游戏崩溃或加载异常\n" +
-            "· 占用更多内存和资源\n\n" +
-            "不建议开启。此设置需要重新进入游戏才会生效。\n\n" +
-            "确定要开启吗？";
-        var r = MessageBox.Show(msg, "Flash 硬件加速",
-            MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
-        if (r == MessageBoxResult.Yes)
+        if (_initializing || _flashGpuApplying) return;
+        // 先回弹开关，等用户确认后再重新打开，避免"点否后开关仍是开"。
+        // 必须在进入确认流程前回弹，否则 ToggleSwitch 视觉状态已翻转。
+        FlashGpuBox.IsChecked = false;
+
+        var options = new SimpleContentDialogCreateOptions
         {
+            Title = "Flash 硬件加速",
+            Content =
+                "开启 Flash 硬件加速对火影忍者OL 这类传统 Flash 页游基本没有提升，\n" +
+                "游戏画面主要由 CPU 渲染，GPU 帮不上忙。\n\n" +
+                "开启后可能带来副作用：\n" +
+                "· 画面花屏、闪烁或黑屏\n" +
+                "· 游戏崩溃或加载异常\n" +
+                "· 占用更多内存和资源\n\n" +
+                "不建议开启。此设置需要重新进入游戏才会生效。\n\n" +
+                "确定要开启吗？",
+            CloseButtonText = "关闭",
+            PrimaryButtonText = "开启",
+            SecondaryButtonText = "取消",
+            DefaultButton = ContentDialogButton.Secondary,
+        };
+        var result = await App.CurrentApp.DialogService.ShowSimpleDialogAsync(options);
+
+        if (result == ContentDialogResult.Primary)
+        {
+            _flashGpuApplying = true;
+            FlashGpuBox.IsChecked = true;
+            _flashGpuApplying = false;
             App.CurrentApp.Settings.FlashHardwareAcceleration = true;
         }
-        else
-        {
-            FlashGpuBox.IsChecked = false;
-            App.CurrentApp.Settings.FlashHardwareAcceleration = false;
-        }
+        // 用户取消：开关已回弹，无需额外处理
     }
 
     // ---- 主题模式切换 ----
