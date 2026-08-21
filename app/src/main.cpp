@@ -32,6 +32,7 @@
 #include "frameless_window.h"
 #include "app_log.h"
 #include "no_console_hook.h"
+#include "flash_hook.h"
 
 // ---------- 常量 ----------
 namespace {
@@ -46,6 +47,11 @@ bool g_flash_gpu = false;
 // CEF DevTools 远程调试端口（--debug-port=<port>，0 表示不启用）。
 // 需在 HostApp 前声明，供 OnBeforeCommandLineProcessing 透传。
 int g_debug_port = 0;
+
+// 当前 Flash 渲染质量（--flash-quality=<low/medium/high>，默认 low）。
+// 需在 HostApp 前声明，供 OnBeforeCommandLineProcessing 透传到子进程，
+// 由 ppapi 子进程的 Flash hook 在实例创建时生效。
+std::string g_flash_quality = "low";
 
 // ---------- 应用级 CefApp（Flash 注册） ----------
 class HostApp : public CefApp,
@@ -108,6 +114,9 @@ public:
                 command_line->AppendSwitch("disable-3d-apis");
             }
         }
+        // 透传 Flash 渲染质量到子进程（ppapi Flash 插件进程据此 hook 改写 quality）。
+        command_line->AppendSwitchWithValue("flash-quality",
+                                            g_flash_quality);
         command_line->AppendSwitch("persist-session-cookies");
         // 日志写文件而非控制台，避免弹出 cmd 窗口
         command_line->AppendSwitchWithValue("log-file",
@@ -274,9 +283,6 @@ CefRefPtr<CefFrame> FindLoginFrame(CefRefPtr<CefBrowser> browser) {
 
 // Flash 画质级别（Flash object/embed 的 quality 参数只有 低/中/高）。
 const char* kFlashQualityNames[] = {"low", "medium", "high"};
-
-// 当前 Flash 画质（默认最低）。
-std::string g_flash_quality = "low";
 
 // 刷新当前游戏页面。
 void ReloadGame() {
@@ -958,8 +964,25 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
                 if (port > 0 && port < 65536)
                     g_debug_port = port;
             }
+            // Flash 渲染质量（--flash-quality=<low/medium/high>），
+            // 默认 low（流畅优先）。经 Flash hook 在实例创建时生效。
+            auto fq = val(L"flash-quality");
+            if (!fq.empty()) {
+                std::string q = utf8_of(fq);
+                if (q == "medium" || q == "high")
+                    g_flash_quality = q;
+                else
+                    g_flash_quality = "low";
+            }
         }
         LocalFree(argv);
+    }
+
+    // 浏览器进程：把 Flash 渲染质量写入环境变量，供 ppapi 子进程读取
+    // （CEF 会过滤命令行自定义开关，环境变量必然被子进程继承）。
+    if (wcsstr(lpCmdLine, L"--type=") == nullptr) {
+        ::SetEnvironmentVariableA("HUOYIN_FLASH_QUALITY",
+                                  g_flash_quality.c_str());
     }
 
     // 扫码登录模式：加载官网首页（自动弹出 QQ 登录二维码），登录成功写 login_result.txt
@@ -1000,6 +1023,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
             // 替代原手工 inline hook——后者 jmp rel32 在 x64 下可能超出
             // ±2GB 跳转范围，导致 ppapi 进程调用 CreateProcessW 时崩溃。
             InstallNoConsoleHooks();
+
+            // 安装 Flash 渲染质量 hook：改写 Flash 实例创建时的 quality 参数，
+            // 真正控制整个游戏（主城/UI/战斗）的渲染质量。目标值由浏览器进程
+            // 通过环境变量 HUOYIN_FLASH_QUALITY 传入（CEF 会过滤命令行自定义
+            // 开关，环境变量必然被子进程继承）。
+            const char* q = "low";
+            char env_buf[16] = {0};
+            DWORD env_len = ::GetEnvironmentVariableA(
+                "HUOYIN_FLASH_QUALITY", env_buf, sizeof(env_buf));
+            if (env_len > 0 && env_len < sizeof(env_buf) && env_buf[0])
+                q = env_buf;
+            InstallFlashQualityHooksAsync(q);
         }
     }
 

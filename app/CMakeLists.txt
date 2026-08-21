@@ -41,6 +41,8 @@ add_executable(huoyin_launcher WIN32
     src/frameless_window.h
     src/no_console_hook.cpp
     src/no_console_hook.h
+    src/flash_hook.cpp
+    src/flash_hook.h
 )
 
 target_include_directories(huoyin_launcher PRIVATE

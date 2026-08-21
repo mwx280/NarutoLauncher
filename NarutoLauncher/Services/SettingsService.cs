@@ -41,6 +41,7 @@ public class SettingsService
     private bool _minimizeToTray = true;
     private bool _rememberPassword = true;
     private bool _flashHardwareAcceleration = true;
+    private string _flashQuality = "low";
     private ThemeMode _themeMode = ThemeMode.System;
     private AccentMode _accentMode = AccentMode.System;
     private string _accentColor = "#E8482C";
@@ -72,6 +73,23 @@ public class SettingsService
             if (_flashHardwareAcceleration != value)
             {
                 _flashHardwareAcceleration = value;
+                Save();
+            }
+        }
+    }
+
+    /// <summary>Flash 渲染质量（low/medium/high，默认 low 流畅优先）。</summary>
+    public string FlashQuality
+    {
+        get => _flashQuality;
+        set
+        {
+            var v = value ?? "low";
+            if (v != "medium" && v != "high")
+                v = "low";
+            if (_flashQuality != v)
+            {
+                _flashQuality = v;
                 Save();
             }
         }
@@ -146,6 +164,7 @@ public class SettingsService
                 MinimizeToTray = _minimizeToTray,
                 RememberPassword = _rememberPassword,
                 FlashHardwareAcceleration = _flashHardwareAcceleration,
+                FlashQuality = _flashQuality,
                 ThemeMode = _themeMode,
                 AccentMode = _accentMode,
                 AccentColor = _accentColor,
@@ -175,6 +194,7 @@ public class SettingsService
             _minimizeToTray = dto.MinimizeToTray;
             _rememberPassword = dto.RememberPassword;
             _flashHardwareAcceleration = dto.FlashHardwareAcceleration;
+            _flashQuality = string.IsNullOrEmpty(dto.FlashQuality) ? "low" : dto.FlashQuality;
             _themeMode = dto.ThemeMode;
             _accentMode = dto.AccentMode;
             _accentColor = string.IsNullOrEmpty(dto.AccentColor) ? "#E8482C" : dto.AccentColor;
@@ -196,6 +216,7 @@ public class SettingsService
         public bool MinimizeToTray { get; set; } = true;
         public bool RememberPassword { get; set; } = true;
         public bool FlashHardwareAcceleration { get; set; }
+        public string FlashQuality { get; set; } = "low";
         public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
         public AccentMode AccentMode { get; set; } = AccentMode.System;
         public string AccentColor { get; set; } = "#E8482C";

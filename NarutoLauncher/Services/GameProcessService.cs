@@ -75,7 +75,8 @@ public class GameProcessService
     /// <summary>
     /// 启动一个账号的游戏窗口（内嵌模式）。
     /// </summary>
-    public GameSession? StartGame(Account account, nint parentHwnd = 0)
+    public GameSession? StartGame(Account account, nint parentHwnd = 0,
+                                  string? flashQuality = null)
     {
         var exe = GameHostPath;
         if (exe == null)
@@ -107,6 +108,9 @@ public class GameProcessService
         // Flash 硬件加速开关（默认关闭；开启需重新进入游戏才生效）
         psi.ArgumentList.Add(App.CurrentApp.Settings.FlashHardwareAcceleration
             ? "--flash-gpu=1" : "--flash-gpu=0");
+        // Flash 渲染质量（低/中/高，经 Flash hook 在实例创建时生效）
+        var quality = flashQuality ?? App.CurrentApp.Settings.FlashQuality;
+        psi.ArgumentList.Add($"--flash-quality={quality}");
         // 账号有保存的 cookie 时注入（域分组的 JSON，base64 编码后传给 GameHost）
         if (!string.IsNullOrEmpty(account.Cookies))
         {

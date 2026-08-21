@@ -17,6 +17,7 @@ public partial class GameWindow : FluentWindow
     private GameSession? _session;
     private bool _isFullScreen;
     private Rect _normalBounds;
+    private bool _qualityInitDone;
 
     // 与 GameHost 主窗口通信的自定义消息（WM_APP + n，n=1 刷新，n=2 画质调节）
     private const int WM_APP = 0x8000;
@@ -70,6 +71,15 @@ public partial class GameWindow : FluentWindow
         GameHost.ChildWindowHandle = hwnd;
         Placeholder.Visibility = Visibility.Collapsed;
         GameHost.Visibility = Visibility.Visible;
+
+        // 画质下拉同步当前设置（低/中/高），并标记初始化完成
+        QualitySelector.SelectedIndex = App.CurrentApp.Settings.FlashQuality switch
+        {
+            "high" => 2,
+            "medium" => 1,
+            _ => 0,
+        };
+        _qualityInitDone = true;
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
@@ -98,10 +108,69 @@ public partial class GameWindow : FluentWindow
 
     private void OnQualityChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (!_qualityInitDone)
+            return;  // 窗口加载初始化的默认选中不触发重启
         if (QualitySelector.SelectedItem is not ComboBoxItem item ||
             !int.TryParse(item.Tag?.ToString(), out var level))
             return;
-        SendCommand(CmdQuality, (nint)level);
+        // 画质只在新 GameHost 进程（Flash 实例创建）时生效，切换需重启游戏。
+        _ = RestartGameAsync(level);
+    }
+
+    /// <summary>以指定画质档位重启游戏（停止旧进程，用新 --flash-quality 重新拉起）。</summary>
+    private async Task RestartGameAsync(int level)
+    {
+        var quality = level switch
+        {
+            2 => "high",
+            1 => "medium",
+            _ => "low",
+        };
+        App.CurrentApp.Settings.FlashQuality = quality;
+
+        // 停止当前会话
+        if (_session != null)
+        {
+            App.CurrentApp.Games.StopGame(_account);
+            _session = null;
+        }
+
+        // 清空内嵌区域，显示加载占位
+        GameHost.ChildWindowHandle = 0;
+        GameHost.Visibility = Visibility.Collapsed;
+        Placeholder.Visibility = Visibility.Visible;
+        PlaceholderText.Text = "正在切换画质…";
+
+        // 重新启动（传新 quality）
+        var session = App.CurrentApp.Games.StartGame(_account,
+            new WindowInteropHelper(this).Handle, quality);
+        if (session == null)
+        {
+            PlaceholderText.Text = "启动失败，请确认 GameHost 已就位";
+            return;
+        }
+        _session = session;
+
+        nint hwnd = 0;
+        for (int i = 0; i < 60; i++)
+        {
+            hwnd = session.ReadWindowHandle();
+            if (hwnd != 0)
+                break;
+            if (session.Process.HasExited)
+                break;
+            await Task.Delay(200);
+        }
+
+        if (hwnd == 0)
+        {
+            PlaceholderText.Text = "等待游戏窗口超时";
+            return;
+        }
+
+        GameHost.ChildWindowHandle = hwnd;
+        Placeholder.Visibility = Visibility.Collapsed;
+        GameHost.Visibility = Visibility.Visible;
     }
 
     private void OnToggleFullscreen(object sender, RoutedEventArgs e)

@@ -132,3 +132,47 @@
 - 设置页文案更新为"GPU 合成提升流畅度（默认开启）"。
 - 说明：Flash 内容本身仍 CPU 渲染（架构性限制），GPU 合成只解决合成瓶颈；
   在无真实 GPU 的虚拟机环境改善有限，**真机 x86 + 独立显卡提升更大**。
+
+## 七、Flash 渲染质量 hook（真正控制画质，2026-08-22）
+
+> 背景：此前画质调节（改 DOM quality）对主画面无效——游戏主 OBJECT 由
+> `swfobject.embedSWF` 创建，quality 缺失默认 high，且 JS 注入会被游戏覆盖。
+> 解决方案：**在 Flash 插件层 hook PPP_Instance::DidCreate 改写 quality**。
+
+### 原理
+
+```
+浏览器 → PPP_InitializeModule(PPB_GetInterface)
+       → PPP_GetInterface("PPP_Instance;1.1")   ← hook 这里
+       → PPP_Instance::DidCreate(argc, argn[], argv[])  ← 改写 argv 的 quality
+```
+
+- `app/src/flash_hook.cpp`：MinHook hook `PPP_GetInterface`，拦截其返回的
+  `PPP_Instance;1.1` 接口表，包装 `DidCreate` 改写 `quality` 参数。
+- 作用于**整个游戏**（主城/UI/战斗），游戏 JS 无法覆盖。
+- 仅在 **ppapi 子进程**安装（异步线程等待 pepflashplayer.dll 加载）。
+
+### 关键实现要点
+
+1. `PPP_Instance_1_1` 接口表须**完整声明 5 个成员**（DidCreate/DidDestroy/
+   DidChangeView/DidChangeFocus/HandleDocumentLoad），缺失会导致 Flash 调用
+   其他函数时读无效内存 → 黑屏。
+2. **只能 hook `PPP_Instance;1.x`**，不能误匹配 `PPP_Instance_Private`（结构不同）。
+3. `MH_Initialize` 由 `InstallNoConsoleHooks()` 调用，**不可重复调用**
+   （非线程安全），Flash hook 只 `MH_CreateHook` + `MH_EnableHook`。
+4. quality 值通过**环境变量 `HUOYIN_FLASH_QUALITY`** 传给子进程
+   （CEF 会过滤命令行自定义开关，环境变量必然继承）。
+
+### 使用
+
+- 命令行：`--flash-quality=<low/medium/high>`（默认 low，流畅优先）。
+- 启动器：游戏窗口顶部「画质」下拉（低/中/高），切换时**重启 GameHost** 生效
+  （quality 只在 Flash 实例创建时读取）。
+
+### 实测验证
+
+- low：`DidCreate` 里 quality=low，画面明显变糊（抗锯齿关闭）。
+- high：quality 保持 high，画面清晰。
+- 独立对照（cefsimple_test）：low vs 原始，视觉差异明确。
+- 注意：此 VM 上 CPU 均接近满载，画质切换主要影响画面质量，CPU 降幅有限；
+  真机上低画质可显著降低光栅化开销。
