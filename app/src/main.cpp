@@ -357,43 +357,83 @@ public:
     IMPLEMENT_REFCOUNTING(CheckAndApplyZoneIdTask);
 };
 
-// 向主框架注入设置 Flash 画质的 JS（轮询查找 Flash 容器，最多 20 次/10 秒）。
-void InjectFlashQuality(const std::string& q) {
-    if (!g_game_browser || !g_game_browser->GetMainFrame()) return;
+// 生成重写 narutoweb.js 的 createEntrySwfObject 的注入脚本：
+// 原实现生成 <embed> 时硬编码 quality="high"，且 Flash 的 quality 只在
+// SWF 实例化时读取一次，运行期改 DOM 无效。因此必须在该函数被调用前完整
+// 替换它，让生成的 <embed quality="..."> 直接带目标画质，SWF 以目标画质创建。
+// 脚本忠实复制原 createEntrySwfObject 逻辑（含 IE/Flash 检测分支），仅把
+// 硬编码的 quality="high" 改为目标值，避免页面其他行为被破坏。
+std::string BuildQualityHookScript(const std::string& q) {
     std::string js =
-        "(function(q,max){"
-        "var n=0;"
-        "function t(){"
-        "try{"
-        "var swf=document.getElementById('entry');"
-        "if(!swf)swf=document.getElementsByTagName('object')[0];"
-        "if(!swf)swf=document.getElementsByTagName('embed')[0];"
-        "if(swf){"
-        "var params=swf.getElementsByTagName('param');"
-        "var found=false;"
-        "for(var i=0;i<params.length;i++){"
-        "if(params[i].name&&params[i].name.toLowerCase()==='quality'){"
-        "params[i].value=q;found=true;}}"
-        "if(!found&&swf.setAttribute){swf.setAttribute('quality',q);}"
-        "try{swf.quality=q;}catch(e){}"
-        "return;"
-        "}"
-        "}catch(e){}"
-        "if(++n<max)setTimeout(t,500);"
-        "}"
-        "t();"
-        "})('" + q + "',20);";
-    g_game_browser->GetMainFrame()->ExecuteJavaScript(js,
-        g_game_browser->GetMainFrame()->GetURL(), 0);
+        R"JS((function(q,max){
+var n=0;
+function t(){
+try{
+if(window.naruto&&naruto.Web&&naruto.Web.prototype){
+var p=naruto.Web.prototype;
+if(p.createEntrySwfObject&&p.createEntrySwfObject.__qHook)return;
+p.createEntrySwfObject=function(attributes,param,id,a){
+var element=document.getElementById(id);
+if(element){
+if(!this.sys.chrome&&!this.sys.playerInstalled){
+element.parentNode.innerHTML='<div id="flashAlert" style="font-size:18px; color: #FFFFFF;">no flash</div>';
+return;
+}
+if(typeof attributes.id=="undefined")attributes.id=id;
+var attrStr="";
+for(var attr in attributes){
+if(attributes[attr]!=Object.prototype[attr]){
+if("data"==attr.toLowerCase()){param.movie=attributes[attr];}
+else{
+if("id"==attr.toLowerCase()){if(this.sys.ie){attrStr+=" "+attr+'="'+attributes[attr]+'"';}}
+else{attrStr+=" "+attr+'="'+attributes[attr]+'"';}
+}
+}
+}
+attrStr+=" style=display:block;text-align:center;";
+var paramStr="";
+for(var d in param){if(param[d]!=Object.prototype[d])paramStr+='<param name="'+d+'" value="'+param[d]+'" />';}
+var htmlStr="";
+var embedStr='<embed';
+embedStr+=' src="'+param.movie+'"';
+embedStr+=' type="application/x-shockwave-flash"';
+embedStr+=' pluginspage="http://www.adobe.com/go/getflashplayer"';
+embedStr+=' quality="'+q+'"';
+embedStr+=' width="'+attributes.width+'"';
+embedStr+=' height="'+attributes.height+'"';
+embedStr+=' align="middle"';
+embedStr+=' allowScriptAccess="'+param.allowScriptAccess+'"';
+embedStr+=' allowFullScreenInteractive="'+param.allowFullScreenInteractive+'"';
+embedStr+=' wmode="'+param.wmode+'"';
+embedStr+=' name="'+attributes.name+'"';
+embedStr+=' id="'+attributes.id+'"';
+embedStr+='>';
+htmlStr+='<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab" '+attrStr+'>'+paramStr;
+htmlStr+=embedStr;
+htmlStr+='</object>';
+element.parentNode.innerHTML=htmlStr;
+}
+};
+p.createEntrySwfObject.__qHook=true;
+return;
+}
+}catch(e){}
+if(++n<max)setTimeout(t,100);
+}
+t();
+})JS";
+    js += ")('" + q + "',300);";
+    return js;
 }
 
 // 设置 Flash 画质（quality 参数：low/medium/high）。
+// 由于 quality 只在 SWF 实例化时读取，改档后必须重载页面让 Flash 重建。
 void SetFlashQuality(int level) {
     if (level < 0) level = 0;
     if (level > 2) level = 2;
     g_flash_quality = kFlashQualityNames[level];
-    AppLog::Write("命令: 设置 Flash 画质=%s (%d)", g_flash_quality.c_str(), level);
-    InjectFlashQuality(g_flash_quality);
+    AppLog::Write("命令: 设置 Flash 画质=%s (%d), 重载页面生效", g_flash_quality.c_str(), level);
+    ReloadGame();
 }
 
 // 主窗口自定义命令消息回调（cmd: 1=刷新, 2=画质调节）。
@@ -503,6 +543,10 @@ public:
             "document.addEventListener('DOMContentLoaded',__hide);}"
             "else{__hide();}",
             frame->GetURL(), 0);
+        // 注入画质 hook：在 Flash 实例化前重写 createEntrySwfObject，
+        // 使入口 SWF 以目标 quality 创建（quality 只在实例化时读取一次）。
+        frame->ExecuteJavaScript(BuildQualityHookScript(g_flash_quality),
+                                 frame->GetURL(), 0);
     }
 
     // 扫码登录模式：页面加载完成后启动 cookie 轮询检测（出现 skey 即登录成功）
@@ -518,8 +562,6 @@ public:
                 "*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}';"
                 "document.head.appendChild(s);}",
                 frame->GetURL(), 0);
-            // 页面加载后应用当前 Flash 画质（默认最低，刷新后保持用户选择）
-            InjectFlashQuality(g_flash_quality);
             // main.html 缺 zone_id 时 fcgi 返回 500 导致 Flash 不加载（黑屏），
             // 从 cookie 读取 sServerID 自动补 zone_id 重载（仅当 URL 未带 zone_id）。
             std::string url = frame->GetURL().ToString();
