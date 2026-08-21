@@ -57,7 +57,7 @@ public class GameHostView : HwndHost
     {
         // 始终创建独立的占位窗口作为 HwndHost 宿主（不能把外部窗口直接当宿主，
         // 否则 SetParent 会变成对自身操作，导致子窗口停留在原位置）。
-        _hostHwnd = CreateWindowEx(0, "static", "", WS_CHILD | WS_VISIBLE,
+        _hostHwnd = CreateWindowEx(0, "static", "", (int)(WS_CHILD | WS_VISIBLE),
             0, 0, 1, 1, hwndParent.Handle, 0, IntPtr.Zero, IntPtr.Zero);
         if (_childHwnd != 0)
             AttachChild();
@@ -110,7 +110,7 @@ public class GameHostView : HwndHost
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern nint CreateWindowEx(int exStyle, string className, string windowName,
-        long style, int x, int y, int width, int height, nint parent, nint menu,
+        int style, int x, int y, int width, int height, nint parent, nint menu,
         nint instance, nint param);
 
     [DllImport("user32.dll", SetLastError = true)]
