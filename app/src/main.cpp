@@ -107,17 +107,6 @@ public:
                 command_line->AppendSwitch("disable-flash-stage3d");
                 command_line->AppendSwitch("disable-3d-apis");
             }
-
-            // 流畅性优化（仅在浏览器进程设置，子进程自动继承）：
-            // 1) 窗口失焦/被遮挡时 Flash 定时器会被 Chromium 降频节流（从 60fps 降到
-            //    1fps），切回窗口瞬间明显卡顿。禁用后台定时器节流与渲染降级，保证
-            //    游戏窗口不活动时也保持帧率，切换窗口即时恢复流畅。
-            command_line->AppendSwitch("disable-background-timer-throttling");
-            command_line->AppendSwitch("disable-renderer-backgrounding");
-            command_line->AppendSwitch("disable-backgrounding-occluded-windows");
-            // 2) 解除 Chromium 默认帧率上限（合成器 60fps 限制），让 Flash SWF 帧率
-            //    不再被内核节流，进战斗/放技能时动画更跟手。
-            command_line->AppendSwitch("disable-frame-rate-limit");
         }
         command_line->AppendSwitch("persist-session-cookies");
         // 日志写文件而非控制台，避免弹出 cmd 窗口
@@ -816,18 +805,11 @@ int RunBrowserProcess(const std::wstring& url,
     CefSettings settings;
     settings.no_sandbox = true;
     settings.log_severity = LOGSEVERITY_WARNING;
-    // 不透明黑色背景：Flash 游戏画面为全屏不透明，避免透明合成（alpha blend）
-    // 的额外性能开销。官方注释建议窗口内嵌浏览器设不透明背景色。
-    settings.background_color = 0xFF000000;
     if (!userdata_dir.empty()) {
         CefString(&settings.cache_path).FromWString(userdata_dir);
         settings.persist_session_cookies = true;
     }
     CefRefPtr<HostApp> app = new HostApp();
-    // 提升浏览器进程优先级为 ABOVE_NORMAL：多开/系统负载时游戏渲染线程与
-    // Flash 插件进程（子进程继承优先级）获得更及时调度，降低掉帧与卡顿。
-    // 不选 HIGH/REALTIME，避免抢占系统关键线程影响稳定。
-    ::SetPriorityClass(::GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
     bool ok_init = CefInitialize(main_args, settings, app.get(), nullptr);
     AppLog::Write("CefInitialize 结果: %s", ok_init ? "成功" : "失败");
     if (!ok_init) {
@@ -861,8 +843,6 @@ int RunBrowserProcess(const std::wstring& url,
 
     CefBrowserSettings settings2;
     settings2.plugins = STATE_ENABLED;
-    // 与全局背景一致：不透明黑，避免页面透明层导致的合成开销。
-    settings2.background_color = 0xFF000000;
 
     CefString url_str(url);
     // 绑定 request context handler（HostClient 实现 CefRequestContextHandler）：
@@ -1025,28 +1005,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
 
     CefMainArgs main_args(GetModuleHandle(nullptr));
     CefRefPtr<HostApp> app = new HostApp();
-
-    // 统一提升进程优先级为 ABOVE_NORMAL：浏览器进程在 RunBrowserProcess 中设置，
-    // 但 CEF 87 子进程（renderer/gpu/utility，承载 Flash 渲染）不继承父进程优先级，
-    // 需在子进程自身进入消息循环前设置，保证 Flash 渲染线程获得及时调度。
-    // 浏览器进程（无 --type= 参数）已在 RunBrowserProcess 设置，这里跳过避免重复。
-    {
-        bool is_subprocess = false;
-        int argc3 = 0;
-        wchar_t** argv3 = CommandLineToArgvW(lpCmdLine, &argc3);
-        if (argv3) {
-            for (int i = 0; i < argc3; ++i) {
-                if (wcsstr(argv3[i], L"--type=") != nullptr) {
-                    is_subprocess = true;
-                    break;
-                }
-            }
-            LocalFree(argv3);
-        }
-        if (is_subprocess) {
-            ::SetPriorityClass(::GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
-        }
-    }
 
     // 隐藏可能存在的控制台窗口（浏览器进程与所有 CEF 子进程在进入
     // CefExecuteProcess 前统一隐藏，避免 Flash 等子进程闪现 cmd 窗口）。
