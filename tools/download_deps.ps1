@@ -1,14 +1,18 @@
 ﻿# 下载第三方依赖（CEF 87 运行时 + CEF 87 头文件/包装器源码）
-# 用法：powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1
+# 用法：powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1 [-Arch x86|x64]
 #
 # 背景：CEF 官方下载站已下线 87.1.13 的旧版本 tar.bz2，因此：
-#   - CEF 87 运行时（libcef.dll 等）取自 CefSharp 发布的 cef.redist.x86/87.1.13 NuGet 包
+#   - CEF 87 运行时（libcef.dll 等）取自 CefSharp 发布的 cef.redist.x86/x64/87.1.13 NuGet 包
 #     （官方分发渠道，与 CEF 87.1.13 完全一致，含 locales、swiftshader、ICUDT 等完整运行时）
 #   - CEF 87 头文件与 libcef_dll_wrapper 源码取自 chromiumembedded/cef 官方仓库对应提交
 #     （commit 481a82af "Update to Chromium version 87.0.4280.141"，与运行时版本精确匹配）
+#
+# 注意：PPAPI Flash 插件（pepflashplayer.dll）只有 32 位版本，x64 构建无法运行 Flash。
 
 param(
-    [string]$RootDir = (Resolve-Path (Join-Path $PSScriptRoot '..'))
+    [string]$RootDir = (Resolve-Path (Join-Path $PSScriptRoot '..')),
+    [ValidateSet('x86', 'x64')]
+    [string]$Arch = 'x86'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -20,12 +24,13 @@ New-Item -ItemType Directory -Force -Path $ThirdParty, $Tmp | Out-Null
 
 function Write-Step($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 
-# ---- 1. CEF 87 运行时（x86）----
-Write-Step '下载 CEF 87.1.13 运行时 (cef.redist.x86 nuget)'
-$nupkg = Join-Path $Tmp 'cef.redist.x86.87.1.13.nupkg'
-Invoke-WebRequest -Uri 'https://api.nuget.org/v3-flatcontainer/cef.redist.x86/87.1.13/cef.redist.x86.87.1.13.nupkg' -OutFile $nupkg -UseBasicParsing
+# ---- 1. CEF 87 运行时（按架构选择 x86/x64）----
+Write-Step "下载 CEF 87.1.13 运行时 (cef.redist.$Arch nuget)"
+$nupkg = Join-Path $Tmp "cef.redist.$Arch.87.1.13.nupkg"
+Invoke-WebRequest -Uri "https://api.nuget.org/v3-flatcontainer/cef.redist.$Arch/87.1.13/cef.redist.$Arch.87.1.13.nupkg" -OutFile $nupkg -UseBasicParsing
 
-$runtimeDir = Join-Path $ThirdParty 'cef_runtime'
+$runtimeDir = Join-Path $ThirdParty "cef_runtime"
+if ($Arch -eq 'x64') { $runtimeDir = Join-Path $ThirdParty 'cef_runtime_x64' }
 if (Test-Path $runtimeDir) { Remove-Item $runtimeDir -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
 $nupkgZip = [IO.Path]::ChangeExtension($nupkg, '.zip')

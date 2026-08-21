@@ -7,10 +7,12 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Platforms>x64</Platforms>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>false</SelfContained>
     <AssemblyName>NarutoLauncher</AssemblyName>
+    <!-- 架构由构建脚本通过 -p:RuntimeIdentifier=win-x64 / win-x86 与 -p:PlatformTarget=x64 / x86 指定，
+         默认与当前输出目录保持一致（win-x64）。 -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <PlatformTarget Condition="'$(PlatformTarget)' == ''">x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
