@@ -952,8 +952,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
             }
             LocalFree(argv2);
         }
-        if (is_ppapi)
+        if (is_ppapi) {
+            // hook CreateProcessW/A 强制隐藏 Flash 沙箱探测弹出的 cmd 窗口。
+            // 使用 MinHook 实现（自动处理 x86/x64 绝对跳转与指令重定位），
+            // 替代原手工 inline hook——后者 jmp rel32 在 x64 下可能超出
+            // ±2GB 跳转范围，导致 ppapi 进程调用 CreateProcessW 时崩溃。
             InstallNoConsoleHooks();
+        }
     }
 
     CefMainArgs main_args(GetModuleHandle(nullptr));

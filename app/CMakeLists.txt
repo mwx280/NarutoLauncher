@@ -4,10 +4,8 @@
 #   cmake -S app -B build/app -G Ninja
 #   cmake --build build/app
 #
-# 注意：PPAPI Flash 插件只有 32 位（Adobe 从未发布 64 位 PPAPI Flash），
-#       因此 x64 构建仅能在编译层面产出 exe，无法加载 Flash，游戏不可运行。
-#
-# 依赖：CEF 87 SDK、Flash.cn PPAPI 34.0.0.380（tools/download_deps.ps1 下载至 third_party/）
+# 依赖：CEF 87 SDK、MinHook（third_party/minhook，随仓库分发）、
+#       Flash 插件（官方 32/64 位版本，随仓库分发）
 
 cmake_minimum_required(VERSION 3.16)
 project(huoyin_launcher VERSION 0.1.0 LANGUAGES CXX)
@@ -18,14 +16,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # third_party 目录（相对本文件上两级）
 get_filename_component(NARUTO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
 set(CEF_SDK_DIR "${NARUTO_ROOT}/third_party/cef_sdk/CEF")
+set(MINHOOK_DIR "${NARUTO_ROOT}/third_party/minhook")
 
 # 按编译器位数选择库目录（CEF SDK 内部分为 win32/ 与 x64/）与运行时目录
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(CEF_PLATFORM_DIR "x64")
     set(CEF_RUNTIME_DIR "${NARUTO_ROOT}/third_party/cef_runtime_x64")
+    set(MINHOOK_LIB "${MINHOOK_DIR}/lib/MinHook.x64.lib")
 else()
     set(CEF_PLATFORM_DIR "win32")
     set(CEF_RUNTIME_DIR "${NARUTO_ROOT}/third_party/cef_runtime")
+    set(MINHOOK_LIB "${MINHOOK_DIR}/lib/MinHook.x86.lib")
 endif()
 
 if(NOT EXISTS "${CEF_SDK_DIR}/include/cef_version.h")
@@ -44,11 +45,13 @@ add_executable(huoyin_launcher WIN32
 
 target_include_directories(huoyin_launcher PRIVATE
     "${CEF_SDK_DIR}"
+    "${MINHOOK_DIR}/include"
 )
 
 target_link_libraries(huoyin_launcher PRIVATE
     "${CEF_SDK_DIR}/${CEF_PLATFORM_DIR}/release/libcef.lib"
     "${CEF_SDK_DIR}/${CEF_PLATFORM_DIR}/release/VS2017/libcef_dll_wrapper.lib"
+    "${MINHOOK_LIB}"
     ws2_32
     dbghelp
     version
@@ -68,18 +71,23 @@ if(MSVC)
     target_compile_options(huoyin_launcher PRIVATE /utf-8)
 endif()
 
-# 构建后复制 CEF 运行时、Flash 插件到可执行目录
+# 构建后复制 CEF 运行时、Flash 插件、MinHook 运行时到可执行目录
 # （Flash 插件官方同时提供 32 位与 64 位版本：pepflashplayer.dll / pepflashplayer_x64.dll，
 #   均复制为同目录下的 pepflashplayer.dll，与 GameHost 硬编码的插件名保持一致）
 if(CEF_PLATFORM_DIR STREQUAL "win32")
     set(FLASH_SRC "${NARUTO_ROOT}/third_party/pepflashplayer.dll")
+    set(MINHOOK_RUNTIME "${MINHOOK_DIR}/lib/MinHook.x86.dll")
 else()
     set(FLASH_SRC "${NARUTO_ROOT}/third_party/pepflashplayer_x64.dll")
+    set(MINHOOK_RUNTIME "${MINHOOK_DIR}/lib/MinHook.x64.dll")
 endif()
 add_custom_command(TARGET huoyin_launcher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CEF_RUNTIME_DIR}" "$<TARGET_FILE_DIR:huoyin_launcher>"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${FLASH_SRC}"
             "$<TARGET_FILE_DIR:huoyin_launcher>/pepflashplayer.dll"
-    COMMENT "复制 CEF 运行时与 Flash 插件到可执行目录"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${MINHOOK_RUNTIME}"
+            "$<TARGET_FILE_DIR:huoyin_launcher>"
+    COMMENT "复制 CEF 运行时、Flash 插件与 MinHook 运行时到可执行目录"
 )

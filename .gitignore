@@ -22,6 +22,16 @@ third_party/*
 !third_party/pepflashplayer.dll
 !third_party/pepflashplayer_x64.dll
 
+# MinHook（x86/x64 hook 库，随仓库分发，必须入库）
+!third_party/minhook/
+!third_party/minhook/include/
+!third_party/minhook/include/MinHook.h
+!third_party/minhook/lib/
+!third_party/minhook/lib/MinHook.x64.dll
+!third_party/minhook/lib/MinHook.x64.lib
+!third_party/minhook/lib/MinHook.x86.dll
+!third_party/minhook/lib/MinHook.x86.lib
+
 # UI 预览（非 Git 跟踪）
 preview/
 

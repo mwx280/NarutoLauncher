@@ -1,44 +1,16 @@
 #include "no_console_hook.h"
 
-#include <cstdint>
-#include <cstring>
+#include <windows.h>
+#include <MinHook.h>
 
 namespace {
 
-// ---- x86 inline hook 基础 ----
-// 目标函数入口写入 5 字节绝对跳转（jmp rel32）。被覆盖的前 5 字节保存到
-// trampoline，调用原函数时经 trampoline 进入剩余部分。
+// ---- hook 目标：CreateProcessW / CreateProcessA / CreateProcessInternalW ----
+// 目的：为 Flash 沙箱探测启动的 cmd.exe 子进程强制附加 CREATE_NO_WINDOW，
+// 避免控制台窗口一闪而过。使用 MinHook（自动处理 x86/x64 绝对跳转与指令
+// 重定位），替代原手工 inline hook（其 jmp rel32 在 x64 下可能超出 ±2GB
+// 跳转范围导致崩溃）。
 
-constexpr int kHookLen = 5;
-
-// 保存原始前 5 字节的 trampoline。
-struct Trampoline {
-    unsigned char bytes[kHookLen];
-    unsigned char* rest;  // 原始函数 + kHookLen
-};
-
-// 为函数 fn 写入 5 字节跳转到 target。
-void WriteJump(unsigned char* dst, void* target) {
-    dst[0] = 0xE9;  // jmp rel32
-    intptr_t rel = reinterpret_cast<intptr_t>(target) -
-                   reinterpret_cast<intptr_t>(dst + 5);
-    std::memcpy(dst + 1, &rel, 4);
-}
-
-// 生成 trampoline（nop 填充 5 字节 + 跳回原函数剩余部分）。
-void* BuildTrampoline(unsigned char* origin, int len) {
-    auto* buf = static_cast<unsigned char*>(
-        VirtualAlloc(nullptr, 32, MEM_COMMIT | MEM_RESERVE,
-                     PAGE_EXECUTE_READWRITE));
-    if (!buf) return nullptr;
-    for (int i = 0; i < kHookLen; ++i)
-        buf[i] = 0x90;  // nop
-    std::memcpy(buf, origin, len < kHookLen ? len : kHookLen);
-    WriteJump(buf + kHookLen, origin + kHookLen);
-    return buf;
-}
-
-// ---- 被 hook 的原始函数指针 ----
 using CreateProcessWFn = BOOL(WINAPI*)(LPCWSTR, LPWSTR, LPSECURITY_ATTRIBUTES,
                                        LPSECURITY_ATTRIBUTES, BOOL, DWORD,
                                        LPVOID, LPCWSTR, LPSTARTUPINFOW,
@@ -47,9 +19,14 @@ using CreateProcessAFn = BOOL(WINAPI*)(LPCSTR, LPSTR, LPSECURITY_ATTRIBUTES,
                                        LPSECURITY_ATTRIBUTES, BOOL, DWORD,
                                        LPVOID, LPCSTR, LPSTARTUPINFOA,
                                        LPPROCESS_INFORMATION);
+// kernel32 私有导出：CreateProcessW/A 内部转发到它，Flash 探测可能直接调用
+using CreateProcessInternalWFn = BOOL(WINAPI*)(
+    LPCWSTR, LPWSTR, LPSECURITY_ATTRIBUTES, LPSECURITY_ATTRIBUTES, BOOL, DWORD,
+    LPVOID, LPCWSTR, LPSTARTUPINFOW, LPPROCESS_INFORMATION, PHANDLE);
 
 CreateProcessWFn g_real_create_process_w = nullptr;
 CreateProcessAFn g_real_create_process_a = nullptr;
+CreateProcessInternalWFn g_real_create_process_internal_w = nullptr;
 
 constexpr DWORD kCreateNoWindow = 0x08000000;
 
@@ -58,7 +35,6 @@ BOOL WINAPI HookedCreateProcessW(LPCWSTR app, LPWSTR cmd,
                                  LPSECURITY_ATTRIBUTES ta, BOOL inherit,
                                  DWORD flags, LPVOID env, LPCWSTR cwd,
                                  LPSTARTUPINFOW si, LPPROCESS_INFORMATION pi) {
-    // 强制隐藏子进程控制台窗口（Flash 的 cmd.exe /c 沙箱探测等）
     return g_real_create_process_w(app, cmd, pa, ta, inherit,
                                    flags | kCreateNoWindow, env, cwd, si, pi);
 }
@@ -72,65 +48,47 @@ BOOL WINAPI HookedCreateProcessA(LPCSTR app, LPSTR cmd,
                                    flags | kCreateNoWindow, env, cwd, si, pi);
 }
 
-// 对单个导出函数安装 hook。
-template <typename T>
-bool HookExport(HMODULE k32, const char* name, T hookFn, T* realOut) {
-    auto* origin = reinterpret_cast<unsigned char*>(GetProcAddress(k32, name));
-    if (!origin) return false;
-
-    DWORD old = 0;
-    if (!VirtualProtect(origin, kHookLen, PAGE_EXECUTE_READWRITE, &old))
-        return false;
-
-    auto* tramp = static_cast<T>(BuildTrampoline(origin, kHookLen));
-    if (!tramp) {
-        VirtualProtect(origin, kHookLen, old, &old);
-        return false;
-    }
-    *realOut = tramp;
-    WriteJump(origin, reinterpret_cast<void*>(hookFn));
-    VirtualProtect(origin, kHookLen, old, &old);
-    return true;
+BOOL WINAPI HookedCreateProcessInternalW(
+    LPCWSTR app, LPWSTR cmd, LPSECURITY_ATTRIBUTES pa,
+    LPSECURITY_ATTRIBUTES ta, BOOL inherit, DWORD flags, LPVOID env,
+    LPCWSTR cwd, LPSTARTUPINFOW si, LPPROCESS_INFORMATION pi, PHANDLE token) {
+    return g_real_create_process_internal_w(app, cmd, pa, ta, inherit,
+                                            flags | kCreateNoWindow, env, cwd,
+                                            si, pi, token);
 }
 
 }  // namespace
 
 void InstallNoConsoleHooks() {
-    HMODULE k32 = GetModuleHandleW(L"kernel32.dll");
-    if (!k32) return;
-    // CreateProcessW / CreateProcessA 签名不同，分别 hook。
-    {
-        auto* origin = reinterpret_cast<unsigned char*>(
-            GetProcAddress(k32, "CreateProcessW"));
-        if (origin) {
-            DWORD old = 0;
-            if (VirtualProtect(origin, kHookLen, PAGE_EXECUTE_READWRITE, &old)) {
-                auto* tramp = static_cast<CreateProcessWFn>(
-                    BuildTrampoline(origin, kHookLen));
-                if (tramp) {
-                    g_real_create_process_w = tramp;
-                    WriteJump(origin,
-                              reinterpret_cast<void*>(HookedCreateProcessW));
-                }
-                VirtualProtect(origin, kHookLen, old, &old);
-            }
-        }
+    if (MH_Initialize() != MH_OK)
+        return;
+
+    // 注意：MH_EnableHook 的参数是目标函数地址，不是 detour 地址。
+    void* cpw = reinterpret_cast<void*>(
+        GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "CreateProcessW"));
+    if (cpw && MH_CreateHookApi(L"kernel32.dll", "CreateProcessW",
+                                &HookedCreateProcessW,
+                                reinterpret_cast<void**>(
+                                    &g_real_create_process_w)) == MH_OK) {
+        MH_EnableHook(cpw);
     }
-    {
-        auto* origin = reinterpret_cast<unsigned char*>(
-            GetProcAddress(k32, "CreateProcessA"));
-        if (origin) {
-            DWORD old = 0;
-            if (VirtualProtect(origin, kHookLen, PAGE_EXECUTE_READWRITE, &old)) {
-                auto* tramp = static_cast<CreateProcessAFn>(
-                    BuildTrampoline(origin, kHookLen));
-                if (tramp) {
-                    g_real_create_process_a = tramp;
-                    WriteJump(origin,
-                              reinterpret_cast<void*>(HookedCreateProcessA));
-                }
-                VirtualProtect(origin, kHookLen, old, &old);
-            }
-        }
+
+    void* cpa = reinterpret_cast<void*>(
+        GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "CreateProcessA"));
+    if (cpa && MH_CreateHookApi(L"kernel32.dll", "CreateProcessA",
+                                &HookedCreateProcessA,
+                                reinterpret_cast<void**>(
+                                    &g_real_create_process_a)) == MH_OK) {
+        MH_EnableHook(cpa);
+    }
+
+    void* cpiw = reinterpret_cast<void*>(
+        GetProcAddress(GetModuleHandleW(L"kernel32.dll"),
+                       "CreateProcessInternalW"));
+    if (cpiw && MH_CreateHook(cpiw, &HookedCreateProcessInternalW,
+                              reinterpret_cast<void**>(
+                                  &g_real_create_process_internal_w)) ==
+                    MH_OK) {
+        MH_EnableHook(cpiw);
     }
 }
