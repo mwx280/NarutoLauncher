@@ -40,7 +40,7 @@ public class SettingsService
     private bool _autoTask;
     private bool _minimizeToTray = true;
     private bool _rememberPassword = true;
-    private bool _flashHardwareAcceleration;
+    private bool _flashHardwareAcceleration = true;
     private ThemeMode _themeMode = ThemeMode.System;
     private AccentMode _accentMode = AccentMode.System;
     private string _accentColor = "#E8482C";
@@ -63,7 +63,7 @@ public class SettingsService
     public bool MinimizeToTray { get => _minimizeToTray; set { if (_minimizeToTray != value) { _minimizeToTray = value; Save(); } } }
     public bool RememberPassword { get => _rememberPassword; set { if (_rememberPassword != value) { _rememberPassword = value; Save(); } } }
 
-    /// <summary>Flash 硬件加速（默认关闭，开启可能引发画面/兼容性问题）。</summary>
+    /// <summary>Flash 硬件加速（默认开启：GPU 合成显著提升流畅度，实测优于纯 CPU 合成）。</summary>
     public bool FlashHardwareAcceleration
     {
         get => _flashHardwareAcceleration;

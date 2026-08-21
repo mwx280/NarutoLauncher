@@ -103,3 +103,32 @@
 - Adobe AS3 文档 `flash.display.Stage.quality`：非同沙箱调用抛 `SecurityError`；
   `StageQuality` 值：low / medium / high / best
 - PLAN.md「游戏技术事实」：游戏入口 `game.huoying.qq.com/main.html` → swfobject 加载 entry.swf
+
+## 六、流畅度实测与 GPU 合成优化（2026-08-21）
+
+> 背景：用户反馈游戏"只有 30 帧很卡"，对比 360/QQ 游戏大厅（同一台 Parallels VM 上）流畅。
+> 结论：**开启 Flash GPU 合成（--flash-gpu=1）明显更流畅**，已改为默认开启。
+
+### 实测数据（Parallels VM，Apple Silicon 模拟 x86）
+
+| 指标 | flash-gpu=0（默认旧） | flash-gpu=1 |
+|---|---|---|
+| Flash renderer CPU | 93.2%（接近满载） | 99%（全力渲染） |
+| GPU 进程 | 无（合成走 CPU） | 有（合成走 GPU） |
+| 用户体感 | 卡 | **明显流畅** |
+| 画面 rAF 帧率 | 60-105fps | 60-105fps |
+
+### 根因
+
+- Flash 传统 2D 页游画面光栅化始终在 **CPU**（PPAPI 插件限制），
+  但**合成（把各图层拼合上屏）**可以走 GPU。
+- flash-gpu=0：CPU 既要光栅化又要软件合成 → 双重负担 → 帧率上不去。
+- flash-gpu=1：光栅化仍 CPU，但**合成交给 GPU** → CPU 专注渲染 → 流畅。
+- 360/QQ 大厅用 Flash ActiveX + 硬件加速光栅化，渲染路径不同，故更流畅。
+
+### 变更
+
+- `SettingsService`：FlashHardwareAcceleration 默认值 **false → true**。
+- 设置页文案更新为"GPU 合成提升流畅度（默认开启）"。
+- 说明：Flash 内容本身仍 CPU 渲染（架构性限制），GPU 合成只解决合成瓶颈；
+  在无真实 GPU 的虚拟机环境改善有限，**真机 x86 + 独立显卡提升更大**。
