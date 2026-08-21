@@ -397,83 +397,17 @@ public:
     IMPLEMENT_REFCOUNTING(CheckAndApplyZoneIdTask);
 };
 
-// 生成重写 narutoweb.js 的 createEntrySwfObject 的注入脚本：
-// 原实现生成 <embed> 时硬编码 quality="high"，且 Flash 的 quality 只在
-// SWF 实例化时读取一次，运行期改 DOM 无效。因此必须在该函数被调用前完整
-// 替换它，让生成的 <embed quality="..."> 直接带目标画质，SWF 以目标画质创建。
-// 脚本忠实复制原 createEntrySwfObject 逻辑（含 IE/Flash 检测分支），仅把
-// 硬编码的 quality="high" 改为目标值，避免页面其他行为被破坏。
-std::string BuildQualityHookScript(const std::string& q) {
-    std::string js =
-        R"JS((function(q,max){
-var n=0;
-function t(){
-try{
-if(window.naruto&&naruto.Web&&naruto.Web.prototype){
-var p=naruto.Web.prototype;
-if(p.createEntrySwfObject&&p.createEntrySwfObject.__qHook)return;
-p.createEntrySwfObject=function(attributes,param,id,a){
-var element=document.getElementById(id);
-if(element){
-if(!this.sys.chrome&&!this.sys.playerInstalled){
-element.parentNode.innerHTML='<div id="flashAlert" style="font-size:18px; color: #FFFFFF;">no flash</div>';
-return;
-}
-if(typeof attributes.id=="undefined")attributes.id=id;
-var attrStr="";
-for(var attr in attributes){
-if(attributes[attr]!=Object.prototype[attr]){
-if("data"==attr.toLowerCase()){param.movie=attributes[attr];}
-else{
-if("id"==attr.toLowerCase()){if(this.sys.ie){attrStr+=" "+attr+'="'+attributes[attr]+'"';}}
-else{attrStr+=" "+attr+'="'+attributes[attr]+'"';}
-}
-}
-}
-attrStr+=" style=display:block;text-align:center;";
-var paramStr="";
-for(var d in param){if(param[d]!=Object.prototype[d])paramStr+='<param name="'+d+'" value="'+param[d]+'" />';}
-var htmlStr="";
-var embedStr='<embed';
-embedStr+=' src="'+param.movie+'"';
-embedStr+=' type="application/x-shockwave-flash"';
-embedStr+=' pluginspage="http://www.adobe.com/go/getflashplayer"';
-embedStr+=' quality="'+q+'"';
-embedStr+=' width="'+attributes.width+'"';
-embedStr+=' height="'+attributes.height+'"';
-embedStr+=' align="middle"';
-embedStr+=' allowScriptAccess="'+param.allowScriptAccess+'"';
-embedStr+=' allowFullScreenInteractive="'+param.allowFullScreenInteractive+'"';
-embedStr+=' wmode="'+param.wmode+'"';
-embedStr+=' name="'+attributes.name+'"';
-embedStr+=' id="'+attributes.id+'"';
-embedStr+='>';
-htmlStr+='<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab" '+attrStr+'>'+paramStr;
-htmlStr+=embedStr;
-htmlStr+='</object>';
-element.parentNode.innerHTML=htmlStr;
-}
-};
-p.createEntrySwfObject.__qHook=true;
-return;
-}
-}catch(e){}
-if(++n<max)setTimeout(t,100);
-}
-t();
-})JS";
-    js += ")('" + q + "',300);";
-    return js;
-}
-
 // 设置 Flash 画质（quality 参数：low/medium/high）。
-// 由于 quality 只在 SWF 实例化时读取，改档后必须重载页面让 Flash 重建。
+// 实际生效的是 ppapi 子进程的 Flash hook（flash_hook.cpp 改写
+// PPP_Instance::DidCreate 的 quality）。画质只在 Flash 实例创建时读取，
+// 切换画质需由启动器重启 GameHost 进程（--flash-quality 重传）才生效，
+// 此处仅更新全局值供日志/下次启动使用。
 void SetFlashQuality(int level) {
     if (level < 0) level = 0;
     if (level > 2) level = 2;
     g_flash_quality = kFlashQualityNames[level];
-    AppLog::Write("命令: 设置 Flash 画质=%s (%d), 重载页面生效", g_flash_quality.c_str(), level);
-    ReloadGame();
+    AppLog::Write("命令: 设置 Flash 画质=%s (%d)，重启游戏进程生效",
+                  g_flash_quality.c_str(), level);
 }
 
 // 主窗口自定义命令消息回调（cmd: 1=刷新, 2=画质调节）。
@@ -583,10 +517,10 @@ public:
             "document.addEventListener('DOMContentLoaded',__hide);}"
             "else{__hide();}",
             frame->GetURL(), 0);
-        // 注入画质 hook：在 Flash 实例化前重写 createEntrySwfObject，
-        // 使入口 SWF 以目标 quality 创建（quality 只在实例化时读取一次）。
-        frame->ExecuteJavaScript(BuildQualityHookScript(g_flash_quality),
-                                 frame->GetURL(), 0);
+        // 注：Flash 渲染质量已改由 ppapi 子进程的 Flash hook 控制
+        // （flash_hook.cpp 改写 PPP_Instance::DidCreate 的 quality 参数），
+        // 此处不再注入 JS 层画质 hook（旧 createEntrySwfObject 方案无效且被
+        // 游戏运行期覆盖）。--flash-quality 经环境变量传给子进程。
     }
 
     // 扫码登录模式：页面加载完成后启动 cookie 轮询检测（出现 skey 即登录成功）
