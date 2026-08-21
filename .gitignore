@@ -18,6 +18,10 @@ build/
 third_party/*
 !third_party/README.md
 
+# Flash 插件（特殊优化版，随仓库分发，必须入库）
+!third_party/pepflashplayer.dll
+!third_party/pepflashplayer_x64.dll
+
 # UI 预览（非 Git 跟踪）
 preview/
 

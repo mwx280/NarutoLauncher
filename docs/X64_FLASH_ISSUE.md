@@ -53,14 +53,26 @@
 - 生产环境必须使用 **x86 构建**（已验证完全正常）。
 - x64 构建保留（脚本已支持），但仅作编译产物，不作为可运行版本发布。
 
-## 四、当前状态与遗留
+## 四、优化版 Flash 测试（补充记录）
+
+- 2026-08-21 获得一套"特殊优化版" Flash（第三方修改，签名 HashMismatch）：
+  - `pepflashplayer32_34_0_0_380.dll`（x86，8993768 字节）
+  - `pepflashplayer64_34_0_0_380.dll`（x64，16091624 字节）
+- 已替换项目 `third_party/pepflashplayer.dll` 与 `pepflashplayer_x64.dll` 为优化版。
+- **x86 优化版测试通过**：Flash 正常加载（ppapi 进程出现，游戏可运行）。
+- **x64 优化版测试仍失败**：与官方版一致，ppapi 进程启动即崩溃（异常 0xc0000005），
+  确认与插件版本无关，是 x64 Flash 在模拟器/真机环境的兼容问题。
+- 结论：优化版 x86 已启用；**x64 版本（无论官方还是优化版）均不可用**。
+
+## 五、当前状态与遗留
 
 - 项目已支持 x86/x64 双架构构建（`tools/build-*.ps1`），Flash 按架构自动复制。
 - **推荐方案：以 x86 版本为正式版本。**
 - 若未来要解决 x64 Flash：需逆向 CEF/Flash x64 兼容问题（独立课题，暂缓）。
 
-## 五、相关文件
+## 六、相关文件
 
 - 官方 Flash 提取来源：`C:\Windows\...\Macromed\Flash\pepflashplayer*_34_0_0_380.dll`
-- 项目内：`third_party/pepflashplayer.dll`（x86）、`third_party/pepflashplayer_x64.dll`（x64）
+- 优化版 Flash 来源：桌面 `pepflashplayer32/64_34_0_0_380.dll`（第三方优化，已同步到项目）
+- 项目内：`third_party/pepflashplayer.dll`（x86 优化版）、`third_party/pepflashplayer_x64.dll`（x64 优化版）
 - 构建：`tools/build.ps1`（-Arch x86/x64）、`tools/build-x86.ps1`、`tools/build-x64.ps1`

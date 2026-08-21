@@ -1,36 +1,36 @@
 # third_party —— 第三方预编译依赖
 
-本目录存放第三方预编译依赖，**由脚本下载或复制，不入 Git**（见根目录 `.gitignore`）。
+本目录存放第三方预编译依赖。除 **Flash 插件**（特殊优化版，随仓库分发）外，
+其余均由脚本下载，不入 Git（见根目录 `.gitignore`）。
 
-## 依赖清单
+## 内容清单
 
-| 依赖 | 用途 | 获取方式 |
+| 文件/目录 | 用途 | 获取方式 |
 |---|---|---|
-| CEF 87.1.13 运行时（x86）| 渲染器内核（最后一个支持 PPAPI Flash 的 Chromium）| `tools/download_deps.ps1` 自动下载（NuGet cef.redist.x86）|
-| CEF 87.1.13 SDK | 渲染器头文件 + libcef.lib + libcef_dll_wrapper.lib | `tools/download_deps.ps1` 自动下载（NuGet cef.sdk）|
-| pepflashplayer.dll（Flash PPAPI 34 x86）| Flash 插件 | `tools/extract_flash.ps1`，见下方说明 |
+| CEF 87.1.13 运行时（x86/x64） | 渲染内核，最后一个支持 PPAPI Flash 的 Chromium | `tools/download_deps.ps1` 自动下载（NuGet cef.redist.x86/x64） |
+| CEF 87.1.13 SDK | 渲染头文件 + libcef.lib + libcef_dll_wrapper.lib | `tools/download_deps.ps1` 自动下载（NuGet cef.sdk） |
+| pepflashplayer.dll（Flash PPAPI 34 x86） | Flash 插件（x86，特殊优化版） | **随仓库分发**（已入库） |
+| pepflashplayer_x64.dll（Flash PPAPI 34 x64） | Flash 插件（x64，特殊优化版，**当前不可用**） | **随仓库分发**（已入库） |
 
-## 准备命令
+## 准备依赖
 
 ```powershell
-# 一次性准备 CEF 运行时与 SDK
-powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1
-
-# 获取 Flash 插件
-powershell -ExecutionPolicy Bypass -File tools/extract_flash.ps1
+# 一键准备 CEF 运行时 + SDK（-Arch 可选 x86/x64）
+powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1 -Arch x86
 ```
 
-## Flash 插件获取说明（重要）
+> Flash 插件已随仓库分发，无需额外下载；如需重新提取可参考 `tools/extract_flash.ps1`。
 
-- Flash.cn 官方 PPAPI 安装包是**专有引导程序，不支持静默解压**（实测 `/extract` 无效），也不内嵌可读的 `pepflashplayer.dll`。
-- `tools/extract_flash.ps1` 逻辑：
-  1. 若系统已装 Flash，从 `C:\Windows\SysWOW64\Macromed\Flash\` 找到 **x86 插件**（新版文件名带版本号，如 `pepflashplayer32_34_0_0_380.dll`），复制为 `third_party\pepflashplayer.dll`；
-  2. 否则下载官方安装包到本目录，提示你手动运行安装，装完再跑一次脚本即自动复制。
-- **安全提示**：务必使用官方安装包并核对签名，勿从第三方站点下载插件。
-- 版本锁定：Flash.cn 官方 34.0.0.380（x86，2026-06 更新），与 CEF 87（Chromium 88 以下内核）兼容。
-- 渲染器注册时 `--ppapi-flash-path` 指向 `third_party\pepflashplayer.dll`。
+## Flash 插件说明（重要）
 
-## 版本锁定
+- **x86 版（pepflashplayer.dll）**：特殊优化版，已通过测试，Flash 游戏正常运行，为正式使用版本。
+- **x64 版（pepflashplayer_x64.dll）**：特殊优化版，但 **x64 Flash 在当前环境无法运行**
+  （ppapi 进程启动即崩溃 0xc0000005，ARM64 模拟器与 x64 真机均失败）。
+  详见 [docs/X64_FLASH_ISSUE.md](../docs/X64_FLASH_ISSUE.md)。
+- 渲染器注册时 `--ppapi-flash-path` 指向 GameHost 同目录下的 `pepflashplayer.dll`，
+  CMake 按架构自动复制对应版本。
 
-- CEF：`87.1.13`（`cef.redist.x86` / `cef.sdk` NuGet，与 chromium 87.0.4280.141 对应），勿随意升级。
-- Flash：`34.0.0.380`（x86），中国区官方维护。
+## 版本记录
+
+- CEF：`87.1.13`（cef.redist.x86 / cef.sdk NuGet，对应 chromium 87.0.4280.141）
+- Flash：`34.0.0.380`（x86 优化版可用；x64 优化版不可用）
