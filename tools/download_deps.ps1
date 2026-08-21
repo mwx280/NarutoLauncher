@@ -7,7 +7,8 @@
 #   - CEF 87 头文件与 libcef_dll_wrapper 源码取自 chromiumembedded/cef 官方仓库对应提交
 #     （commit 481a82af "Update to Chromium version 87.0.4280.141"，与运行时版本精确匹配）
 #
-# 注意：PPAPI Flash 插件（pepflashplayer.dll）只有 32 位版本，x64 构建无法运行 Flash。
+# 注意：Flash 插件（pepflashplayer）由系统安装目录（C:\Windows\...\Macromed\Flash）提供，
+#       官方同时发布 32 位与 64 位版本，需手动复制到 third_party（见 third_party/README.md）。
 
 param(
     [string]$RootDir = (Resolve-Path (Join-Path $PSScriptRoot '..')),

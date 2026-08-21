@@ -69,18 +69,17 @@ if(MSVC)
 endif()
 
 # 构建后复制 CEF 运行时、Flash 插件到可执行目录
-# （Flash 插件 pepflashplayer.dll 仅有 32 位，x64 构建跳过复制）
+# （Flash 插件官方同时提供 32 位与 64 位版本：pepflashplayer.dll / pepflashplayer_x64.dll，
+#   均复制为同目录下的 pepflashplayer.dll，与 GameHost 硬编码的插件名保持一致）
 if(CEF_PLATFORM_DIR STREQUAL "win32")
-    add_custom_command(TARGET huoyin_launcher POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CEF_RUNTIME_DIR}" "$<TARGET_FILE_DIR:huoyin_launcher>"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${NARUTO_ROOT}/third_party/pepflashplayer.dll"
-                "$<TARGET_FILE_DIR:huoyin_launcher>/pepflashplayer.dll"
-        COMMENT "复制 CEF 运行时与 Flash 插件到可执行目录"
-    )
+    set(FLASH_SRC "${NARUTO_ROOT}/third_party/pepflashplayer.dll")
 else()
-    add_custom_command(TARGET huoyin_launcher POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CEF_RUNTIME_DIR}" "$<TARGET_FILE_DIR:huoyin_launcher>"
-        COMMENT "复制 CEF 运行时到可执行目录（x64 构建无 Flash 插件）"
-    )
+    set(FLASH_SRC "${NARUTO_ROOT}/third_party/pepflashplayer_x64.dll")
 endif()
+add_custom_command(TARGET huoyin_launcher POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CEF_RUNTIME_DIR}" "$<TARGET_FILE_DIR:huoyin_launcher>"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${FLASH_SRC}"
+            "$<TARGET_FILE_DIR:huoyin_launcher>/pepflashplayer.dll"
+    COMMENT "复制 CEF 运行时与 Flash 插件到可执行目录"
+)
