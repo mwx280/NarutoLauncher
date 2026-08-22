@@ -63,9 +63,19 @@ public partial class AccountsView : UserControl
                 continue;
 
             var info = await Task.Run(() => CookieParser.ReadServerInfo(ud));
-            if (info != null && !string.IsNullOrEmpty(info.ServerName))
+            if (info == null)
+                continue;
+            acc.HasLoginData = info.HasLogin;
+            if (!string.IsNullOrEmpty(info.ServerName))
             {
                 acc.Server = info.ServerName;
+            }
+            else if (int.TryParse(info.ServerId, out var sid))
+            {
+                // sServerName 缺失时用区服 ID 查区名（如 725 只有 zonelist=8856）
+                var name = await ServerCatalog.GetZoneNameAsync(sid);
+                if (name != null)
+                    acc.Server = name;
             }
         }
     }

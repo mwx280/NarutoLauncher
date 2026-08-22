@@ -92,11 +92,16 @@ public class Account : INotifyPropertyChanged
     /// <summary>显示名。</summary>
     public string DisplayName => string.IsNullOrEmpty(Name) ? QQ : Name;
 
-    /// <summary>信息摘要（区服 / 等级 / 战力，未获取项标「开发中」）。</summary>
-    public string InfoText =>
-        $"区服　{OrDev(Server)}　等级　{(Level > 0 ? Level.ToString() : "开发中")}　战力　{OrDev(Power)}";
+    /// <summary>是否已登录过（有登录态 cookie），用于区分「未知」与「登录游戏后获取」。 </summary>
+    public bool HasLoginData { get; set; }
 
-    private static string OrDev(string v) => string.IsNullOrEmpty(v) ? "开发中" : v;
+    /// <summary>信息摘要（区服 / 等级 / 战力）。</summary>
+    public string InfoText =>
+        HasLoginData
+            ? $"区服　{OrUnknown(Server)}　等级　{(Level > 0 ? Level.ToString() : "未知")}　战力　{OrUnknown(Power)}"
+            : "登录游戏后获取游戏数据";
+
+    private static string OrUnknown(string v) => string.IsNullOrEmpty(v) ? "未知" : v;
 
     /// <summary>登录类型文本。</summary>
     public string LoginTypeText => ScanLogin ? "扫码登录" : "账号密码";

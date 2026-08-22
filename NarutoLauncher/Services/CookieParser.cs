@@ -14,7 +14,7 @@ namespace NarutoLauncher.Services;
 public static class CookieParser
 {
     /// <summary>解析出的区服信息。</summary>
-    public sealed record ServerInfo(string Uin, string ServerId, string ServerName);
+    public sealed record ServerInfo(string Uin, string ServerId, string ServerName, bool HasLogin);
 
     /// <summary>读取账号 userdata 目录中的区服信息（无有效登录态返回 null）。</summary>
     public static ServerInfo? ReadServerInfo(string userdataDir)
@@ -31,10 +31,17 @@ public static class CookieParser
             cookies.TryGetValue("uin", out var uin);
             cookies.TryGetValue("sServerID", out var sid);
             cookies.TryGetValue("sServerName", out var sname);
-            return new ServerInfo(
-                uin ?? "",
-                sid ?? "",
-                DecodeJsUnicode(sname ?? ""));
+
+            // sServerName 含服务器名（如「公测856区 光刃那都」），只取区名部分
+            var serverName = TrimZoneName(DecodeJsUnicode(sname ?? ""));
+            // sServerID 缺失时回退到 tmpLastLoginInfo 的 zonelist
+            if (string.IsNullOrEmpty(sid))
+                sid = ReadZoneId(cookies.GetValueOrDefault("tmpLastLoginInfo"));
+
+            var hasLogin = cookies.ContainsKey("skey") ||
+                           cookies.ContainsKey("p_skey") ||
+                           !string.IsNullOrEmpty(uin);
+            return new ServerInfo(uin ?? "", sid ?? "", serverName, hasLogin);
         }
         catch
         {
@@ -133,5 +140,40 @@ public static class CookieParser
         return System.Text.RegularExpressions.Regex.Replace(
             s, "%u([0-9a-fA-F]{4})",
             m => ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString());
+    }
+
+    /// <summary>截取区名（去掉后面的服务器名）：「公测856区 光刃那都」→「公测856区」。</summary>
+    private static string TrimZoneName(string name)
+    {
+        var i = name.IndexOf(' ');
+        return i > 0 ? name[..i] : name;
+    }
+
+    /// <summary>从 tmpLastLoginInfo（URL 编码 JSON）提取上次登录区服 ID。</summary>
+    private static string? ReadZoneId(string? tmpLastLoginInfo)
+    {
+        if (string.IsNullOrEmpty(tmpLastLoginInfo))
+            return null;
+        try
+        {
+            var obj = JsonDocument.Parse(Uri.UnescapeDataString(tmpLastLoginInfo)).RootElement;
+            if (!obj.TryGetProperty("playerlist", out var list))
+                return null;
+            foreach (var p in list.EnumerateArray())
+            {
+                if (p.TryGetProperty("zonelist", out var zones))
+                {
+                    foreach (var z in zones.EnumerateArray())
+                    {
+                        if (z.TryGetInt32(out var zone))
+                            return zone.ToString();
+                    }
+                }
+            }
+        }
+        catch
+        {
+        }
+        return null;
     }
 }
