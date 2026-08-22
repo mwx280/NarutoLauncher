@@ -257,7 +257,7 @@
                         <TextBlock Text="&#xE740;" Style="{StaticResource SettingIconTextStyle}"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="分辨率模式" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="分辨率模式（如果游戏内容显示过小，请改为画质优先）" Style="{StaticResource ItemNameStyle}"/>
                         <TextBlock Text="如果游戏窗口显示过小，无法正常游戏，请切换为画质优先" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ComboBox x:Name="DprModeCombo" Grid.Column="2" Margin="0,0,20,0"
