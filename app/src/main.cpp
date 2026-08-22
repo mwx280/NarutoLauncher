@@ -743,27 +743,6 @@ public:
                      TransitionType transition_type) override {
         if (!frame->IsMain())
             return;
-        // 选区页：拦截选区页的自动 loginNew（自动进游戏），停在选区页，
-        // 让用户手动点「开始游戏」进对应区（顺带可在选区页换区）。
-        if (frame->GetURL().ToString().find("server/website") !=
-            std::string::npos) {
-            frame->ExecuteJavaScript(
-                "(function(){"
-                "var blocked=false,target=null;"
-                "function hook(){"
-                "if(window.loginNew&&window.loginNew!==target){"
-                "target=window.loginNew;"
-                "window.loginNew=function(sid){"
-                "if(!blocked){blocked=true;return;}"
-                "return target(sid);"
-                "};"
-                "}"
-                "}"
-                "hook();"
-                "setInterval(hook,200);"
-                "})();",
-                frame->GetURL(), 0);
-        }
         frame->ExecuteJavaScript(
             "var __hide=function(){"
             "if(window.__noScrollBar)return;"
