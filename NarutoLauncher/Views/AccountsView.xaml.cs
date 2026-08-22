@@ -73,7 +73,7 @@ public partial class AccountsView : UserControl
             else if (int.TryParse(info.ServerId, out var sid))
             {
                 // sServerName 缺失时用区服 ID 查区名（如 725 只有 zonelist=8856）
-                var name = await ServerCatalog.GetZoneNameAsync(sid);
+                var name = await ServerCatalog.GetServerNameAsync(sid);
                 acc.Server = name ?? info.ServerId;
             }
         }
