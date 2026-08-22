@@ -92,8 +92,8 @@
                         <TextBlock Text="选择应用的外观模式" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ComboBox x:Name="ThemeCombo" Grid.Column="2" Margin="0,0,20,0"
-                              Width="100" Height="34" Padding="6,0"
-                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                              Width="120" Height="34" Padding="10,0"
+                              VerticalContentAlignment="Center"
                               Background="{DynamicResource ControlFillColorDefaultBrush}"
                               BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                               BorderThickness="1" FontSize="13"
@@ -142,8 +142,8 @@
                         </StackPanel>
                     </StackPanel>
                     <ComboBox x:Name="AccentCombo" Grid.Column="2" Margin="0,0,20,0"
-                              Width="100" Height="34" Padding="6,0"
-                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                              Width="120" Height="34" Padding="10,0"
+                              VerticalContentAlignment="Center"
                               Background="{DynamicResource ControlFillColorDefaultBrush}"
                               BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                               BorderThickness="1" FontSize="13"
@@ -170,14 +170,14 @@
                         <TextBlock Text="经典：宽侧栏文字导航  |  简约：窄侧栏图标导航" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ComboBox x:Name="NavStyleCombo" Grid.Column="2" Margin="0,0,20,0"
-                              Width="100" Height="34" Padding="6,0"
-                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                              Width="120" Height="34" Padding="10,0"
+                              VerticalContentAlignment="Center"
                               Background="{DynamicResource ControlFillColorDefaultBrush}"
                               BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                               BorderThickness="1" FontSize="13"
                               SelectionChanged="OnNavStyleChanged">
                         <ComboBoxItem Content="经典"/>
-                        <ComboBoxItem Content="LLT"/>
+                        <ComboBoxItem Content="简约"/>
                     </ComboBox>
                 </Grid>
             </Border>
@@ -239,6 +239,34 @@
                         <TextBlock Text="GPU 合成提升流畅度（默认开启，实测优于纯 CPU 合成）" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ui:ToggleSwitch Grid.Column="2" x:Name="FlashGpuBox"/>
+                </Grid>
+            </Border>
+
+            <!-- 分辨率模式 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE740;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="分辨率模式" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="性能优先：画质降级明显，流畅度高 | 画质优先：画面清晰，大屏体验好" Style="{StaticResource ItemDescStyle}"/>
+                    </StackPanel>
+                    <ComboBox x:Name="DprModeCombo" Grid.Column="2" Margin="0,0,20,0"
+                              Width="120" Height="34" Padding="10,0"
+                              VerticalContentAlignment="Center"
+                              Background="{DynamicResource ControlFillColorDefaultBrush}"
+                              BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                              BorderThickness="1" FontSize="13"
+                              SelectionChanged="OnDprModeChanged">
+                        <ComboBoxItem Content="性能优先"/>
+                        <ComboBoxItem Content="画质优先"/>
+                    </ComboBox>
                 </Grid>
             </Border>
 

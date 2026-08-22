@@ -57,6 +57,7 @@ public partial class SettingsView : UserControl
         TrayBox.IsChecked = s.MinimizeToTray;
         RememberPwdBox.IsChecked = s.RememberPassword;
         NavStyleCombo.SelectedIndex = s.NavigationStyle == Services.NavigationStyle.Modern ? 1 : 0;
+        DprModeCombo.SelectedIndex = s.DprMode == Services.DprMode.Quality ? 1 : 0;
 
         // 开关变化保存
         GameSpeedBox.Checked += SaveSwitches;
@@ -145,6 +146,14 @@ public partial class SettingsView : UserControl
         App.CurrentApp.Settings.NavigationStyle = NavStyleCombo.SelectedIndex == 1
             ? Services.NavigationStyle.Modern
             : Services.NavigationStyle.Classic;
+    }
+
+    private void OnDprModeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_initializing) return;
+        App.CurrentApp.Settings.DprMode = DprModeCombo.SelectedIndex == 1
+            ? Services.DprMode.Quality
+            : Services.DprMode.Performance;
     }
 
     // ---- 主题模式切换 ----

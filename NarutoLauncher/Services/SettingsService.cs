@@ -36,6 +36,16 @@ public enum NavigationStyle
     Modern = 1,
 }
 
+/// <summary>分辨率模式（DPR）。</summary>
+public enum DprMode
+{
+    /// <summary>性能优先：强制 DPR=1，低画质降质明显，大屏可能偏小。</summary>
+    Performance = 0,
+
+    /// <summary>画质优先：跟随系统 DPI，画面清晰，低画质降质不明显。</summary>
+    Quality = 1,
+}
+
 /// <summary>
 /// 应用设置：本地 JSON 持久化（设置页各项），属性变更时自动保存。
 /// </summary>
@@ -57,6 +67,7 @@ public class SettingsService
     private bool _rememberPassword = true;
     private bool _flashHardwareAcceleration = true;
     private string _flashQuality = "low";
+    private DprMode _dprMode = DprMode.Performance;
     private ThemeMode _themeMode = ThemeMode.System;
     private AccentMode _accentMode = AccentMode.System;
     private string _accentColor = "#E8482C";
@@ -106,6 +117,20 @@ public class SettingsService
             if (_flashQuality != v)
             {
                 _flashQuality = v;
+                Save();
+            }
+        }
+    }
+
+    /// <summary>分辨率模式（性能优先=强制DPR1，画质优先=跟随系统DPI）。</summary>
+    public DprMode DprMode
+    {
+        get => _dprMode;
+        set
+        {
+            if (_dprMode != value)
+            {
+                _dprMode = value;
                 Save();
             }
         }
@@ -197,6 +222,7 @@ public class SettingsService
                 RememberPassword = _rememberPassword,
                 FlashHardwareAcceleration = _flashHardwareAcceleration,
                 FlashQuality = _flashQuality,
+                DprMode = _dprMode,
                 ThemeMode = _themeMode,
                 AccentMode = _accentMode,
                 AccentColor = _accentColor,
@@ -228,6 +254,7 @@ public class SettingsService
             _rememberPassword = dto.RememberPassword;
             _flashHardwareAcceleration = dto.FlashHardwareAcceleration;
             _flashQuality = string.IsNullOrEmpty(dto.FlashQuality) ? "low" : dto.FlashQuality;
+            _dprMode = dto.DprMode;
             _themeMode = dto.ThemeMode;
             _accentMode = dto.AccentMode;
             _accentColor = string.IsNullOrEmpty(dto.AccentColor) ? "#E8482C" : dto.AccentColor;
@@ -251,6 +278,7 @@ public class SettingsService
         public bool RememberPassword { get; set; } = true;
         public bool FlashHardwareAcceleration { get; set; }
         public string FlashQuality { get; set; } = "low";
+        public DprMode DprMode { get; set; } = DprMode.Performance;
         public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
         public AccentMode AccentMode { get; set; } = AccentMode.System;
         public string AccentColor { get; set; } = "#E8482C";

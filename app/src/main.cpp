@@ -44,6 +44,9 @@ const wchar_t* kDefaultUrl = L"https://game.huoying.qq.com/main.html";
 // 供 OnBeforeCommandLineProcessing 在浏览器进程创建时读取。
 bool g_flash_gpu = false;
 
+// 强制 DPR=1（--force-dpr=1 开启，默认开启，保持当前行为）。
+bool g_force_dpr = true;
+
 // CEF DevTools 远程调试端口（--debug-port=<port>，0 表示不启用）。
 // 需在 HostApp 前声明，供 OnBeforeCommandLineProcessing 透传。
 int g_debug_port = 0;
@@ -116,8 +119,11 @@ public:
             // 强制 device-scale-factor=1：Flash 以 1 倍物理分辨率渲染，
             // quality=low 的降质真正生效。与 DPI 感知组合：DPI 感知保证
             // 内嵌坐标一致（铺满），DPR=1 降低 Flash 渲染分辨率。
-            command_line->AppendSwitchWithValue("force-device-scale-factor",
-                                                "1");
+            // 可通过 --force-dpr=0 关闭（画质优先模式）。
+            if (g_force_dpr) {
+                command_line->AppendSwitchWithValue("force-device-scale-factor",
+                                                    "1");
+            }
         }
         // 透传 Flash 渲染质量到子进程（ppapi Flash 插件进程据此 hook 改写 quality）。
         command_line->AppendSwitchWithValue("flash-quality",
@@ -1076,6 +1082,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
                 else
                     g_flash_quality = "low";
             }
+            // 分辨率模式（--force-dpr=1 强制DPR1性能优先，=0 跟随系统画质优先）
+            auto fd = val(L"force-dpr");
+            if (!fd.empty())
+                g_force_dpr = (fd != L"0");
         }
         LocalFree(argv);
     }
