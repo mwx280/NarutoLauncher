@@ -1,8 +1,10 @@
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using NarutoLauncher.Models;
+using NarutoLauncher.Services;
 
 namespace NarutoLauncher.Views;
 
@@ -38,8 +40,34 @@ public partial class AccountsView : UserControl
 
     private void LoadAccounts()
     {
-        AccountList.ItemsSource = App.CurrentApp.Accounts.Accounts;
-        CountText.Text = $"共 {App.CurrentApp.Accounts.Accounts.Count} 个账号";
+        var accounts = App.CurrentApp.Accounts.Accounts;
+        AccountList.ItemsSource = accounts;
+        CountText.Text = $"共 {accounts.Count} 个账号";
+        _ = RefreshServerInfoAsync(accounts);
+    }
+
+    /// <summary>从各账号登录 cookie 解析区服信息，异步刷新到账号列表。</summary>
+    private async Task RefreshServerInfoAsync(System.Collections.ObjectModel.ObservableCollection<Account> accounts)
+    {
+        var gameHostDir = Path.GetDirectoryName(App.CurrentApp.Games.GameHostPath);
+        if (gameHostDir == null)
+            return;
+
+        foreach (var acc in accounts)
+        {
+            // 扫码账号用扫码 userdata；账号密码账号用 GameHost\userdata\<QQ>
+            var ud = !string.IsNullOrEmpty(acc.ScanUserDataDir)
+                ? acc.ScanUserDataDir
+                : Path.Combine(gameHostDir, "userdata", acc.QQ);
+            if (!Directory.Exists(ud))
+                continue;
+
+            var info = await Task.Run(() => CookieParser.ReadServerInfo(ud));
+            if (info != null && !string.IsNullOrEmpty(info.ServerName))
+            {
+                acc.Server = info.ServerName;
+            }
+        }
     }
 
     private void OnAvatarDisplayChanged(object sender, SelectionChangedEventArgs e)

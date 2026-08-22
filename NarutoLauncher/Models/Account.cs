@@ -27,6 +27,7 @@ public class Account : INotifyPropertyChanged
     private string _server = "";
     private int _level;
     private string _power = "";
+    private string _character = "";
     private bool _running;
     private bool _loggedIn;
     private bool _scanLogin;
@@ -53,6 +54,9 @@ public class Account : INotifyPropertyChanged
 
     /// <summary>战力文本。</summary>
     public string Power { get => _power; set { _power = value; OnChanged(); } }
+
+    /// <summary>主角（角色名）。</summary>
+    public string Character { get => _character; set { _character = value; OnChanged(); } }
 
     /// <summary>是否已登录（角色信息是否同步到）。</summary>
     public bool LoggedIn { get => _loggedIn; set { _loggedIn = value; OnChanged(); } }
@@ -88,10 +92,11 @@ public class Account : INotifyPropertyChanged
     /// <summary>显示名。</summary>
     public string DisplayName => string.IsNullOrEmpty(Name) ? QQ : Name;
 
-    /// <summary>信息摘要（区服/等级/战力）。</summary>
+    /// <summary>信息摘要（区服 / 等级 / 战力，未获取项标「开发中」）。</summary>
     public string InfoText =>
-        LoggedIn ? $"{Server} · Lv.{Level} · {Power}"
-                 : "未获取（登录后同步）";
+        $"区服　{OrDev(Server)}　等级　{(Level > 0 ? Level.ToString() : "开发中")}　战力　{OrDev(Power)}";
+
+    private static string OrDev(string v) => string.IsNullOrEmpty(v) ? "开发中" : v;
 
     /// <summary>登录类型文本。</summary>
     public string LoginTypeText => ScanLogin ? "扫码登录" : "账号密码";
@@ -118,7 +123,7 @@ public class Account : INotifyPropertyChanged
         }
         if (name is nameof(Name) or nameof(QQ))
             OnChanged(nameof(DisplayName));
-        if (name is nameof(Server) or nameof(Level) or nameof(Power) or nameof(LoggedIn))
+        if (name is nameof(Server) or nameof(Character) or nameof(Power) or nameof(LoggedIn))
             OnChanged(nameof(InfoText));
         if (name == nameof(ScanLogin))
             OnChanged(nameof(LoginTypeText));

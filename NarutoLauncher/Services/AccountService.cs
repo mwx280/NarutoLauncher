@@ -140,6 +140,7 @@ public class AccountService
         public string Server { get; set; } = "";
         public int Level { get; set; }
         public string Power { get; set; } = "";
+        public string Character { get; set; } = "";
         public bool LoggedIn { get; set; }
         public bool ScanLogin { get; set; }
         public int Seed { get; set; }
@@ -156,6 +157,7 @@ public class AccountService
             Server = a.Server,
             Level = a.Level,
             Power = a.Power,
+            Character = a.Character,
             LoggedIn = a.LoggedIn,
             ScanLogin = a.ScanLogin,
             Seed = a.Seed,
@@ -173,6 +175,7 @@ public class AccountService
             Server = Server,
             Level = Level,
             Power = Power,
+            Character = Character,
             LoggedIn = LoggedIn,
             ScanLogin = ScanLogin,
             Seed = Seed,
