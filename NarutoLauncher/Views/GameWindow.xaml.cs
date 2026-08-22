@@ -96,7 +96,7 @@ public partial class GameWindow : FluentWindow
     {
         var session = App.CurrentApp.Games.StartGame(
             account, new WindowInteropHelper(this).Handle,
-            urlOverride: ServerSelectUrl);
+            urlOverride: App.CurrentApp.Settings.AutoEnterGame ? null : ServerSelectUrl);
         if (session == null)
         {
             PlaceholderText.Text = "启动失败，请确认 GameHost 已就位";

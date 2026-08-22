@@ -223,6 +223,25 @@
                 </Grid>
             </Border>
 
+            <!-- 开始游戏自动进入游戏 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE768;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="开始游戏自动进入游戏" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="如果有多账号或者没有选区要求，可以开启此选项" Style="{StaticResource ItemDescStyle}"/>
+                    </StackPanel>
+                    <ui:ToggleSwitch Grid.Column="2" x:Name="AutoEnterGameBox"/>
+                </Grid>
+            </Border>
+
             <!-- ===== 画质分组 ===== -->
             <TextBlock Text="画质" Style="{StaticResource GroupTitleStyle}"/>
 

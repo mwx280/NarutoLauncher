@@ -51,6 +51,7 @@ public partial class SettingsView : UserControl
         // 功能开关
         GameSpeedBox.IsChecked = s.GameSpeed;
         AntiDropBox.IsChecked = s.AntiDrop;
+        AutoEnterGameBox.IsChecked = s.AutoEnterGame;
         FlashGpuBox.IsChecked = s.FlashHardwareAcceleration;
         AutoScriptBox.IsChecked = s.AutoScript;
         AutoTaskBox.IsChecked = s.AutoTask;
@@ -70,6 +71,8 @@ public partial class SettingsView : UserControl
         GameSpeedBox.Unchecked += SaveSwitches;
         AntiDropBox.Checked += SaveSwitches;
         AntiDropBox.Unchecked += SaveSwitches;
+        AutoEnterGameBox.Checked += SaveSwitches;
+        AutoEnterGameBox.Unchecked += SaveSwitches;
         AutoScriptBox.Checked += SaveSwitches;
         AutoScriptBox.Unchecked += SaveSwitches;
         AutoTaskBox.Checked += SaveSwitches;
@@ -89,6 +92,7 @@ public partial class SettingsView : UserControl
         var s = App.CurrentApp.Settings;
         s.GameSpeed = GameSpeedBox.IsChecked == true;
         s.AntiDrop = AntiDropBox.IsChecked == true;
+        s.AutoEnterGame = AutoEnterGameBox.IsChecked == true;
         s.AutoScript = AutoScriptBox.IsChecked == true;
         s.AutoTask = AutoTaskBox.IsChecked == true;
         s.MinimizeToTray = TrayBox.IsChecked == true;

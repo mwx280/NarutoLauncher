@@ -68,6 +68,7 @@ public class SettingsService
     private bool _autoTask;
     private bool _minimizeToTray = true;
     private bool _rememberPassword = true;
+    private bool _autoEnterGame;
     private bool _flashHardwareAcceleration = true;
     private string _flashQuality = "low";
     private DprMode _dprMode = DprMode.Performance;
@@ -93,6 +94,9 @@ public class SettingsService
     public bool AutoTask { get => _autoTask; set { if (_autoTask != value) { _autoTask = value; Save(); } } }
     public bool MinimizeToTray { get => _minimizeToTray; set { if (_minimizeToTray != value) { _minimizeToTray = value; Save(); } } }
     public bool RememberPassword { get => _rememberPassword; set { if (_rememberPassword != value) { _rememberPassword = value; Save(); } } }
+
+    /// <summary>开始游戏是否自动进入游戏（关闭则先进选区页，手动点开始）。</summary>
+    public bool AutoEnterGame { get => _autoEnterGame; set { if (_autoEnterGame != value) { _autoEnterGame = value; Save(); } } }
 
     /// <summary>Flash 硬件加速（默认开启：GPU 合成显著提升流畅度，实测优于纯 CPU 合成）。</summary>
     public bool FlashHardwareAcceleration
@@ -224,6 +228,7 @@ public class SettingsService
                 AutoTask = _autoTask,
                 MinimizeToTray = _minimizeToTray,
                 RememberPassword = _rememberPassword,
+                AutoEnterGame = _autoEnterGame,
                 FlashHardwareAcceleration = _flashHardwareAcceleration,
                 FlashQuality = _flashQuality,
                 DprMode = _dprMode,
@@ -256,6 +261,7 @@ public class SettingsService
             _autoTask = dto.AutoTask;
             _minimizeToTray = dto.MinimizeToTray;
             _rememberPassword = dto.RememberPassword;
+            _autoEnterGame = dto.AutoEnterGame;
             _flashHardwareAcceleration = dto.FlashHardwareAcceleration;
             _flashQuality = string.IsNullOrEmpty(dto.FlashQuality) ? "low" : dto.FlashQuality;
             _dprMode = dto.DprMode;
@@ -280,6 +286,7 @@ public class SettingsService
         public bool AutoTask { get; set; }
         public bool MinimizeToTray { get; set; } = true;
         public bool RememberPassword { get; set; } = true;
+        public bool AutoEnterGame { get; set; }
         public bool FlashHardwareAcceleration { get; set; }
         public string FlashQuality { get; set; } = "low";
         public DprMode DprMode { get; set; } = DprMode.Performance;
