@@ -21,7 +21,7 @@ public partial class GameWindow : FluentWindow
         public required Account Account { get; init; }
         public required GameSession Session { get; init; }
         public required GameHostView Host { get; init; }
-        public required Controls.ListBoxItem TabItem { get; init; }
+        public required TabViewItem TabItem { get; init; }
     }
 
     public static GameWindow? Shared { get; private set; }
@@ -117,7 +117,7 @@ public partial class GameWindow : FluentWindow
         ActivateTab(tab);
     }
 
-    private Controls.ListBoxItem BuildTabItem(Account account)
+    private TabViewItem BuildTabItem(Account account)
     {
         var sp = new Controls.StackPanel { Orientation = Controls.Orientation.Horizontal };
         var text = new Controls.TextBlock
@@ -145,7 +145,13 @@ public partial class GameWindow : FluentWindow
         sp.Children.Add(text);
         sp.Children.Add(close);
 
-        var item = new Controls.ListBoxItem { Content = sp, Tag = account };
+        var item = new TabViewItem
+        {
+            Header = sp,
+            Content = null,
+            Tag = account,
+            Padding = new Thickness(8, 2, 8, 2),
+        };
         return item;
     }
 
@@ -160,7 +166,7 @@ public partial class GameWindow : FluentWindow
 
     private void OnTabSelectionChanged(object sender, Controls.SelectionChangedEventArgs e)
     {
-        if (TabBar.SelectedItem is Controls.ListBoxItem { Tag: Account acc })
+        if (TabBar.SelectedItem is TabViewItem { Tag: Account acc })
         {
             var tab = _tabs.FirstOrDefault(t => t.Account.Id == acc.Id);
             if (tab != null)

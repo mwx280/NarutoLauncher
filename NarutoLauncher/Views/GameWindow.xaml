@@ -13,88 +13,81 @@
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round">
     <DockPanel>
-        <!-- 标题栏：全屏 + 最小化/最大化/关闭 -->
+        <!-- 标题栏：窗口图标右侧为多开游戏标签（WPF-UI 原生 TabView），右侧为刷新/全屏/系统按钮 -->
         <ui:TitleBar x:Name="TitleBarHost" DockPanel.Dock="Top"
                      Title="{x:Null}"
                      Icon="{ui:ImageIcon '/assets/favicon.png'}"
                      ShowMaximize="True" ShowMinimize="True" ShowClose="True">
+            <ui:TitleBar.Header>
+                <ui:TabView x:Name="TabBar" Margin="6,0,6,0"
+                            Background="Transparent" BorderThickness="0"
+                            TabStripPlacement="Top"
+                            VerticalAlignment="Center"
+                            SelectionChanged="OnTabSelectionChanged"/>
+            </ui:TitleBar.Header>
             <ui:TitleBar.TrailingContent>
-                <Button x:Name="FullscreenBtn"
-                        Width="44" Height="30" Padding="0"
-                        VerticalAlignment="Top"
-                        Background="Transparent"
-                        ToolTip="全屏"
-                        Click="OnToggleFullscreen">
-                    <Button.Template>
-                        <ControlTemplate TargetType="{x:Type Button}">
-                            <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                <Viewbox Width="11" Height="11"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center"
-                                         Focusable="False"
-                                         RenderOptions.BitmapScalingMode="HighQuality">
-                                    <Canvas Width="72" Height="72" Focusable="False">
-                                        <Path Data="M0,0 H28 L20,8 H8 V20 L0,28 Z M72,0 H44 L52,8 H64 V20 L72,28 Z M0,72 H28 L20,64 H8 V52 L0,44 Z M72,72 H44 L52,64 H64 V52 L72,44 Z"
-                                              Fill="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                    </Canvas>
-                                </Viewbox>
-                            </Grid>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="LayoutRoot" Property="Background"
-                                            Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="RefreshBtn"
+                            Width="44" Height="30" Padding="0"
+                            VerticalAlignment="Top"
+                            Background="Transparent"
+                            ToolTip="重新加载当前选中的游戏页面"
+                            Click="OnRefreshGame">
+                        <Button.Template>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
+                                    <Viewbox Width="11" Height="11"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center"
+                                             Focusable="False"
+                                             RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Canvas Width="72" Height="72" Focusable="False">
+                                            <Path Data="M6.2,0.4 L0,6.6 V8.4 L6.2,8.4 L6.2,8.6 L4,11 H5 L8,8.4 H10 L6,11 H7 L11,8.4 H13 L14,7.4 L12.5,7.2 L14,6 L13,5 L11,6.5 L10,6.5 L6,2.5 L6,4 L2.5,7.5 L1.5,6.5 L6,2 L6,0.4 Z"
+                                                  Fill="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="LayoutRoot" Property="Background"
+                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button x:Name="FullscreenBtn"
+                            Width="44" Height="30" Padding="0"
+                            VerticalAlignment="Top"
+                            Background="Transparent"
+                            ToolTip="全屏"
+                            Click="OnToggleFullscreen">
+                        <Button.Template>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
+                                    <Viewbox Width="11" Height="11"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center"
+                                             Focusable="False"
+                                             RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Canvas Width="72" Height="72" Focusable="False">
+                                            <Path Data="M0,0 H28 L20,8 H8 V20 L0,28 Z M72,0 H44 L52,8 H64 V20 L72,28 Z M0,72 H28 L20,64 H8 V52 L0,44 Z M72,72 H44 L52,64 H64 V52 L72,44 Z"
+                                                  Fill="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="LayoutRoot" Property="Background"
+                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
             </ui:TitleBar.TrailingContent>
         </ui:TitleBar>
-
-        <!-- 顶部菜单栏：刷新（作用于当前选中的游戏标签） -->
-        <Border DockPanel.Dock="Top" Background="#252526"
-                BorderBrush="#3A3A3A" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Margin="8,4">
-                <Button x:Name="RefreshBtn" Content="刷新" Padding="10,4"
-                        Click="OnRefreshGame"
-                        ToolTip="重新加载当前选中的游戏页面"/>
-            </StackPanel>
-        </Border>
-
-        <!-- 多开游戏标签栏：标签标题为账号备注，右侧小 ✕ 可关闭对应游戏窗口 -->
-        <Border DockPanel.Dock="Top" Background="#2D2D30"
-                BorderBrush="#3A3A3A" BorderThickness="0,0,0,1">
-            <ListBox x:Name="TabBar" Background="Transparent" BorderThickness="0"
-                     Padding="4,0" Margin="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                     SelectionChanged="OnTabSelectionChanged">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="{x:Type ListBoxItem}">
-                        <Setter Property="Padding" Value="10,6"/>
-                        <Setter Property="Margin" Value="0,4,4,4"/>
-                        <Setter Property="Background" Value="#333"/>
-                        <Setter Property="Foreground" Value="#BBB"/>
-                        <Setter Property="Focusable" Value="False"/>
-                        <Setter Property="BorderThickness" Value="0"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#4C4C4C"/>
-                                <Setter Property="Foreground" Value="#FFF"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#404040"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-            </ListBox>
-        </Border>
 
         <!-- 内嵌游戏窗口区域（多账号会话各自一个 GameHostView，切换时控制可见性） -->
         <Border Background="#1E1E1E" ClipToBounds="True">
