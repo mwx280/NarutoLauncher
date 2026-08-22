@@ -26,20 +26,37 @@
                             SelectionChanged="OnTabSelectionChanged">
                     <ui:TabView.ItemContainerStyle>
                         <Style TargetType="{x:Type ui:TabViewItem}">
-                            <Setter Property="Margin" Value="0,4,4,4"/>
-                            <Setter Property="Padding" Value="10,3"/>
+                            <Setter Property="Padding" Value="12,4"/>
+                            <Setter Property="Margin" Value="0,2,4,2"/>
                             <Setter Property="FontSize" Value="13"/>
-                            <Setter Property="Background" Value="Transparent"/>
                             <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
-                                </Trigger>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
-                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
-                                </Trigger>
-                            </Style.Triggers>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ui:TabViewItem}">
+                                        <Border x:Name="Bd"
+                                                Background="Transparent"
+                                                CornerRadius="6"
+                                                Padding="{TemplateBinding Padding}"
+                                                Margin="{TemplateBinding Margin}">
+                                            <ContentPresenter ContentSource="Header"
+                                                              VerticalAlignment="Center"
+                                                              HorizontalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                                                <Setter Property="Foreground"
+                                                        Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
                     </ui:TabView.ItemContainerStyle>
                 </ui:TabView>
