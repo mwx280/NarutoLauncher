@@ -177,7 +177,8 @@
                             VerticalAlignment="Top"
                             Background="Transparent"
                             ToolTip="倍速"
-                            MouseEnter="OnSpeedBtnMouseEnter">
+                            MouseEnter="OnSpeedBtnMouseEnter"
+                            MouseLeave="OnSpeedBtnMouseLeave">
                         <Button.Template>
                             <ControlTemplate TargetType="{x:Type Button}">
                                 <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
@@ -200,7 +201,8 @@
                             VerticalAlignment="Top"
                             Background="Transparent"
                             ToolTip="切换游戏账号"
-                            MouseEnter="OnUserBtnMouseEnter">
+                            MouseEnter="OnUserBtnMouseEnter"
+                            MouseLeave="OnUserBtnMouseLeave">
                         <Button.Template>
                             <ControlTemplate TargetType="{x:Type Button}">
                                 <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
@@ -275,7 +277,9 @@
             <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1" CornerRadius="8" Padding="6"
-                    Margin="0,4,0,0" MaxHeight="360">
+                    Margin="0,4,0,0" MaxHeight="360"
+                    MouseEnter="OnUserMenuPopupEnter"
+                    MouseLeave="OnUserMenuPopupLeave">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <ItemsControl x:Name="UserList">
                         <ItemsControl.ItemTemplate>
@@ -299,7 +303,9 @@
             <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1" CornerRadius="8" Padding="8"
-                    Margin="0,4,0,0" MinWidth="140">
+                    Margin="0,4,0,0" MinWidth="140"
+                    MouseEnter="OnSpeedMenuPopupEnter"
+                    MouseLeave="OnSpeedMenuPopupLeave">
                 <StackPanel>
                     <TextBlock Text="倍速" FontSize="12" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"

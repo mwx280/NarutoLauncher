@@ -5,6 +5,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Controls = System.Windows.Controls;
 using NarutoLauncher.Converters;
 using NarutoLauncher.Models;
@@ -78,6 +79,24 @@ public partial class GameWindow : FluentWindow
         Closed += OnWindowClosed;
         // 账号头像设置变化时，刷新所有标签头像
         App.CurrentApp.Settings.AvatarDisplayChanged += OnAvatarDisplayChanged;
+        // hover 菜单延迟关闭（允许鼠标从按钮移动到菜单）
+        _popupTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
+        _popupTimer.Tick += (_, _) => CloseHoverPopups();
+    }
+
+    private readonly System.Windows.Threading.DispatcherTimer _popupTimer;
+
+    private void StartPopupCloseTimer()
+    {
+        _popupTimer.Stop();
+        _popupTimer.Start();
+    }
+
+    private void CloseHoverPopups()
+    {
+        _popupTimer.Stop();
+        UserMenuPopup.IsOpen = false;
+        SpeedMenuPopup.IsOpen = false;
     }
 
     private void OnAvatarDisplayChanged()
@@ -352,7 +371,23 @@ public partial class GameWindow : FluentWindow
     /// <summary>hover 倍速按钮：弹出倍速菜单。</summary>
     private void OnSpeedBtnMouseEnter(object sender, MouseEventArgs e)
     {
+        _popupTimer.Stop();
         SpeedMenuPopup.IsOpen = true;
+    }
+
+    private void OnSpeedBtnMouseLeave(object sender, MouseEventArgs e)
+    {
+        StartPopupCloseTimer();
+    }
+
+    private void OnSpeedMenuPopupEnter(object sender, MouseEventArgs e)
+    {
+        _popupTimer.Stop();
+    }
+
+    private void OnSpeedMenuPopupLeave(object sender, MouseEventArgs e)
+    {
+        StartPopupCloseTimer();
     }
 
     /// <summary>选择倍速：发送到 GameHost（wParam = 倍速×10）。</summary>
@@ -369,8 +404,24 @@ public partial class GameWindow : FluentWindow
     /// <summary>hover 用户按钮：弹出全部账号列表。</summary>
     private void OnUserBtnMouseEnter(object sender, MouseEventArgs e)
     {
+        _popupTimer.Stop();
         UserList.ItemsSource = App.CurrentApp.Accounts.Accounts.ToList();
         UserMenuPopup.IsOpen = UserList.Items.Count > 0;
+    }
+
+    private void OnUserBtnMouseLeave(object sender, MouseEventArgs e)
+    {
+        StartPopupCloseTimer();
+    }
+
+    private void OnUserMenuPopupEnter(object sender, MouseEventArgs e)
+    {
+        _popupTimer.Stop();
+    }
+
+    private void OnUserMenuPopupLeave(object sender, MouseEventArgs e)
+    {
+        StartPopupCloseTimer();
     }
 
     /// <summary>点击账号：已启动则切换标签，未启动则启动该账号游戏。</summary>
