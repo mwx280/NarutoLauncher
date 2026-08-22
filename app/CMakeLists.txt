@@ -43,6 +43,8 @@ add_executable(huoyin_launcher WIN32
     src/no_console_hook.h
     src/flash_hook.cpp
     src/flash_hook.h
+    src/speed_hook.cpp
+    src/speed_hook.h
 )
 
 target_include_directories(huoyin_launcher PRIVATE

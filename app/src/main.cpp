@@ -32,6 +32,7 @@
 #include "frameless_window.h"
 #include "app_log.h"
 #include "no_console_hook.h"
+#include "speed_hook.h"
 #include "flash_hook.h"
 
 // ---------- 常量 ----------
@@ -146,6 +147,7 @@ private:
 FramelessWindow g_window;
 CefRefPtr<CefBrowser> g_game_browser;
 bool g_muted = false;          // 游戏音频静音状态
+double g_speed = 1.0;          // 游戏倍速（1.0 正常）
 HWND g_game_hwnd = nullptr;   // 游戏窗口句柄（从 CEF 回调获取）
 std::wstring g_window_title = L"火影忍者Online";
 bool g_login_mode = false;    // 扫码登录模式（加载 QQ 登录页，登录成功写 login_result.txt）
@@ -301,6 +303,24 @@ void ReloadGame() {
     if (g_game_browser && g_game_browser->GetMainFrame()) {
         AppLog::Write("命令: 刷新游戏页面");
         g_game_browser->Reload();
+    }
+}
+
+// 把倍速写入 exe 目录 speed.txt，供 ppapi 子进程（Flash）读取变速。
+void SaveSpeedToFile(double speed) {
+    wchar_t exe[MAX_PATH] = {0};
+    DWORD n = ::GetModuleFileNameW(nullptr, exe, MAX_PATH);
+    if (n == 0 || n >= MAX_PATH)
+        return;
+    std::wstring path(exe, n);
+    size_t sep = path.find_last_of(L"\\/");
+    if (sep != std::wstring::npos)
+        path = path.substr(0, sep + 1);
+    path += L"speed.txt";
+    FILE* f = nullptr;
+    if (_wfopen_s(&f, path.c_str(), L"w") == 0 && f) {
+        fprintf(f, "%.1f", speed);
+        fclose(f);
     }
 }
 
@@ -580,8 +600,14 @@ void OnWindowCommand(int cmd, WPARAM w, LPARAM l) {
             }
             break;
         case 5:
-            // 倍速：变速引擎（开发中）
-            AppLog::Write("命令: 倍速（开发中）");
+            // 倍速：w 为倍速×10（5=0.5x, 10=1x, 20=2x, 40=4x），写入文件供 ppapi 子进程读取
+            {
+                double speed = static_cast<int>(w) / 10.0;
+                if (speed < 0.1) speed = 1.0;
+                g_speed = speed;
+                AppLog::Write("命令: 倍速=%.1f", speed);
+                SaveSpeedToFile(speed);
+            }
             break;
         default:
             break;
@@ -1192,6 +1218,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
             if (env_len > 0 && env_len < sizeof(env_buf) && env_buf[0])
                 q = env_buf;
             InstallFlashQualityHooksAsync(q);
+
+            // 安装游戏变速 hook：按 speed.txt 倍速加速/减速 Flash（时间 API 变速）
+            InstallSpeedHooks();
         }
     }
 

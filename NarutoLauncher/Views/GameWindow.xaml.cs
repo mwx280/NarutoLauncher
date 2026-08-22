@@ -349,9 +349,21 @@ public partial class GameWindow : FluentWindow
         MuteBtn.ToolTip = _muted ? "已静音" : "静音";
     }
 
-    private void OnToggleSpeed(object sender, RoutedEventArgs e)
+    /// <summary>hover 倍速按钮：弹出倍速菜单。</summary>
+    private void OnSpeedBtnMouseEnter(object sender, MouseEventArgs e)
     {
-        SendCommand(CmdToggleSpeed);
+        SpeedMenuPopup.IsOpen = true;
+    }
+
+    /// <summary>选择倍速：发送到 GameHost（wParam = 倍速×10）。</summary>
+    private void OnSpeedChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.RadioButton rb &&
+            rb.IsChecked == true && rb.Tag is string s &&
+            int.TryParse(s, out var speed10))
+        {
+            SendCommand(CmdToggleSpeed, (nint)speed10);
+        }
     }
 
     /// <summary>hover 用户按钮：弹出全部账号列表。</summary>

@@ -176,8 +176,8 @@
                             Width="44" Height="30" Padding="0"
                             VerticalAlignment="Top"
                             Background="Transparent"
-                            ToolTip="倍速（开发中）"
-                            Click="OnToggleSpeed">
+                            ToolTip="倍速"
+                            MouseEnter="OnSpeedBtnMouseEnter">
                         <Button.Template>
                             <ControlTemplate TargetType="{x:Type Button}">
                                 <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
@@ -287,6 +287,40 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
+            </Border>
+        </Popup>
+
+        <!-- 倍速 hover 菜单 -->
+        <Popup x:Name="SpeedMenuPopup"
+               PlacementTarget="{Binding ElementName=SpeedBtn}"
+               Placement="Bottom" AllowsTransparency="True"
+               StaysOpen="False" PopupAnimation="Fade"
+               IsOpen="False">
+            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="8"
+                    Margin="0,4,0,0" MinWidth="140">
+                <StackPanel>
+                    <TextBlock Text="倍速" FontSize="12" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Margin="4,0,0,6"/>
+                    <RadioButton Content="0.5 倍速" GroupName="SpeedGroup" Tag="5"
+                                 Margin="4,3" FontSize="13"
+                                 Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                 Checked="OnSpeedChanged"/>
+                    <RadioButton Content="1 倍速" GroupName="SpeedGroup" Tag="10" IsChecked="True"
+                                 Margin="4,3" FontSize="13"
+                                 Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                 Checked="OnSpeedChanged"/>
+                    <RadioButton Content="2 倍速" GroupName="SpeedGroup" Tag="20"
+                                 Margin="4,3" FontSize="13"
+                                 Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                 Checked="OnSpeedChanged"/>
+                    <RadioButton Content="4 倍速" GroupName="SpeedGroup" Tag="40"
+                                 Margin="4,3" FontSize="13"
+                                 Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                 Checked="OnSpeedChanged"/>
+                </StackPanel>
             </Border>
         </Popup>
     </Grid>
