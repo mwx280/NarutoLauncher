@@ -154,12 +154,40 @@ public partial class SettingsView : UserControl
             : Services.NavigationStyle.Classic;
     }
 
-    private void OnDprModeChanged(object sender, SelectionChangedEventArgs e)
+    private async void OnDprModeChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_initializing) return;
-        App.CurrentApp.Settings.DprMode = DprModeCombo.SelectedIndex == 1
-            ? Services.DprMode.Quality
-            : Services.DprMode.Performance;
+        if (DprModeCombo.SelectedIndex != 1)
+        {
+            // 切到性能优先无需确认
+            App.CurrentApp.Settings.DprMode = Services.DprMode.Performance;
+            return;
+        }
+        // 切到画质优先弹出确认提示
+        var options = new SimpleContentDialogCreateOptions
+        {
+            Title = "分辨率模式",
+            Content =
+                "画质优先模式会关闭 Flash 画质降级 hook，\n" +
+                "全局 Flash 画质（如木叶村等场景）以及文字\n" +
+                "都将被设置为高画质，游戏流畅度会受到较大影响。\n\n" +
+                "除非游戏窗口显示过小，否则不建议开启画质优先。\n\n" +
+                "此设置需要重新进入游戏才会生效。\n\n" +
+                "确定要切换吗？",
+            CloseButtonText = "取消",
+            PrimaryButtonText = "确定",
+            DefaultButton = ContentDialogButton.Secondary,
+        };
+        var result = await App.CurrentApp.DialogService.ShowSimpleDialogAsync(options);
+        if (result == ContentDialogResult.Primary)
+        {
+            App.CurrentApp.Settings.DprMode = Services.DprMode.Quality;
+        }
+        else
+        {
+            // 取消：恢复下拉框到性能优先
+            DprModeCombo.SelectedIndex = 0;
+        }
     }
 
     private void OnFlashQualityChanged(object sender, SelectionChangedEventArgs e)
