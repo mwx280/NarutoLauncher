@@ -74,6 +74,7 @@
             <ui:TitleBar x:Name="TitleBarHost" DockPanel.Dock="Top"
                          Title="{x:Null}"
                          Icon="{ui:ImageIcon '/assets/favicon.png'}"
+                         Height="40"
                          ShowMaximize="True" ShowMinimize="True" ShowClose="True">
                 <ui:TitleBar.Header>
                     <DockPanel>
@@ -84,7 +85,8 @@
                         <ui:TabView x:Name="TabBar" Margin="6,0,6,0"
                                     Background="Transparent" BorderThickness="0"
                                     TabStripPlacement="Top"
-                                    VerticalAlignment="Stretch"
+                                    Height="28"
+                                    VerticalAlignment="Center"
                                     SelectionChanged="OnTabSelectionChanged">
                             <ui:TabView.ItemContainerStyle>
                                 <Style TargetType="{x:Type ui:TabViewItem}">
