@@ -1140,13 +1140,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
             // 真正控制整个游戏（主城/UI/战斗）的渲染质量。目标值由浏览器进程
             // 通过环境变量 HUOYIN_FLASH_QUALITY 传入（CEF 会过滤命令行自定义
             // 开关，环境变量必然被子进程继承）。
-            const char* q = "low";
-            char env_buf[16] = {0};
-            DWORD env_len = ::GetEnvironmentVariableA(
-                "HUOYIN_FLASH_QUALITY", env_buf, sizeof(env_buf));
-            if (env_len > 0 && env_len < sizeof(env_buf) && env_buf[0])
-                q = env_buf;
-            InstallFlashQualityHooksAsync(q);
+            // 画质优先模式（DPR>1）下禁用：low 降质不明显，hook 无实际收益。
+            if (g_force_dpr) {
+                const char* q = "low";
+                char env_buf[16] = {0};
+                DWORD env_len = ::GetEnvironmentVariableA(
+                    "HUOYIN_FLASH_QUALITY", env_buf, sizeof(env_buf));
+                if (env_len > 0 && env_len < sizeof(env_buf) && env_buf[0])
+                    q = env_buf;
+                InstallFlashQualityHooksAsync(q);
+            }
         }
     }
 
