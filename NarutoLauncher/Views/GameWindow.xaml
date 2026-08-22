@@ -74,7 +74,6 @@
             <ui:TitleBar x:Name="TitleBarHost" DockPanel.Dock="Top"
                          Title="{x:Null}"
                          Icon="{ui:ImageIcon '/assets/favicon.png'}"
-                         Height="30"
                          ShowMaximize="True" ShowMinimize="True" ShowClose="True">
                 <ui:TitleBar.Header>
                     <DockPanel>
@@ -98,7 +97,7 @@
                                             <ControlTemplate TargetType="{x:Type ui:TabViewItem}">
                                                 <Border x:Name="Bd"
                                                         Background="Transparent"
-                                                        CornerRadius="10,10,0,0"
+                                                        CornerRadius="8"
                                                         Padding="{TemplateBinding Padding}"
                                                         Margin="{TemplateBinding Margin}">
                                                     <ContentPresenter ContentSource="Header"
