@@ -32,7 +32,7 @@ public enum NavigationStyle
     /// <summary>经典侧栏（200px，文字 + 图标，宽导航）。</summary>
     Classic = 0,
 
-    /// <summary>LLT Store 风格（80px，竖排图标 + 小字）。</summary>
+    /// <summary>简约 Store 风格（80px，竖排图标 + 小字）。</summary>
     Modern = 1,
 }
 
@@ -43,6 +43,9 @@ public class SettingsService
 {
     /// <summary>导航风格变更时触发（供 MainWindow 实时切换布局）。</summary>
     public event Action? NavigationStyleChanged;
+
+    /// <summary>导航风格变更后触发（供 SettingsView 刷新下拉框）。</summary>
+    public static event Action? NavigationStyleChangedExternally;
     private const string SettingsFileName = "settings.json";
 
     private readonly string _path;
@@ -175,6 +178,7 @@ public class SettingsService
                 _navigationStyle = value;
                 Save();
                 NavigationStyleChanged?.Invoke();
+                NavigationStyleChangedExternally?.Invoke();
             }
         }
     }

@@ -20,6 +20,14 @@ public partial class SettingsView : UserControl
         InitializeComponent();
         LoadSettings();
         _initializing = false;
+        SettingsService.NavigationStyleChangedExternally += RefreshNavStyleCombo;
+    }
+
+    private void RefreshNavStyleCombo()
+    {
+        _initializing = true;
+        NavStyleCombo.SelectedIndex = App.CurrentApp.Settings.NavigationStyle == Services.NavigationStyle.Modern ? 1 : 0;
+        _initializing = false;
     }
 
     private void LoadSettings()
