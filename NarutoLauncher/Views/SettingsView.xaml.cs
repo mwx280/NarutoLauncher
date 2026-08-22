@@ -48,6 +48,7 @@ public partial class SettingsView : UserControl
         AutoTaskBox.IsChecked = s.AutoTask;
         TrayBox.IsChecked = s.MinimizeToTray;
         RememberPwdBox.IsChecked = s.RememberPassword;
+        NavStyleCombo.SelectedIndex = s.NavigationStyle == Services.NavigationStyle.Modern ? 1 : 0;
 
         // 开关变化保存
         GameSpeedBox.Checked += SaveSwitches;
@@ -127,6 +128,15 @@ public partial class SettingsView : UserControl
         // 确认关闭，或直接开启（开启无需确认）
         FlashGpuBox.IsChecked = target;
         App.CurrentApp.Settings.FlashHardwareAcceleration = target;
+    }
+
+    // ---- 导航风格切换 ----
+    private void OnNavStyleChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_initializing) return;
+        App.CurrentApp.Settings.NavigationStyle = NavStyleCombo.SelectedIndex == 1
+            ? Services.NavigationStyle.Modern
+            : Services.NavigationStyle.Classic;
     }
 
     // ---- 主题模式切换 ----

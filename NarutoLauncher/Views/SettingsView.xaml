@@ -154,6 +154,34 @@
                 </Grid>
             </Border>
 
+            <!-- 导航风格 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE700;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="导航风格" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="经典侧栏（宽导航文字）或 LLT 风格（窄图标导航）" Style="{StaticResource ItemDescStyle}"/>
+                    </StackPanel>
+                    <ComboBox x:Name="NavStyleCombo" Grid.Column="2" Margin="0,0,20,0"
+                              Width="100" Height="34" Padding="6,0"
+                              HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                              Background="{DynamicResource ControlFillColorDefaultBrush}"
+                              BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                              BorderThickness="1" FontSize="13"
+                              SelectionChanged="OnNavStyleChanged">
+                        <ComboBoxItem Content="经典"/>
+                        <ComboBoxItem Content="LLT"/>
+                    </ComboBox>
+                </Grid>
+            </Border>
+
             <!-- ===== 游戏分组 ===== -->
             <TextBlock Text="游戏" Style="{StaticResource GroupTitleStyle}"/>
 

@@ -26,6 +26,16 @@ public enum AccentMode
     Custom = 1,
 }
 
+/// <summary>导航栏风格。</summary>
+public enum NavigationStyle
+{
+    /// <summary>经典侧栏（200px，文字 + 图标，宽导航）。</summary>
+    Classic = 0,
+
+    /// <summary>LLT Store 风格（80px，竖排图标 + 小字）。</summary>
+    Modern = 1,
+}
+
 /// <summary>
 /// 应用设置：本地 JSON 持久化（设置页各项），属性变更时自动保存。
 /// </summary>
@@ -46,6 +56,7 @@ public class SettingsService
     private AccentMode _accentMode = AccentMode.System;
     private string _accentColor = "#E8482C";
     private AvatarType _avatarDisplay = AvatarType.NameChar;
+    private NavigationStyle _navigationStyle = NavigationStyle.Classic;
 
     public SettingsService()
     {
@@ -151,6 +162,20 @@ public class SettingsService
         }
     }
 
+    /// <summary>导航栏风格（经典侧栏 / LLT Store 风格）。</summary>
+    public NavigationStyle NavigationStyle
+    {
+        get => _navigationStyle;
+        set
+        {
+            if (_navigationStyle != value)
+            {
+                _navigationStyle = value;
+                Save();
+            }
+        }
+    }
+
     public void Save()
     {
         try
@@ -169,6 +194,7 @@ public class SettingsService
                 AccentMode = _accentMode,
                 AccentColor = _accentColor,
                 AvatarDisplay = _avatarDisplay,
+                NavigationStyle = _navigationStyle,
             };
             var json = JsonSerializer.Serialize(dto, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_path, json);
@@ -199,6 +225,7 @@ public class SettingsService
             _accentMode = dto.AccentMode;
             _accentColor = string.IsNullOrEmpty(dto.AccentColor) ? "#E8482C" : dto.AccentColor;
             _avatarDisplay = dto.AvatarDisplay;
+            _navigationStyle = dto.NavigationStyle;
         }
         catch (Exception ex)
         {
@@ -221,5 +248,6 @@ public class SettingsService
         public AccentMode AccentMode { get; set; } = AccentMode.System;
         public string AccentColor { get; set; } = "#E8482C";
         public AvatarType AvatarDisplay { get; set; } = AvatarType.NameChar;
+        public NavigationStyle NavigationStyle { get; set; } = NavigationStyle.Classic;
     }
 }

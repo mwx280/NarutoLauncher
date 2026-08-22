@@ -129,11 +129,76 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <!-- 标题栏（最小化/最大化/关闭按钮），独立于 NavigationView 顶部 -->
+        <!-- 标题栏 -->
         <ui:TitleBar Grid.Row="0"
                      Title="火影忍者OL 启动器"
                      Icon="{ui:ImageIcon '/assets/favicon.png'}"
                      ShowMaximize="True" ShowMinimize="True" ShowClose="True" />
+
+        <!-- ========== 经典导航（早期侧栏 200px，文字 + 图标） ========== -->
+        <Grid x:Name="ClassicLayout" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="0,1,0,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="20,24,20,20">
+                        <TextBlock Text="火影忍者OL" FontSize="18" FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
+                        <TextBlock Text="启动器" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <ListBox x:Name="NavList" BorderThickness="0" Background="Transparent"
+                             SelectionChanged="OnNavChanged" SelectedIndex="0"
+                             FontSize="14" Margin="8,0,8,0">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="16,10"/>
+                                <Setter Property="Margin" Value="0,2"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="Bd" Background="Transparent"
+                                                    CornerRadius="6" Padding="{TemplateBinding Padding}"
+                                                    Margin="{TemplateBinding Margin}">
+                                                <ContentPresenter/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background"
+                                                            Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                                                    <Setter Property="Foreground"
+                                                            Value="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background"
+                                                            Value="{DynamicResource ControlFillColorDefaultBrush}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBoxItem Content="&#xE80F;  首页" Tag="home"/>
+                        <ListBoxItem Content="&#xE7FC;  游戏" Tag="games"/>
+                        <ListBoxItem Content="&#xE77B;  账号管理" Tag="accounts"/>
+                        <ListBoxItem Content="&#xE713;  设置" Tag="settings"/>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            <Grid Grid.Column="1">
+                <ContentControl x:Name="ClassicContentHost"/>
+                <ui:ContentDialogHost x:Name="ClassicDialogHost" Grid.ColumnSpan="2" IsDisableSiblingsEnabled="True"/>
+            </Grid>
+        </Grid>
+
+        <!-- ========== LLT Store 风格导航（80px 竖排图标） ========== -->
         <ui:NavigationView x:Name="NavView" Grid.Row="1"
                            PaneDisplayMode="Left"
                            IsPaneOpen="True"
