@@ -84,16 +84,8 @@
                         <Button.Template>
                             <ControlTemplate TargetType="{x:Type Button}">
                                 <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <Viewbox Width="11" Height="11"
-                                             HorizontalAlignment="Center"
-                                             VerticalAlignment="Center"
-                                             Focusable="False"
-                                             RenderOptions.BitmapScalingMode="HighQuality">
-                                        <Canvas Width="72" Height="72" Focusable="False">
-                                            <Path Data="M6.2,0.4 L0,6.6 V8.4 L6.2,8.4 L6.2,8.6 L4,11 H5 L8,8.4 H10 L6,11 H7 L11,8.4 H13 L14,7.4 L12.5,7.2 L14,6 L13,5 L11,6.5 L10,6.5 L6,2.5 L6,4 L2.5,7.5 L1.5,6.5 L6,2 L6,0.4 Z"
-                                                  Fill="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                        </Canvas>
-                                    </Viewbox>
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"/>
                                 </Grid>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
@@ -103,6 +95,8 @@
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Button.Template>
+                        <ui:SymbolIcon Symbol="ArrowClockwise20" FontSize="16"
+                                       Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
                     </Button>
                     <Button x:Name="SelectServerBtn"
                             Width="44" Height="30" Padding="0"
