@@ -1,11 +1,11 @@
-# 游戏内部结构分析（火影忍者OL · 725账号 · 区服8856）
+# 游戏内部结构分析（火影忍者Online · 725账号 · 区服8856）
 
 > 日期：2026-08-21
 > 方法：CEF DevTools 远程调试（GameHost `--debug-port=9222`）+ 静态分析（SWF/JS/XML 下载）
 
 ## 一、总体结论
 
-火影忍者OL 是**逻辑全封闭在 Flash 内部**的传统页游，三层防护：
+火影忍者Online 是**逻辑全封闭在 Flash 内部**的传统页游，三层防护：
 
 | 层 | 技术 | 可访问性 |
 |---|---|---|
@@ -121,7 +121,7 @@ sServerName=(公测856区 光刃那都)  skey/p_skey/access_token 等
 
 在独立宿主（`C:\Users\xiaowu\Desktop\seer_test`，加载 `https://seer.61.com`）分析：
 
-| 项目 | 火影忍者OL | 赛尔号 |
+| 项目 | 火影忍者Online | 赛尔号 |
 |---|---|---|
 | SWF 压缩 | ZWS+LZMA 自定义（加密） | CWS+Zlib（明文） |
 | 类名 | 无法解析 | 明文（`com.robot.app.MainEntry` 等） |

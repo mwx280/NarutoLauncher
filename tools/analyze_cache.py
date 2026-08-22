@@ -1,4 +1,4 @@
-# 火影忍者OL 缓存解密分析工具
+# 火影忍者Online 缓存解密分析工具
 #
 # 用法：python tools/analyze_cache.py <userdata_dir>
 #   <userdata_dir> 为某账号的 userdata 目录（含 Cache 子目录）

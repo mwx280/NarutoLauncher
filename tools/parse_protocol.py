@@ -1,7 +1,7 @@
 import sys, re
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-# 火影忍者OL Socket 协议解析器
+# 火影忍者Online Socket 协议解析器
 # 用法: python tools/parse_protocol.py <pktmon hex txt>
 # 前置: pktmon filter add naruto -p 10741; pktmon start --capture
 #        pktmon etl2txt <etl> -o <hex.txt> --hex   (UTF-16LE 输出)

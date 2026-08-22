@@ -104,7 +104,7 @@ public class GameProcessService
         };
         psi.ArgumentList.Add($"--url={urlOverride ?? DefaultGameUrl}");
         psi.ArgumentList.Add($"--userdata={userdata}");
-        psi.ArgumentList.Add($"--title=火影忍者OL - {account.DisplayName}");
+        psi.ArgumentList.Add($"--title=火影忍者Online - {account.DisplayName}");
         psi.ArgumentList.Add("--embed");
         // Flash 硬件加速开关（默认关闭；开启需重新进入游戏才生效）
         psi.ArgumentList.Add(App.CurrentApp.Settings.FlashHardwareAcceleration

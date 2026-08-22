@@ -6,7 +6,7 @@
 // 命令行参数：
 //   --url=<game_url>      游戏入口 URL（默认 game.huoying.qq.com/main.html）
 //   --userdata=<dir>      独立缓存目录（多开隔离 cookie）
-//   --title=<title>       窗口标题（默认"火影忍者OL"）
+//   --title=<title>       窗口标题（默认"火影忍者Online"）
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -147,7 +147,7 @@ FramelessWindow g_window;
 CefRefPtr<CefBrowser> g_game_browser;
 bool g_muted = false;          // 游戏音频静音状态
 HWND g_game_hwnd = nullptr;   // 游戏窗口句柄（从 CEF 回调获取）
-std::wstring g_window_title = L"火影忍者OL";
+std::wstring g_window_title = L"火影忍者Online";
 bool g_login_mode = false;    // 扫码登录模式（加载 QQ 登录页，登录成功写 login_result.txt）
 bool g_auto_login = false;    // 账号密码自动登录模式（有 --user/--pass 参数）
 std::string g_auto_user_b64;  // QQ 号（base64，注入登录框 JS 时 atob 解码）

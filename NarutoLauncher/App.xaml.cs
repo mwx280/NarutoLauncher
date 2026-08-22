@@ -79,7 +79,7 @@ public partial class App : Application
     {
         _trayIcon = new TrayIcon
         {
-            Text = "火影忍者OL",
+            Text = "火影忍者Online",
             ContextMenu = BuildTrayMenu(),
             Visible = true,
         };
@@ -284,7 +284,7 @@ public partial class App : Application
     /// <summary>激活已运行实例的主窗口（恢复并前置）。</summary>
     private static void ActivateExistingInstance()
     {
-        var hwnd = FindWindow(null, "火影忍者OL 启动器");
+        var hwnd = FindWindow(null, "火影忍者Online 启动器");
         if (hwnd != IntPtr.Zero)
         {
             ShowWindow(hwnd, 9);  // SW_RESTORE

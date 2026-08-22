@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
-        <TextBlock Text="火影忍者OL 启动器" FontSize="28" FontWeight="Bold"
+        <TextBlock Text="火影忍者Online 启动器" FontSize="28" FontWeight="Bold"
                    HorizontalAlignment="Center"/>
         <TextBlock Text="小舞版权所有" FontSize="16" Margin="0,12,0,0"
                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"

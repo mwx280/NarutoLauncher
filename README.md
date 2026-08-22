@@ -1,6 +1,6 @@
-# 火影忍者OL 启动器（NarutoLauncher）
+# 火影忍者Online 启动器（NarutoLauncher）
 
-高性能火影忍者OL Flash 游戏启动器。WPF 启动器 + 分离 CEF 87 x86 游戏宿主，游戏窗口通过 HwndHost 内嵌在界面中，支持多账号多开、扫码登录、记住密码、自动登录。
+高性能火影忍者Online Flash 游戏启动器。WPF 启动器 + 分离 CEF 87 x86 游戏宿主，游戏窗口通过 HwndHost 内嵌在界面中，支持多账号多开、扫码登录、记住密码、自动登录。
 
 ## 架构
 
