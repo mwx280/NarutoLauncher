@@ -191,3 +191,26 @@
 - 独立对照（cefsimple_test）：low vs 原始，视觉差异明确。
 - 注意：此 VM 上 CPU 均接近满载，画质切换主要影响画面质量，CPU 降幅有限；
   真机上低画质可显著降低光栅化开销。
+
+## 八、分辨率模式（DPR）设置（2026-08-22）
+
+> 背景：用户希望大屏用户可以选择更高分辨率渲染。
+
+### 功能
+
+设置页「画质」分组新增「分辨率模式」下拉：
+- **性能优先**（默认）：强制 `force-device-scale-factor=1`，DPR=1，low 画质降质明显
+- **画质优先**：不强制 DPR，跟随系统 DPI，画面清晰但 low 画质降质不明显
+
+### 已知问题：画质优先模式下窗口显示异常
+
+- 切换到「画质优先」后，游戏窗口内容显示过大/过小，无法正常游戏。
+- **根因**：WPF HwndHost 嵌入 CEF 窗口时，DPR 变化导致窗口尺寸计算不一致。
+  - GameHost 通过 `SetProcessDpiAwareness(2)` 设置 DPI 感知
+  - WPF HwndHost 在 DPR=2 时可能按逻辑像素（而非物理像素）嵌入窗口
+  - CSS transform `scale(w/1920, h/1080)` 无法补偿此差异
+- **尝试过的方案**：
+  - CSS transform 乘 DPR（`scale(w*dpr/1920, h*dpr/1080)`）→ 内容过大
+  - CSS transform 不乘 DPR（`scale(w/1920, h/1080)`）→ 内容过小
+- **结论**：问题在 WPF HwndHost 的 DPI 嵌入逻辑，无法从 GameHost CSS 层面修复。
+- **当前方案**：画质优先模式下禁用 Flash hook（方案 A），避免低画质降质无效。
