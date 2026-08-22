@@ -451,6 +451,33 @@ private:
         }
     }
 
+    // 把 URL 的 zone_id 设置为目标值（保留其他参数），返回新 URL。
+    static std::string SetZoneId(const std::string& url,
+                                 const std::string& sid) {
+        size_t q = url.find('?');
+        if (q == std::string::npos)
+            return url + "?zone_id=" + sid;
+        std::string base = url.substr(0, q);
+        std::string newq;
+        size_t pos = q + 1;
+        while (pos <= url.size()) {
+            size_t amp = url.find('&', pos);
+            std::string part =
+                url.substr(pos, amp == std::string::npos
+                                    ? std::string::npos
+                                    : amp - pos);
+            if (part.rfind("zone_id=", 0) != 0) {
+                if (!newq.empty()) newq += '&';
+                newq += part;
+            }
+            if (amp == std::string::npos) break;
+            pos = amp + 1;
+        }
+        if (!newq.empty()) newq += '&';
+        newq += "zone_id=" + sid;
+        return base + "?" + newq;
+    }
+
     class ApplyZoneIdTask : public CefTask {
     public:
         explicit ApplyZoneIdTask(const std::string& server_id)
@@ -460,11 +487,11 @@ private:
             CefRefPtr<CefFrame> frame = g_game_browser->GetMainFrame();
             if (!frame || !frame->IsValid()) return;
             std::string url = frame->GetURL().ToString();
-            // 已在重载流程或 URL 已带 zone_id，避免死循环
-            if (url.find("zone_id") != std::string::npos) return;
-            std::string sep =
-                (url.find('?') == std::string::npos) ? "?" : "&";
-            std::string new_url = url + sep + "zone_id=" + server_id_;
+            if (url.empty()) return;
+            // 已带相同 zone_id 则跳过，避免死循环
+            if (url.find("zone_id=" + server_id_) != std::string::npos)
+                return;
+            std::string new_url = SetZoneId(url, server_id_);
             AppLog::Write("自动补 zone_id: %s -> %s", url.c_str(),
                           new_url.c_str());
             frame->LoadURL(new_url);
