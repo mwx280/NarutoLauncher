@@ -32,6 +32,7 @@ public class Account : INotifyPropertyChanged
     private bool _running;
     private bool _loggedIn;
     private bool _scanLogin;
+    private bool _isSelected;
     private string _scanUserDataDir = "";
     private string _cookies = "";
     private AvatarType _avatarType = AvatarType.NameChar;
@@ -68,6 +69,13 @@ public class Account : INotifyPropertyChanged
 
     /// <summary>是否已登录（角色信息是否同步到）。</summary>
     public bool LoggedIn { get => _loggedIn; set { _loggedIn = value; OnChanged(); } }
+
+    /// <summary>是否勾选（批量启动，持久化到账号数据）。</summary>
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set { _isSelected = value; OnChanged(); }
+    }
 
     /// <summary>是否运行中（对应 GameHost 进程）。</summary>
     public bool Running { get => _running; set { _running = value; OnChanged(); } }

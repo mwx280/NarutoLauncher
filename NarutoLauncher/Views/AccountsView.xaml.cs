@@ -41,9 +41,49 @@ public partial class AccountsView : UserControl
     private void LoadAccounts()
     {
         var accounts = App.CurrentApp.Accounts.Accounts;
+        // 退订旧账号的勾选监听，再订阅当前账号
+        foreach (var a in _subscribed)
+            a.PropertyChanged -= OnAccountPropertyChanged;
+        _subscribed.Clear();
+        foreach (var a in accounts)
+        {
+            a.PropertyChanged += OnAccountPropertyChanged;
+            _subscribed.Add(a);
+        }
         AccountList.ItemsSource = accounts;
         CountText.Text = $"共 {accounts.Count} 个账号";
+        UpdateBatchButtonState();
         _ = RefreshServerInfoAsync(accounts);
+    }
+
+    private readonly List<Account> _subscribed = new();
+
+    /// <summary>勾选状态变化：刷新批量启动按钮并持久化勾选。</summary>
+    private void OnAccountPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Account.IsSelected))
+        {
+            UpdateBatchButtonState();
+            App.CurrentApp.Accounts.Save();
+        }
+    }
+
+    /// <summary>批量启动按钮可用性跟随勾选状态。</summary>
+    private void UpdateBatchButtonState()
+    {
+        if (BatchStartBtn == null)
+            return;
+        BatchStartBtn.IsEnabled = App.CurrentApp.Accounts.Accounts.Any(a => a.IsSelected);
+    }
+
+    /// <summary>批量启动：启动所有勾选的账号游戏窗口。</summary>
+    private void OnBatchStart(object sender, RoutedEventArgs e)
+    {
+        var owner = Window.GetWindow(this);
+        foreach (var acc in App.CurrentApp.Accounts.Accounts.Where(a => a.IsSelected))
+        {
+            GameWindow.OpenAccount(acc, owner);
+        }
     }
 
     /// <summary>账号对应的 GameHost userdata 目录（不存在返回 null）。</summary>
