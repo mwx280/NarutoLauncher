@@ -79,8 +79,8 @@ public partial class GameWindow : FluentWindow
         Closed += OnWindowClosed;
         // 账号头像设置变化时，刷新所有标签头像
         App.CurrentApp.Settings.AvatarDisplayChanged += OnAvatarDisplayChanged;
-        // hover 菜单延迟关闭（允许鼠标从按钮移动到菜单）
-        _popupTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
+        // hover 菜单：移出立即关闭；按钮移出允许短暂移入菜单（80ms）
+        _popupTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(80) };
         _popupTimer.Tick += (_, _) => CloseHoverPopups();
     }
 
@@ -93,6 +93,14 @@ public partial class GameWindow : FluentWindow
     }
 
     private void CloseHoverPopups()
+    {
+        _popupTimer.Stop();
+        UserMenuPopup.IsOpen = false;
+        SpeedMenuPopup.IsOpen = false;
+    }
+
+    /// <summary>鼠标移出菜单：立即关闭。</summary>
+    private void ClosePopupNow()
     {
         _popupTimer.Stop();
         UserMenuPopup.IsOpen = false;
@@ -387,7 +395,7 @@ public partial class GameWindow : FluentWindow
 
     private void OnSpeedMenuPopupLeave(object sender, MouseEventArgs e)
     {
-        StartPopupCloseTimer();
+        ClosePopupNow();
     }
 
     /// <summary>选择倍速：发送到 GameHost（wParam = 倍速×10）。</summary>
@@ -421,7 +429,7 @@ public partial class GameWindow : FluentWindow
 
     private void OnUserMenuPopupLeave(object sender, MouseEventArgs e)
     {
-        StartPopupCloseTimer();
+        ClosePopupNow();
     }
 
     /// <summary>点击账号：已启动则切换标签，未启动则启动该账号游戏。</summary>
