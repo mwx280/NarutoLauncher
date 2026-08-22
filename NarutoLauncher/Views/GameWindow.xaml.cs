@@ -337,7 +337,7 @@ public partial class GameWindow : FluentWindow
     /// <summary>静音按钮图标与提示随状态切换（未静音=音量图标，静音=静音图标）。</summary>
     private void UpdateMuteButton()
     {
-        MuteIcon.Symbol = _muted ? SymbolRegular.SpeakerMute20 : SymbolRegular.Speaker020;
+        MuteIcon.Symbol = _muted ? SymbolRegular.SpeakerMute20 : SymbolRegular.Speaker220;
         MuteBtn.ToolTip = _muted ? "已静音" : "静音";
     }
 

@@ -141,7 +141,7 @@
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Button.Template>
-                        <ui:SymbolIcon x:Name="MuteIcon" Symbol="Speaker020" FontSize="16"
+                        <ui:SymbolIcon x:Name="MuteIcon" Symbol="Speaker220" FontSize="16"
                                        Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
                     </Button>
                     <Button x:Name="SpeedBtn"
