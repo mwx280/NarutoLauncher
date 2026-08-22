@@ -20,7 +20,14 @@ public partial class MainWindow : FluentWindow
     {
         InitializeComponent();
         App.CurrentApp.DialogService.SetDialogHost(ContentDialogHost);
+        App.CurrentApp.Settings.NavigationStyleChanged += OnNavigationStyleChanged;
         Loaded += MainWindow_Loaded;
+    }
+
+    private void OnNavigationStyleChanged()
+    {
+        if (IsLoaded)
+            ApplyNavigationStyle();
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)

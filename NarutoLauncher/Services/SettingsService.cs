@@ -41,6 +41,8 @@ public enum NavigationStyle
 /// </summary>
 public class SettingsService
 {
+    /// <summary>导航风格变更时触发（供 MainWindow 实时切换布局）。</summary>
+    public event Action? NavigationStyleChanged;
     private const string SettingsFileName = "settings.json";
 
     private readonly string _path;
@@ -172,6 +174,7 @@ public class SettingsService
             {
                 _navigationStyle = value;
                 Save();
+                NavigationStyleChanged?.Invoke();
             }
         }
     }

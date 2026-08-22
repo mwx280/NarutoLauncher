@@ -167,7 +167,7 @@
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="导航风格" Style="{StaticResource ItemNameStyle}"/>
-                        <TextBlock Text="经典侧栏（宽导航文字）或 LLT 风格（窄图标导航）" Style="{StaticResource ItemDescStyle}"/>
+                        <TextBlock Text="经典：宽侧栏文字导航  |  简约：窄侧栏图标导航" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ComboBox x:Name="NavStyleCombo" Grid.Column="2" Margin="0,0,20,0"
                               Width="100" Height="34" Padding="6,0"
