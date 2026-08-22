@@ -1,54 +1,30 @@
 using System.Windows;
 using System.Windows.Controls;
-using NarutoLauncher.Views;
+using Wpf.Ui;
 using Wpf.Ui.Controls;
+using Wpf.Ui.Extensions;
 
 namespace NarutoLauncher;
 
 public partial class MainWindow : FluentWindow
 {
-    private readonly HomeView _home = new();
-    private readonly GamesView _games = new();
-    private readonly AccountsView _accounts = new();
-    private readonly SettingsView _settings = new();
-
     public MainWindow()
     {
         InitializeComponent();
-        // 绑定全局对话框服务的宿主（UI 风格提示框）
+        // 全局对话框宿主（供 UI 风格 ContentDialog 提示框使用）
         App.CurrentApp.DialogService.SetDialogHost(ContentDialogHost);
-        // 默认选中首页
-        NavList.SelectedIndex = 0;
-        ContentHost.Content = _home;
+        Loaded += MainWindow_Loaded;
     }
 
-    /// <summary>按索引切换页面（0 首页，1 游戏，2 账号，3 设置）。</summary>
-    public void NavigateTo(int index)
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        ContentHost.Content = index switch
-        {
-            0 => _home,
-            1 => _games,
-            2 => _accounts,
-            3 => _settings,
-            _ => _home,
-        };
-        if (NavList.Items.Count > index)
-            NavList.SelectedIndex = index;
+        // 默认导航到首页
+        NavView.Navigate(typeof(NarutoLauncher.Views.HomeView));
     }
 
-    private void OnNavChanged(object sender, SelectionChangedEventArgs e)
+    /// <summary>导航选中变化（页面由 TargetPageType 自动承载）。</summary>
+    private void OnNavSelectionChanged(object sender, RoutedEventArgs e)
     {
-        if (ContentHost == null)
-            return;
-        var idx = NavList.SelectedIndex;
-        ContentHost.Content = idx switch
-        {
-            0 => _home,
-            1 => _games,
-            2 => _accounts,
-            3 => _settings,
-            _ => _home,
-        };
+        // 页面内容由 NavigationView 根据 TargetPageType 自动导航，无需手动切换。
     }
 }

@@ -10,80 +10,175 @@
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round">
-    <DockPanel>
-        <!-- 标题栏（最小化/最大化/关闭按钮） -->
-        <ui:TitleBar DockPanel.Dock="Top"
+    <ui:FluentWindow.Resources>
+        <!-- 内容区背景对齐 LLT：ControlFillColorDefault（半透明白，透出 Mica），无边框 -->
+        <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{DynamicResource ControlFillColorDefault}" />
+        <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+
+        <!-- 复刻 LenovoLegionToolkit 导航项模板（NavigationStoreItem）：
+             竖排 store 风格：图标 24px + 小字 10px 居中换行；
+             选中时左侧 4px 强调色高亮条 + 图标变强调色实心 + 文字折叠淡出（160ms）+ 边框淡入 -->
+        <ControlTemplate x:Key="StoreNavigationItemTemplate" TargetType="{x:Type ui:NavigationViewItem}">
+            <Border x:Name="MainBorder" Padding="4" HorizontalAlignment="Stretch"
+                    Background="Transparent" BorderThickness="1" CornerRadius="4">
+                <Border.BorderBrush>
+                    <SolidColorBrush Color="{DynamicResource ControlStrokeColorDefault}" Opacity="0" />
+                </Border.BorderBrush>
+                <Grid>
+                    <Rectangle x:Name="ActiveRectangle" Width="4" Height="24"
+                               Margin="-4,0,0,0" HorizontalAlignment="Left"
+                               VerticalAlignment="Center" RadiusX="2" RadiusY="2"
+                               Opacity="0"
+                               Fill="{DynamicResource SystemAccentColorSecondaryBrush}" />
+                    <Grid HorizontalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <ContentPresenter x:Name="ElementIcon" Grid.Row="0"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Content="{TemplateBinding Icon}"
+                                          TextElement.FontSize="24"
+                                          TextElement.Foreground="{TemplateBinding Foreground}"
+                                          Width="24" Height="24" />
+                        <Grid x:Name="ContentGrid" Grid.Row="1" Margin="0,2,0,0">
+                            <ContentPresenter x:Name="ElementContentPresenter"
+                                              HorizontalAlignment="Center">
+                                <ContentPresenter.Content>
+                                    <TextBlock x:Name="ElementText" FontSize="10"
+                                               Text="{TemplateBinding Content}"
+                                               TextAlignment="Center" TextWrapping="Wrap"
+                                               Foreground="{TemplateBinding Foreground}" />
+                                </ContentPresenter.Content>
+                            </ContentPresenter>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsActive" Value="True">
+                    <Setter TargetName="ActiveRectangle" Property="Opacity" Value="1" />
+                    <Setter TargetName="MainBorder" Property="Background"
+                            Value="{DynamicResource ControlFillColorDefaultBrush}" />
+                    <Setter TargetName="ElementIcon" Property="TextElement.Foreground"
+                            Value="{DynamicResource SystemAccentColorSecondaryBrush}" />
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="ContentGrid"
+                                                 Storyboard.TargetProperty="MaxHeight"
+                                                 From="30" To="0" Duration="0:0:.16" />
+                                <DoubleAnimation Storyboard.TargetName="ContentGrid"
+                                                 Storyboard.TargetProperty="Opacity"
+                                                 From="1" To="0" Duration="0:0:.16" />
+                                <DoubleAnimation Storyboard.TargetName="MainBorder"
+                                                 Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Opacity)"
+                                                 From="0" To="1" Duration="0:0:.16" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="ContentGrid"
+                                                 Storyboard.TargetProperty="MaxHeight"
+                                                 From="0" To="30" Duration="0:0:.16" />
+                                <DoubleAnimation Storyboard.TargetName="ContentGrid"
+                                                 Storyboard.TargetProperty="Opacity"
+                                                 From="0" To="1" Duration="0:0:.16" />
+                                <DoubleAnimation Storyboard.TargetName="MainBorder"
+                                                 Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Opacity)"
+                                                 From="1" To="0" Duration="0:0:.16" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="MainBorder" Property="Background">
+                        <Setter.Value>
+                            <SolidColorBrush Opacity="0.5" Color="{DynamicResource ControlFillColorDefault}" />
+                        </Setter.Value>
+                    </Setter>
+                    <Setter TargetName="ElementIcon" Property="TextElement.Foreground"
+                            Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                    <Setter TargetName="ElementText" Property="Foreground"
+                            Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- 导航项尺寸与默认外观（Template 由 NavigationView.ItemTemplate 提供） -->
+        <Style TargetType="{x:Type ui:NavigationViewItem}">
+            <Setter Property="MinWidth" Value="60" />
+            <Setter Property="MaxWidth" Value="80" />
+            <Setter Property="MinHeight" Value="60" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+        </Style>
+    </ui:FluentWindow.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!-- 标题栏（最小化/最大化/关闭按钮），独立于 NavigationView 顶部 -->
+        <ui:TitleBar Grid.Row="0"
                      Title="火影忍者OL 启动器"
                      Icon="{ui:ImageIcon '/assets/favicon.png'}"
-                     ShowMaximize="True" ShowMinimize="True" ShowClose="True"/>
-
-        <!-- 主体内容 -->
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- 左侧导航 -->
-            <Border Grid.Column="0" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                    BorderThickness="0,1,0,0">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Margin="20,24,20,20">
-                        <TextBlock Text="火影忍者OL" FontSize="18" FontWeight="Bold"
-                                   Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
-                        <TextBlock Text="启动器" FontSize="12"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                   Margin="0,2,0,0"/>
-                    </StackPanel>
-                    <ListBox x:Name="NavList" BorderThickness="0" Background="Transparent"
-                             SelectionChanged="OnNavChanged" SelectedIndex="0"
-                             FontSize="14" Margin="8,0,8,0">
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="ListBoxItem">
-                                <Setter Property="Padding" Value="16,10"/>
-                                <Setter Property="Margin" Value="0,2"/>
-                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="ListBoxItem">
-                                            <Border x:Name="Bd" Background="Transparent"
-                                                    CornerRadius="6" Padding="{TemplateBinding Padding}"
-                                                    Margin="{TemplateBinding Margin}">
-                                                <ContentPresenter/>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsSelected" Value="True">
-                                                    <Setter TargetName="Bd" Property="Background"
-                                                            Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
-                                                    <Setter Property="Foreground"
-                                                            Value="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
-                                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                                </Trigger>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="Bd" Property="Background"
-                                                            Value="{DynamicResource ControlFillColorDefaultBrush}"/>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBoxItem Content="🏠  首页"/>
-                        <ListBoxItem Content="🎮  游戏"/>
-                        <ListBoxItem Content="👥  账号管理"/>
-                        <ListBoxItem Content="⚙️  设置"/>
-                    </ListBox>
-                </DockPanel>
-            </Border>
-
-            <!-- 右侧内容 -->
-            <Grid Grid.Column="1">
-                <ContentControl x:Name="ContentHost"/>
-            </Grid>
-
-            <!-- 对话框宿主（UI 风格 ContentDialog 提示框），覆盖整个主体区域 -->
-            <ui:ContentDialogHost x:Name="ContentDialogHost" Grid.ColumnSpan="2" IsDisableSiblingsEnabled="True"/>
-        </Grid>
-    </DockPanel>
+                     ShowMaximize="True" ShowMinimize="True" ShowClose="True" />
+        <ui:NavigationView x:Name="NavView" Grid.Row="1"
+                           PaneDisplayMode="Left"
+                           IsPaneOpen="True"
+                           IsPaneVisible="True"
+                           IsPaneToggleVisible="False"
+                           IsBackButtonVisible="Collapsed"
+                           IsTopSeparatorVisible="False"
+                           IsFooterSeparatorVisible="False"
+                           OpenPaneLength="80"
+                           CompactPaneLength="80"
+                           FrameMargin="12,6,0,0"
+                           ItemTemplate="{StaticResource StoreNavigationItemTemplate}"
+                           SelectionChanged="OnNavSelectionChanged">
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Content="首页" TargetPageType="{x:Type views:HomeView}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Home24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="游戏" TargetPageType="{x:Type views:GamesView}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Play24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="账号管理" TargetPageType="{x:Type views:AccountsView}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="People24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+            </ui:NavigationView.MenuItems>
+            <ui:NavigationView.FooterMenuItems>
+                <ui:NavigationViewItem Content="设置" TargetPageType="{x:Type views:SettingsView}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Settings24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="关于" TargetPageType="{x:Type views:AboutView}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Info24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+            </ui:NavigationView.FooterMenuItems>
+            <ui:NavigationView.ContentOverlay>
+                <ui:ContentDialogHost x:Name="ContentDialogHost" IsDisableSiblingsEnabled="True" />
+            </ui:NavigationView.ContentOverlay>
+        </ui:NavigationView>
+    </Grid>
 </ui:FluentWindow>
