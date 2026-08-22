@@ -667,6 +667,27 @@ public:
         }
     }
 
+    // 拦截网页弹窗（选区页「开始游戏」等用 window.open 新窗口）：
+    // 取消独立窗口，改在主窗口加载目标地址，避免点击后无反应。
+    bool OnBeforePopup(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        const CefString& target_url,
+        const CefString& target_frame_name,
+        CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+        bool user_gesture,
+        const CefPopupFeatures& popup_features,
+        CefWindowInfo& window_info,
+        CefRefPtr<CefClient>& client,
+        CefBrowserSettings& settings,
+        CefRefPtr<CefDictionaryValue>& extra_info,
+        bool* no_javascript_access) override {
+        if (!target_url.empty() && target_url != "about:blank") {
+            browser->GetMainFrame()->LoadURL(target_url);
+        }
+        return true;
+    }
+
     // Flash 插件进程崩溃（pepflashplayer 崩溃导致黑屏）：自动重载恢复。
     void OnPluginCrashed(CefRefPtr<CefBrowser> browser,
                          const CefString& plugin_path) override {
