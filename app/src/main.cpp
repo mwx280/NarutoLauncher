@@ -145,6 +145,7 @@ private:
 // ---------- 全局状态 ----------
 FramelessWindow g_window;
 CefRefPtr<CefBrowser> g_game_browser;
+bool g_muted = false;          // 游戏音频静音状态
 HWND g_game_hwnd = nullptr;   // 游戏窗口句柄（从 CEF 回调获取）
 std::wstring g_window_title = L"火影忍者OL";
 bool g_login_mode = false;    // 扫码登录模式（加载 QQ 登录页，登录成功写 login_result.txt）
@@ -553,7 +554,7 @@ void SetFlashQuality(int level) {
     ReloadGame();
 }
 
-// 主窗口自定义命令消息回调（cmd: 1=刷新, 2=画质调节）。
+// 主窗口自定义命令消息回调（cmd: 1=刷新, 2=画质调节, 3=选区, 4=静音）。
 void OnWindowCommand(int cmd, WPARAM w, LPARAM l) {
     switch (cmd) {
         case 1:
@@ -561,6 +562,26 @@ void OnWindowCommand(int cmd, WPARAM w, LPARAM l) {
             break;
         case 2:
             SetFlashQuality(static_cast<int>(w));
+            break;
+        case 3:
+            // 选区：导航到官网选区页，用户自行选区后点开始进区
+            if (g_game_browser && g_game_browser->GetMainFrame()) {
+                AppLog::Write("命令: 打开选区页");
+                g_game_browser->GetMainFrame()->LoadURL(
+                    "https://huoying.qq.com/server/website/");
+            }
+            break;
+        case 4:
+            // 静音：切换浏览器音频静音（Flash 音频经浏览器进程控制）
+            if (g_game_browser && g_game_browser->GetHost()) {
+                g_muted = !g_muted;
+                g_game_browser->GetHost()->SetAudioMuted(g_muted);
+                AppLog::Write("命令: 静音=%d", g_muted ? 1 : 0);
+            }
+            break;
+        case 5:
+            // 倍速：变速引擎（开发中）
+            AppLog::Write("命令: 倍速（开发中）");
             break;
         default:
             break;

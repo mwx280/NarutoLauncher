@@ -3,7 +3,7 @@
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:views="clr-namespace:NarutoLauncher.Views"
-                 Title="火影忍者OL"
+                 Title="火影忍者Online"
                  Icon="/assets/favicon.png"
                  Height="800" Width="1200"
                  MinHeight="400" MinWidth="600"
@@ -97,6 +97,75 @@
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Button.Template>
+                    </Button>
+                    <Button x:Name="SelectServerBtn"
+                            Width="44" Height="30" Padding="0"
+                            VerticalAlignment="Top"
+                            Background="Transparent"
+                            ToolTip="选区（回到官网选区页）"
+                            Click="OnSelectServer">
+                        <Button.Template>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="LayoutRoot" Property="Background"
+                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <ui:SymbolIcon Symbol="Map20" FontSize="16"
+                                       Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                    </Button>
+                    <Button x:Name="MuteBtn"
+                            Width="44" Height="30" Padding="0"
+                            VerticalAlignment="Top"
+                            Background="Transparent"
+                            ToolTip="静音"
+                            Click="OnToggleMute">
+                        <Button.Template>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="LayoutRoot" Property="Background"
+                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <ui:SymbolIcon Symbol="SpeakerMute20" FontSize="16"
+                                       Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                    </Button>
+                    <Button x:Name="SpeedBtn"
+                            Width="44" Height="30" Padding="0"
+                            VerticalAlignment="Top"
+                            Background="Transparent"
+                            ToolTip="倍速（开发中）"
+                            Click="OnToggleSpeed">
+                        <Button.Template>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="LayoutRoot" Property="Background"
+                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <ui:SymbolIcon Symbol="FastForward20" FontSize="16"
+                                       Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
                     </Button>
                     <Button x:Name="FullscreenBtn"
                             Width="44" Height="30" Padding="0"

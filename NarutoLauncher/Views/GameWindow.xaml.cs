@@ -40,6 +40,9 @@ public partial class GameWindow : FluentWindow
 
     private const int WM_APP = 0x8000;
     private const int CmdRefresh = 1;
+    private const int CmdSelectServer = 3;
+    private const int CmdToggleMute = 4;
+    private const int CmdToggleSpeed = 5;
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool PostMessage(nint hWnd, int msg, nint wParam, nint lParam);
@@ -315,6 +318,21 @@ public partial class GameWindow : FluentWindow
     private void OnRefreshGame(object sender, RoutedEventArgs e)
     {
         SendCommand(CmdRefresh);
+    }
+
+    private void OnSelectServer(object sender, RoutedEventArgs e)
+    {
+        SendCommand(CmdSelectServer);
+    }
+
+    private void OnToggleMute(object sender, RoutedEventArgs e)
+    {
+        SendCommand(CmdToggleMute);
+    }
+
+    private void OnToggleSpeed(object sender, RoutedEventArgs e)
+    {
+        SendCommand(CmdToggleSpeed);
     }
 
     private void OnToggleFullscreen(object sender, RoutedEventArgs e)
