@@ -6,9 +6,9 @@ using System.Text.RegularExpressions;
 namespace NarutoLauncher.Services;
 
 /// <summary>
-/// 区服 ID → 区名映射（选区页 hyol_select.js 的 JSON_server）。
+/// 区服 ID → 区服名映射（选区页 hyol_select.js 的 JSON_server）。
 /// 首次拉取后缓存到本地 server_catalog.json，后续离线可用。
-/// 区名只保留「公测856区」，去掉后面的服务器名（如「光刃那都」）。
+/// 区服名完整保留（如「公测856区 光刃那都」「1区 火影忍者」）。
 /// </summary>
 public static class ServerCatalog
 {
@@ -87,7 +87,7 @@ public static class ServerCatalog
                 block, @"(\d+):\{""sServerName"":""([^""]*)"""))
             {
                 if (int.TryParse(m.Groups[1].Value, out var id))
-                    map[id] = TrimZoneName(m.Groups[2].Value);
+                    map[id] = m.Groups[2].Value;
             }
             return map;
         }
@@ -106,13 +106,5 @@ public static class ServerCatalog
                 $"[{DateTime.Now:HH:mm:ss}] {msg}{Environment.NewLine}");
         }
         catch { }
-    }
-
-    private static string TrimZoneName(string name)
-    {
-        // 区服名格式多样：公测856区 / 联盟1区 / 1区 / 801区极·沙时雨（无空格连接）
-        // 统一取「<前缀>数字区」作为区服名，去掉后面的服务器名
-        var m = Regex.Match(name, @"^(.*?\d+区)");
-        return m.Success ? m.Groups[1].Value : name;
     }
 }

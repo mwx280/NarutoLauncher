@@ -98,7 +98,7 @@ public class Account : INotifyPropertyChanged
     /// <summary>信息摘要（区服 / 等级 / 战力）。</summary>
     public string InfoText =>
         HasLoginData
-            ? $"区服　{OrUnknown(Server)}　等级　{(Level > 0 ? Level.ToString() : "未知")}　战力　{OrUnknown(Power)}"
+            ? $"{OrUnknown(Server)}　等级　{(Level > 0 ? Level.ToString() : "未知")}　战力　{OrUnknown(Power)}"
             : "登录游戏后获取游戏数据";
 
     private static string OrUnknown(string v) => string.IsNullOrEmpty(v) ? "未知" : v;
