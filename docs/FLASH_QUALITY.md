@@ -202,15 +202,19 @@
 - **性能优先**（默认）：强制 `force-device-scale-factor=1`，DPR=1，low 画质降质明显
 - **画质优先**：不强制 DPR，跟随系统 DPI，画面清晰但 low 画质降质不明显
 
-### 已知问题：画质优先模式下窗口显示异常
+### 画质优先模式窗口显示不全 —— 已修复（2026-08-22）
 
-- 切换到「画质优先」后，游戏窗口内容显示过大/过小，无法正常游戏。
-- **根因**：WPF HwndHost 嵌入 CEF 窗口时，DPR 变化导致窗口尺寸计算不一致。
-  - GameHost 通过 `SetProcessDpiAwareness(2)` 设置 DPI 感知
-  - WPF HwndHost 在 DPR=2 时可能按逻辑像素（而非物理像素）嵌入窗口
-  - CSS transform `scale(w/1920, h/1080)` 无法补偿此差异
+- 现象：切换到「画质优先」后，游戏窗口内容显示过大/过小，无法正常游戏（显示不全）。
+- **根因**：`OnLoadStart` 无条件注入的 **resizeTarget 铺满 CSS**。
+  - 该 CSS 用 `transform: scale(w/1920, h/1080)` 把 Flash 容器等比放大到视口，只在
+    DPR=1（性能优先，CSS 视口≈窗口物理尺寸）时正确。
+  - 画质优先 DPR=2，CSS 视口与窗口物理尺寸关系改变，`scale(w/1920, h/1080)`
+    补偿失效 → 显示过大/过小、不全。
 - **尝试过的方案**：
   - CSS transform 乘 DPR（`scale(w*dpr/1920, h*dpr/1080)`）→ 内容过大
   - CSS transform 不乘 DPR（`scale(w/1920, h/1080)`）→ 内容过小
-- **结论**：问题在 WPF HwndHost 的 DPI 嵌入逻辑，无法从 GameHost CSS 层面修复。
-- **当前方案**：画质优先模式下禁用 Flash hook（方案 A），避免低画质降质无效。
+- **修复**：resizeTarget 铺满 CSS **仅性能优先注入**（`app/src/main.cpp` 按
+  `g_force_dpr` 判断），画质优先保持游戏原始布局、不缩放，显示正常。
+- 状态：**已修复**。性能优先继续铺满；画质优先不再注入该 CSS。
+- 附带澄清：此前的"画质优先模式下禁用 Flash hook（方案 A）"已回滚（commit
+  4a38695 重新启用 Flash hook），画质优先与性能优先均注入 Flash 质量 hook。
