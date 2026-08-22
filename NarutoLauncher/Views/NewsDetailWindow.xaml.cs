@@ -70,6 +70,9 @@ public partial class NewsDetailWindow : FluentWindow
             "  p{margin:0.8em 0;}\n" +
             "  span,div,td,li,p{font-size:inherit !important;line-height:inherit !important;" +
             (isDark ? "color:inherit !important;" : "") + "}\n" +
+            // 公告正文部分元素自带白色背景，强制透明避免深色下白底
+            "  p,div,span,td,li,h1,h2,h3,h4,h5,h6,font,strong,b,u,em," +
+            "tr,th,table{background-color:transparent !important;}\n" +
             "  img{max-width:100%;height:auto;display:block;margin:12px auto;}\n" +
             "  a{color:" + linkColor + ";}\n" +
             "  table,tr,td{border-color:" + borderColor + ";}\n" +
