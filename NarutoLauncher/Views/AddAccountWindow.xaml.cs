@@ -154,7 +154,8 @@ public partial class AddAccountWindow : FluentWindow
             {
                 if (File.Exists(resultFile))
                 {
-                    var qq = File.ReadAllText(resultFile).Trim();
+                    // 腾讯按 10 位补零存储 QQ（如 0725354631），去掉前导 0 得到真实 QQ
+                    var qq = File.ReadAllText(resultFile).Trim().TrimStart('0');
                     if (qq.Length > 0)
                     {
                         _scannedQq = qq == "0" ? "" : qq;
