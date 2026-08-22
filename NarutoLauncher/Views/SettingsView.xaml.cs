@@ -56,6 +56,7 @@ public partial class SettingsView : UserControl
         AutoScriptBox.IsChecked = s.AutoScript;
         AutoTaskBox.IsChecked = s.AutoTask;
         TrayBox.IsChecked = s.MinimizeToTray;
+        MinOnGameStartBox.IsChecked = s.MinimizeOnGameStart;
         RememberPwdBox.IsChecked = s.RememberPassword;
         NavStyleCombo.SelectedIndex = s.NavigationStyle == Services.NavigationStyle.Modern ? 1 : 0;
         DprModeCombo.SelectedIndex = s.DprMode == Services.DprMode.Quality ? 1 : 0;
@@ -79,6 +80,8 @@ public partial class SettingsView : UserControl
         AutoTaskBox.Unchecked += SaveSwitches;
         TrayBox.Checked += SaveSwitches;
         TrayBox.Unchecked += SaveSwitches;
+        MinOnGameStartBox.Checked += SaveSwitches;
+        MinOnGameStartBox.Unchecked += SaveSwitches;
         RememberPwdBox.Checked += SaveSwitches;
         RememberPwdBox.Unchecked += SaveSwitches;
         // Flash 硬件加速：拦截点击（开关不随点击翻转），确认后才开启/关闭
@@ -96,6 +99,7 @@ public partial class SettingsView : UserControl
         s.AutoScript = AutoScriptBox.IsChecked == true;
         s.AutoTask = AutoTaskBox.IsChecked == true;
         s.MinimizeToTray = TrayBox.IsChecked == true;
+        s.MinimizeOnGameStart = MinOnGameStartBox.IsChecked == true;
         s.RememberPassword = RememberPwdBox.IsChecked == true;
     }
 

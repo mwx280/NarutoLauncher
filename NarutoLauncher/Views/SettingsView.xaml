@@ -384,6 +384,25 @@
                 </Grid>
             </Border>
 
+            <!-- 启动游戏后主窗口最小化到托盘 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE718;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="启动游戏后主窗口最小化到托盘" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="开启后，启动游戏自动收起主窗口到系统托盘" Style="{StaticResource ItemDescStyle}"/>
+                    </StackPanel>
+                    <ui:ToggleSwitch Grid.Column="2" x:Name="MinOnGameStartBox"/>
+                </Grid>
+            </Border>
+
             <!-- ===== 账号与安全分组 ===== -->
             <TextBlock Text="账号与安全" Style="{StaticResource GroupTitleStyle}"/>
 

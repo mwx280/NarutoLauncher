@@ -67,6 +67,7 @@ public class SettingsService
     private bool _autoScript;
     private bool _autoTask;
     private bool _minimizeToTray = true;
+    private bool _minimizeOnGameStart = true;
     private bool _rememberPassword = true;
     private bool _autoEnterGame;
     private bool _flashHardwareAcceleration = true;
@@ -94,6 +95,13 @@ public class SettingsService
     public bool AutoTask { get => _autoTask; set { if (_autoTask != value) { _autoTask = value; Save(); } } }
     public bool MinimizeToTray { get => _minimizeToTray; set { if (_minimizeToTray != value) { _minimizeToTray = value; Save(); } } }
     public bool RememberPassword { get => _rememberPassword; set { if (_rememberPassword != value) { _rememberPassword = value; Save(); } } }
+
+    /// <summary>启动游戏后，主窗口自动最小化到托盘。</summary>
+    public bool MinimizeOnGameStart
+    {
+        get => _minimizeOnGameStart;
+        set { if (_minimizeOnGameStart != value) { _minimizeOnGameStart = value; Save(); } }
+    }
 
     /// <summary>开始游戏是否自动进入游戏（关闭则先进选区页，手动点开始）。</summary>
     public bool AutoEnterGame { get => _autoEnterGame; set { if (_autoEnterGame != value) { _autoEnterGame = value; Save(); } } }
@@ -228,6 +236,7 @@ public class SettingsService
                 AutoTask = _autoTask,
                 MinimizeToTray = _minimizeToTray,
                 RememberPassword = _rememberPassword,
+                MinimizeOnGameStart = _minimizeOnGameStart,
                 AutoEnterGame = _autoEnterGame,
                 FlashHardwareAcceleration = _flashHardwareAcceleration,
                 FlashQuality = _flashQuality,
@@ -261,6 +270,7 @@ public class SettingsService
             _autoTask = dto.AutoTask;
             _minimizeToTray = dto.MinimizeToTray;
             _rememberPassword = dto.RememberPassword;
+            _minimizeOnGameStart = dto.MinimizeOnGameStart;
             _autoEnterGame = dto.AutoEnterGame;
             _flashHardwareAcceleration = dto.FlashHardwareAcceleration;
             _flashQuality = string.IsNullOrEmpty(dto.FlashQuality) ? "low" : dto.FlashQuality;
@@ -286,6 +296,7 @@ public class SettingsService
         public bool AutoTask { get; set; }
         public bool MinimizeToTray { get; set; } = true;
         public bool RememberPassword { get; set; } = true;
+        public bool MinimizeOnGameStart { get; set; } = true;
         public bool AutoEnterGame { get; set; }
         public bool FlashHardwareAcceleration { get; set; }
         public string FlashQuality { get; set; } = "low";

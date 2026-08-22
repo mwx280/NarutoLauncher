@@ -62,6 +62,13 @@ public partial class GameWindow : FluentWindow
     public static void OpenAccount(Account account, Window? owner)
     {
         GetShared(owner).AddAccount(account);
+        // 启动游戏后主窗口最小化到托盘（设置开启时）
+        if (App.CurrentApp.Settings.MinimizeOnGameStart &&
+            App.CurrentApp.MainWindow is { } main &&
+            main.IsVisible)
+        {
+            main.Hide();
+        }
     }
 
     private GameWindow()
