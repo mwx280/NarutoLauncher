@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using NarutoLauncher.Services;
@@ -35,6 +36,17 @@ public partial class MainWindow : FluentWindow
     {
         _currentPageType = typeof(HomeView);
         ApplyNavigationStyle();
+    }
+
+    // 关闭窗口时按设置最小化到托盘（从托盘「退出」才真正退出）
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        if (App.CurrentApp.Settings.MinimizeToTray && !App.CurrentApp.IsExiting)
+        {
+            e.Cancel = true;
+            Hide();
+        }
     }
 
     /// <summary>根据设置切换导航栏风格，保持当前页面。</summary>
