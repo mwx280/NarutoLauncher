@@ -58,6 +58,12 @@ public partial class SettingsView : UserControl
         RememberPwdBox.IsChecked = s.RememberPassword;
         NavStyleCombo.SelectedIndex = s.NavigationStyle == Services.NavigationStyle.Modern ? 1 : 0;
         DprModeCombo.SelectedIndex = s.DprMode == Services.DprMode.Quality ? 1 : 0;
+        FlashQualityCombo.SelectedIndex = s.FlashQuality switch
+        {
+            "high" => 2,
+            "medium" => 1,
+            _ => 0,
+        };
 
         // 开关变化保存
         GameSpeedBox.Checked += SaveSwitches;
@@ -154,6 +160,18 @@ public partial class SettingsView : UserControl
         App.CurrentApp.Settings.DprMode = DprModeCombo.SelectedIndex == 1
             ? Services.DprMode.Quality
             : Services.DprMode.Performance;
+    }
+
+    private void OnFlashQualityChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_initializing) return;
+        var quality = FlashQualityCombo.SelectedIndex switch
+        {
+            2 => "high",
+            1 => "medium",
+            _ => "low",
+        };
+        App.CurrentApp.Settings.FlashQuality = quality;
     }
 
     // ---- 主题模式切换 ----

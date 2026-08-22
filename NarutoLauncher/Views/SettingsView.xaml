@@ -270,6 +270,35 @@
                 </Grid>
             </Border>
 
+            <!-- 全局画质调节 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE7C8;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="全局画质调节" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="低/中/高三档，需重新进入游戏生效" Style="{StaticResource ItemDescStyle}"/>
+                    </StackPanel>
+                    <ComboBox x:Name="FlashQualityCombo" Grid.Column="2" Margin="0,0,20,0"
+                              Width="120" Height="34" Padding="10,0"
+                              VerticalContentAlignment="Center"
+                              Background="{DynamicResource ControlFillColorDefaultBrush}"
+                              BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                              BorderThickness="1" FontSize="13"
+                              SelectionChanged="OnFlashQualityChanged">
+                        <ComboBoxItem Content="低"/>
+                        <ComboBoxItem Content="中"/>
+                        <ComboBoxItem Content="高"/>
+                    </ComboBox>
+                </Grid>
+            </Border>
+
             <!-- ===== 自动化分组 ===== -->
             <TextBlock Text="自动化" Style="{StaticResource GroupTitleStyle}"/>
 
