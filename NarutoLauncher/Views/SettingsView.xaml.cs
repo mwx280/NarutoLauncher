@@ -101,31 +101,30 @@ public partial class SettingsView : UserControl
     private async Task ToggleFlashGpuAsync()
     {
         var target = FlashGpuBox.IsChecked != true;
-        if (target)
+        if (!target)
         {
+            // 关闭硬件加速时弹出确认提示
             var options = new SimpleContentDialogCreateOptions
             {
                 Title = "Flash 硬件加速",
                 Content =
-                    "此开关控制 Flash 的 GPU 硬件加速（3D/Stage3D 渲染）。\n" +
-                    "火影忍者OL 这类传统 Flash 页游画面主要由 CPU 渲染，\n" +
-                    "开启硬件加速基本没有提升。\n\n" +
-                    "开启后可能带来副作用：\n" +
-                    "· 画面花屏、闪烁或黑屏\n" +
-                    "· 游戏崩溃或加载异常\n" +
-                    "· 占用更多内存和资源\n\n" +
-                    "不建议开启。此设置需要重新进入游戏才会生效。\n\n" +
-                    "确定要开启吗？",
-                CloseButtonText = "关闭",
-                PrimaryButtonText = "开启",
-                SecondaryButtonText = "取消",
-                DefaultButton = ContentDialogButton.Secondary,
+                    "实测关闭硬件加速后游戏流畅度会明显下降，\n" +
+                    "GPU 合成默认开启，画面更流畅、延迟更低。\n\n" +
+                    "关闭后可能表现：\n" +
+                    "· 游戏帧率降低、操作卡顿\n" +
+                    "· 大规模战斗场景掉帧\n" +
+                    "· 画面响应变慢\n\n" +
+                    "不建议关闭。此设置需要重新进入游戏才会生效。\n\n" +
+                    "确定要关闭吗？",
+                CloseButtonText = "取消",
+                PrimaryButtonText = "关闭",
+                DefaultButton = ContentDialogButton.Primary,
             };
             var result = await App.CurrentApp.DialogService.ShowSimpleDialogAsync(options);
             if (result != ContentDialogResult.Primary)
                 return;
         }
-        // 确认开启，或直接关闭（关闭无需确认）
+        // 确认关闭，或直接开启（开启无需确认）
         FlashGpuBox.IsChecked = target;
         App.CurrentApp.Settings.FlashHardwareAcceleration = target;
     }
