@@ -147,32 +147,34 @@ public partial class GameWindow : FluentWindow
             Margin = new Thickness(0, 0, 8, 0),
         };
 
-        // 关闭按钮：hover 显示淡红色圆形背景
-        var close = new Controls.Button
+        // 关闭按钮：圆形，hover 显示红色小圆圈
+        var close = new Controls.Border
         {
-            Content = "✕",
-            Tag = account,
             Width = 20,
             Height = 20,
-            Padding = new Thickness(0),
-            FontSize = 11,
+            CornerRadius = new CornerRadius(10),
             Background = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
+            Tag = account,
             VerticalAlignment = VerticalAlignment.Center,
             ToolTip = $"关闭 {account.DisplayName} 的游戏窗口",
         };
-        var closeStyle = new Style(typeof(Controls.Button));
-        var closeHover = new Trigger
+        var closeText = new Controls.TextBlock
         {
-            Property = Controls.Button.IsMouseOverProperty,
-            Value = true,
+            Text = "✕",
+            FontSize = 11,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextAlignment = TextAlignment.Center,
         };
-        closeHover.Setters.Add(new Setter(Controls.Button.BackgroundProperty,
-            new SolidColorBrush(Color.FromArgb(0x40, 0xE8, 0x48, 0x2C))));
-        closeStyle.Triggers.Add(closeHover);
-        close.Style = closeStyle;
-        close.PreviewMouseLeftButtonDown += (_, e) => e.Handled = true;
-        close.Click += OnCloseTabClick;
+        close.Child = closeText;
+        close.MouseEnter += (_, _) =>
+            close.Background = new SolidColorBrush(Color.FromArgb(0xCC, 0xE8, 0x48, 0x2C));
+        close.MouseLeave += (_, _) => close.Background = Brushes.Transparent;
+        close.MouseLeftButtonDown += (_, e) =>
+        {
+            e.Handled = true;
+            CloseTab(account.Id);
+        };
 
         var sp = new Controls.StackPanel { Orientation = Controls.Orientation.Horizontal };
         sp.Children.Add(avatar);
@@ -186,7 +188,7 @@ public partial class GameWindow : FluentWindow
                                                 typeof(TabViewItem), 1),
         };
         text.SetBinding(Controls.TextBlock.ForegroundProperty, fgBinding);
-        close.SetBinding(Controls.Button.ForegroundProperty, fgBinding);
+        closeText.SetBinding(Controls.TextBlock.ForegroundProperty, fgBinding);
 
         var item = new TabViewItem
         {
@@ -196,15 +198,6 @@ public partial class GameWindow : FluentWindow
             Padding = new Thickness(8, 2, 8, 2),
         };
         return item;
-    }
-
-    private void OnCloseTabClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is Controls.Button { Tag: Account acc })
-        {
-            e.Handled = true;
-            CloseTab(acc.Id);
-        }
     }
 
     private void OnTabSelectionChanged(object sender, Controls.SelectionChangedEventArgs e)
