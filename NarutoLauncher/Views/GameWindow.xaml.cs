@@ -77,7 +77,6 @@ public partial class GameWindow : FluentWindow
     {
         InitializeComponent();
         Closed += OnWindowClosed;
-        StateChanged += OnWindowStateChanged;
         // 账号头像设置变化时，刷新所有标签头像
         App.CurrentApp.Settings.AvatarDisplayChanged += OnAvatarDisplayChanged;
         // hover 菜单：移出立即关闭；按钮移出允许短暂移入菜单（80ms）
@@ -474,77 +473,5 @@ public partial class GameWindow : FluentWindow
             _isFullScreen = false;
             FullscreenBtn.ToolTip = "全屏";
         }
-    }
-
-    // ===== 窗口控制按钮（最小化 / 最大化 / 关闭） =====
-
-    private void OnMinimizeClick(object sender, RoutedEventArgs e)
-    {
-        WindowState = WindowState.Minimized;
-    }
-
-    private void OnMaximizeClick(object sender, RoutedEventArgs e)
-    {
-        WindowState = WindowState == WindowState.Maximized
-            ? WindowState.Normal
-            : WindowState.Maximized;
-    }
-
-    private void OnCloseClick(object sender, RoutedEventArgs e)
-    {
-        Close();
-    }
-
-    /// <summary>最大化/还原状态变化：切换最大化按钮图标。</summary>
-    private void OnWindowStateChanged(object? sender, EventArgs e)
-    {
-        var maximized = WindowState == WindowState.Maximized;
-        MaxIcon.Visibility = maximized ? Visibility.Collapsed : Visibility.Visible;
-        RestoreIcon.Visibility = maximized ? Visibility.Visible : Visibility.Collapsed;
-        MaxBtn.ToolTip = maximized ? "还原" : "最大化";
-    }
-
-    /// <summary>标签条空白区：单击拖动窗口，双击最大化/还原。</summary>
-    private void OnTitleBarMouseDown(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ChangedButton != MouseButton.Left)
-            return;
-        // 点击标签或窗口控制按钮时不触发拖动
-        if (e.OriginalSource is DependencyObject src &&
-            (FindVisualParent<Button>(src) != null ||
-             FindVisualParent<TabView>(src) != null))
-            return;
-
-        if (e.ClickCount == 2)
-        {
-            if (_isFullScreen)
-                OnToggleFullscreen(sender, e);
-            else
-                OnMaximizeClick(sender, e);
-            return;
-        }
-
-        if (_isFullScreen || WindowState == WindowState.Maximized)
-            return;
-        try
-        {
-            DragMove();
-        }
-        catch (InvalidOperationException)
-        {
-            // 拖动过程中窗口状态变化会抛异常，忽略
-        }
-    }
-
-    /// <summary>向上查找可视树中的指定类型祖先。</summary>
-    private static T? FindVisualParent<T>(DependencyObject? child) where T : DependencyObject
-    {
-        while (child != null)
-        {
-            if (child is T match)
-                return match;
-            child = System.Windows.Media.VisualTreeHelper.GetParent(child);
-        }
-        return null;
     }
 }
