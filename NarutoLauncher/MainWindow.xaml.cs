@@ -42,7 +42,6 @@ public partial class MainWindow : FluentWindow
         {
             NavView.Visibility = Visibility.Collapsed;
             ClassicLayout.Visibility = Visibility.Visible;
-            App.CurrentApp.DialogService.SetDialogHost(ClassicDialogHost);
             // 经典模式默认选中首页
             if (NavList.SelectedIndex < 0)
                 NavList.SelectedIndex = 0;

@@ -194,7 +194,6 @@
             </Border>
             <Grid Grid.Column="1">
                 <ContentControl x:Name="ClassicContentHost"/>
-                <ui:ContentDialogHost x:Name="ClassicDialogHost" Grid.ColumnSpan="2" IsDisableSiblingsEnabled="True"/>
             </Grid>
         </Grid>
 
@@ -241,9 +240,8 @@
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
             </ui:NavigationView.FooterMenuItems>
-            <ui:NavigationView.ContentOverlay>
-                <ui:ContentDialogHost x:Name="ContentDialogHost" IsDisableSiblingsEnabled="True" />
-            </ui:NavigationView.ContentOverlay>
         </ui:NavigationView>
+        <!-- 全局对话框宿主（两种导航风格共享） -->
+        <ui:ContentDialogHost x:Name="ContentDialogHost" Grid.Row="1" IsDisableSiblingsEnabled="True" />
     </Grid>
 </ui:FluentWindow>
