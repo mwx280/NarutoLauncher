@@ -1,7 +1,10 @@
+using System.ComponentModel;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Threading;
 using Media = System.Windows.Media;
 using NarutoLauncher.Services;
 using Wpf.Ui;
@@ -28,6 +31,10 @@ public partial class App : Application
     public bool IsExiting { get; private set; }
 
     private TrayIcon? _trayIcon;
+    private Mutex? _instanceMutex;
+
+    /// <summary>单实例互斥体名称（第二个实例启动时检测并激活现有实例）。</summary>
+    private const string InstanceMutexName = "NarutoLauncher_SingleInstance";
 
     public App()
     {
@@ -39,6 +46,15 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // 单实例：已有实例则激活其主窗口后退出
+        _instanceMutex = new Mutex(true, InstanceMutexName, out var createdNew);
+        if (!createdNew)
+        {
+            ActivateExistingInstance();
+            Shutdown();
+            return;
+        }
 
         // 应用主题（深色/浅色 + 强调色）
         var s = Settings;
@@ -195,8 +211,30 @@ public partial class App : Application
             _trayIcon.Dispose();
             _trayIcon = null;
         }
+        _instanceMutex?.ReleaseMutex();
+        _instanceMutex?.Dispose();
         base.OnExit(e);
     }
+
+    /// <summary>激活已运行实例的主窗口（恢复并前置）。</summary>
+    private static void ActivateExistingInstance()
+    {
+        var hwnd = FindWindow(null, "火影忍者OL 启动器");
+        if (hwnd != IntPtr.Zero)
+        {
+            ShowWindow(hwnd, 9);  // SW_RESTORE
+            SetForegroundWindow(hwnd);
+        }
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern nint FindWindow(string? className, string windowName);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(nint hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(nint hWnd);
 
     /// <summary>解析 #RRGGBB 颜色。</summary>
     private static System.Windows.Media.Color ParseColor(string hex)
