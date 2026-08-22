@@ -110,7 +110,9 @@ public static class ServerCatalog
 
     private static string TrimZoneName(string name)
     {
-        var i = name.IndexOf(' ');
-        return i > 0 ? name[..i] : name;
+        // 区服名格式多样：公测856区 / 联盟1区 / 1区 / 801区极·沙时雨（无空格连接）
+        // 统一取「<前缀>数字区」作为区服名，去掉后面的服务器名
+        var m = Regex.Match(name, @"^(.*?\d+区)");
+        return m.Success ? m.Groups[1].Value : name;
     }
 }

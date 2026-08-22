@@ -171,11 +171,11 @@ public static class CookieParser
         return s;
     }
 
-    /// <summary>截取区名（去掉后面的服务器名）：「公测856区 光刃那都」→「公测856区」。</summary>
+    /// <summary>截取区名（去掉服务器名）：支持「公测856区 光刃那都」「联盟1区 九尾妖狐」「801区极·沙时雨」等。</summary>
     private static string TrimZoneName(string name)
     {
-        var i = name.IndexOf(' ');
-        return i > 0 ? name[..i] : name;
+        var m = System.Text.RegularExpressions.Regex.Match(name, @"^(.*?\d+区)");
+        return m.Success ? m.Groups[1].Value : name;
     }
 
     /// <summary>从 tmpLastLoginInfo（URL 编码 JSON）提取上次登录区服 ID。</summary>
