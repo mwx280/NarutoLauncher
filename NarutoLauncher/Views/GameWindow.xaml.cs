@@ -327,7 +327,18 @@ public partial class GameWindow : FluentWindow
 
     private void OnToggleMute(object sender, RoutedEventArgs e)
     {
+        _muted = !_muted;
+        UpdateMuteButton();
         SendCommand(CmdToggleMute);
+    }
+
+    private bool _muted;
+
+    /// <summary>静音按钮图标与提示随状态切换（未静音=音量图标，静音=静音图标）。</summary>
+    private void UpdateMuteButton()
+    {
+        MuteIcon.Symbol = _muted ? SymbolRegular.SpeakerMute20 : SymbolRegular.Speaker020;
+        MuteBtn.ToolTip = _muted ? "已静音" : "静音";
     }
 
     private void OnToggleSpeed(object sender, RoutedEventArgs e)
