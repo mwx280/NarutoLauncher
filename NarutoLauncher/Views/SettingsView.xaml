@@ -223,6 +223,9 @@
                 </Grid>
             </Border>
 
+            <!-- ===== 画质分组 ===== -->
+            <TextBlock Text="画质" Style="{StaticResource GroupTitleStyle}"/>
+
             <!-- Flash 硬件加速 -->
             <Border Style="{StaticResource SettingRowStyle}">
                 <Grid>
