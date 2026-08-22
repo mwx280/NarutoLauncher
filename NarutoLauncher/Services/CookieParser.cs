@@ -134,40 +134,18 @@ public static class CookieParser
         return plain;
     }
 
-    /// <summary>解码区服名：支持 %uXXXX（JS Unicode）与 %xx（GBK 字节百分号编码）。</summary>
+    /// <summary>解码区服名（escape 编码）：%uXXXX（中文）+ %XX（≤255 字符如间隔点 ·=0xB7）。</summary>
     private static string DecodeJsUnicode(string s)
     {
         if (string.IsNullOrEmpty(s))
             return s;
-        // %uXXXX（JS Unicode 转义）
         s = System.Text.RegularExpressions.Regex.Replace(
             s, "%u([0-9a-fA-F]{4})",
             m => ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString());
-        // %xx 百分号编码（GBK 字节），如「公测856区 光刃那都」
-        if (s.Contains('%'))
-        {
-            try
-            {
-                var bytes = new List<byte>();
-                for (int i = 0; i < s.Length; i++)
-                {
-                    if (s[i] == '%' && i + 2 < s.Length &&
-                        Uri.IsHexDigit(s[i + 1]) && Uri.IsHexDigit(s[i + 2]))
-                    {
-                        bytes.Add(Convert.ToByte(s.Substring(i + 1, 2), 16));
-                        i += 2;
-                    }
-                    else
-                    {
-                        bytes.AddRange(Encoding.GetEncoding("GBK").GetBytes(s[i].ToString()));
-                    }
-                }
-                return Encoding.GetEncoding("GBK").GetString(bytes.ToArray());
-            }
-            catch
-            {
-            }
-        }
+        // %XX 是单字节字符（escape 对 ≤255 字符用 %XX，如 · U+00B7）
+        s = System.Text.RegularExpressions.Regex.Replace(
+            s, "%([0-9a-fA-F]{2})",
+            m => ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString());
         return s;
     }
 
