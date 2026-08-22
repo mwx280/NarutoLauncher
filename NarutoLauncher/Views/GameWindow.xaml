@@ -69,29 +69,6 @@
             </ui:TitleBar.Header>
             <ui:TitleBar.TrailingContent>
                 <StackPanel Orientation="Horizontal">
-                    <Button x:Name="MenuBtn"
-                            Width="44" Height="30" Padding="0"
-                            VerticalAlignment="Top"
-                            Background="Transparent"
-                            ToolTip="菜单"
-                            Click="OnMenuButtonClick">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background"
-                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <Image Source="/assets/favicon.png" Width="16" Height="16"
-                               RenderOptions.BitmapScalingMode="HighQuality"/>
-                    </Button>
                     <Button x:Name="RefreshBtn"
                             Width="44" Height="30" Padding="0"
                             VerticalAlignment="Top"
