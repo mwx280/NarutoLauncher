@@ -3,7 +3,6 @@
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:views="clr-namespace:NarutoLauncher.Views"
-                 xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
                  Title="火影忍者OL"
                  Icon="/assets/favicon.png"
                  Height="800" Width="1200"
@@ -23,18 +22,12 @@
                 <ui:TabView x:Name="TabBar" Margin="6,0,6,0"
                             Background="Transparent" BorderThickness="0"
                             TabStripPlacement="Top"
-                            VerticalAlignment="Stretch"
+                            VerticalAlignment="Center"
                             SelectionChanged="OnTabSelectionChanged">
-                    <!-- 只显示标签条（TabPanel），去掉 TabControl 默认空内容区，避免 Tab 与游戏窗口之间留白 -->
-                    <ui:TabView.Template>
-                        <ControlTemplate TargetType="{x:Type ui:TabView}">
-                            <primitives:TabPanel IsItemsHost="True" Background="Transparent"/>
-                        </ControlTemplate>
-                    </ui:TabView.Template>
                     <ui:TabView.ItemContainerStyle>
                         <Style TargetType="{x:Type ui:TabViewItem}">
                             <Setter Property="Padding" Value="14,5"/>
-                            <Setter Property="Margin" Value="0,0,6,0"/>
+                            <Setter Property="Margin" Value="0,2,6,2"/>
                             <Setter Property="FontSize" Value="13"/>
                             <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
                             <Setter Property="Template">
