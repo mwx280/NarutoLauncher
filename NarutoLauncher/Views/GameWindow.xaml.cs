@@ -286,6 +286,43 @@ public partial class GameWindow : FluentWindow
         PostMessage(hwnd, WM_APP + cmd, wParam, IntPtr.Zero);
     }
 
+    private void OnMenuButtonClick(object sender, RoutedEventArgs e)
+    {
+        var menu = new Controls.ContextMenu();
+
+        var home = new Controls.MenuItem { Header = "主窗口" };
+        home.Click += (_, _) => ShowMainWindow();
+        menu.Items.Add(home);
+
+        var start = new Controls.MenuItem { Header = "开始游戏" };
+        foreach (var acc in App.CurrentApp.Accounts.Accounts)
+        {
+            var item = new Controls.MenuItem { Header = acc.DisplayName, Tag = acc };
+            item.Click += (_, _) =>
+            {
+                if (item.Tag is Account a)
+                    OpenAccount(a, this);
+            };
+            start.Items.Add(item);
+        }
+        menu.Items.Add(start);
+
+        MenuBtn.ContextMenu = menu;
+        menu.PlacementTarget = MenuBtn;
+        menu.IsOpen = true;
+    }
+
+    private void ShowMainWindow()
+    {
+        var main = App.CurrentApp.MainWindow;
+        if (main == null)
+            return;
+        main.Show();
+        if (main.WindowState == WindowState.Minimized)
+            main.WindowState = WindowState.Normal;
+        main.Activate();
+    }
+
     private void OnRefreshGame(object sender, RoutedEventArgs e)
     {
         SendCommand(CmdRefresh);
