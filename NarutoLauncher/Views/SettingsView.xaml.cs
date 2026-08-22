@@ -168,7 +168,7 @@ public partial class SettingsView : UserControl
         {
             Title = "分辨率模式",
             Content =
-                "画质优先模式会关闭 Flash 画质降级 hook，\n" +
+                "画质优先模式会损失部分性能优化，\n" +
                 "全局 Flash 画质（如木叶村等场景）以及文字\n" +
                 "都将被设置为高画质，游戏流畅度会受到较大影响。\n\n" +
                 "除非游戏窗口显示过小，否则不建议开启画质优先。\n\n" +
