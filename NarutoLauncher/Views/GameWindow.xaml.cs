@@ -155,7 +155,7 @@ public partial class GameWindow : FluentWindow
             VerticalAlignment = VerticalAlignment.Center,
             ClipToBounds = true,
         };
-        if (avatarType == AvatarType.QqAvatar && account.UseQqAvatar)
+        if (avatarType == AvatarType.QqAvatar && !string.IsNullOrEmpty(account.QQ))
         {
             var img = new Controls.Image
             {

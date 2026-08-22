@@ -208,7 +208,7 @@ public partial class App : Application
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
         };
-        if (avatarType == AvatarType.QqAvatar && account.UseQqAvatar)
+        if (avatarType == AvatarType.QqAvatar && !string.IsNullOrEmpty(account.QQ))
         {
             var img = new System.Windows.Controls.Image
             {
