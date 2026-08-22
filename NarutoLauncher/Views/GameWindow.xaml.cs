@@ -25,6 +25,7 @@ public partial class GameWindow : FluentWindow
         public required GameSession Session { get; init; }
         public required GameHostView Host { get; init; }
         public required TabViewItem TabItem { get; init; }
+        public required Controls.Border AvatarHost { get; init; }
     }
 
     public static GameWindow? Shared { get; private set; }
@@ -64,6 +65,20 @@ public partial class GameWindow : FluentWindow
     {
         InitializeComponent();
         Closed += OnWindowClosed;
+        // 账号头像设置变化时，刷新所有标签头像
+        App.CurrentApp.Settings.AvatarDisplayChanged += OnAvatarDisplayChanged;
+    }
+
+    private void OnAvatarDisplayChanged()
+    {
+        foreach (var tab in _tabs)
+            RefreshAvatar(tab);
+    }
+
+    /// <summary>按当前头像设置重建标签头像内容。</summary>
+    private static void RefreshAvatar(SessionTab tab)
+    {
+        tab.AvatarHost.Child = BuildAvatar(tab.Account);
     }
 
     private void AddAccount(Account account)
@@ -111,22 +126,23 @@ public partial class GameWindow : FluentWindow
         var host = new GameHostView { ChildWindowHandle = hwnd };
         GameHostContainer.Children.Add(host);
 
-        var tabItem = BuildTabItem(account);
+        var (tabItem, avatar) = BuildTabItem(account);
         var tab = new SessionTab
         {
             Account = account,
             Session = session,
             Host = host,
             TabItem = tabItem,
+            AvatarHost = avatar,
         };
         TabBar.Items.Add(tabItem);
         _tabs.Add(tab);
         ActivateTab(tab);
     }
 
-    private TabViewItem BuildTabItem(Account account)
+    /// <summary>构建账号头像小圆（复用账号管理的头像设置：备注首字/QQ首数字/QQ头像）。</summary>
+    private static Controls.Border BuildAvatar(Account account)
     {
-        // 账号头像小圆（复用账号管理的头像设置：备注首字/QQ首数字/QQ头像）
         var avatarType = App.CurrentApp.Settings.AvatarDisplay;
         var avatar = new Controls.Border
         {
@@ -166,6 +182,12 @@ public partial class GameWindow : FluentWindow
                 VerticalAlignment = VerticalAlignment.Center,
             };
         }
+        return avatar;
+    }
+
+    private (TabViewItem Item, Controls.Border Avatar) BuildTabItem(Account account)
+    {
+        var avatar = BuildAvatar(account);
 
         var text = new Controls.TextBlock
         {
@@ -224,7 +246,7 @@ public partial class GameWindow : FluentWindow
             Tag = account,
             Padding = new Thickness(8, 2, 8, 2),
         };
-        return item;
+        return (item, avatar);
     }
 
     private void OnTabSelectionChanged(object sender, Controls.SelectionChangedEventArgs e)

@@ -56,6 +56,9 @@ public class SettingsService
 
     /// <summary>导航风格变更后触发（供 SettingsView 刷新下拉框）。</summary>
     public static event Action? NavigationStyleChangedExternally;
+
+    /// <summary>账号头像显示类型变更时触发（游戏窗口 Tab 头像跟随刷新）。</summary>
+    public event Action? AvatarDisplayChanged;
     private const string SettingsFileName = "settings.json";
 
     private readonly string _path;
@@ -188,6 +191,7 @@ public class SettingsService
             {
                 _avatarDisplay = value;
                 Save();
+                AvatarDisplayChanged?.Invoke();
             }
         }
     }

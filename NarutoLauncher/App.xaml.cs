@@ -1,11 +1,14 @@
 using System.ComponentModel;
 using System.Drawing;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Threading;
 using Media = System.Windows.Media;
+using NarutoLauncher.Converters;
+using NarutoLauncher.Models;
 using NarutoLauncher.Services;
 using Wpf.Ui;
 using Ui = Wpf.Ui.Controls;
@@ -124,8 +127,7 @@ public partial class App : Application
                 var accRef = acc;
                 var item = new Ui.MenuItem
                 {
-                    Header = acc.DisplayName,
-                    Icon = MakeIcon(Ui.SymbolRegular.Person20),
+                    Header = BuildAccountHeader(acc),
                 };
                 ApplyMenuItemTheme(item);
                 item.Click += (_, _) =>
@@ -171,6 +173,69 @@ public partial class App : Application
         ApplyTheme(icon, Control.ForegroundProperty,
             "TextFillColorPrimaryBrush", 0xFFE8E8E8);
         return icon;
+    }
+
+    /// <summary>账号子项：账号头像 + 备注（头像跟随账号管理设置）。</summary>
+    private static StackPanel BuildAccountHeader(Account account)
+    {
+        var avatar = BuildTrayAvatar(account);
+        var text = new TextBlock
+        {
+            Text = account.DisplayName,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        ApplyTheme(text, Control.ForegroundProperty,
+            "TextFillColorPrimaryBrush", 0xFFE8E8E8);
+
+        var sp = new StackPanel { Orientation = Orientation.Horizontal };
+        sp.Children.Add(avatar);
+        sp.Children.Add(text);
+        return sp;
+    }
+
+    /// <summary>账号头像小圆（复用账号管理的头像设置：备注首字/QQ首数字/QQ头像）。</summary>
+    private static Border BuildTrayAvatar(Account account)
+    {
+        var avatarType = CurrentApp.Settings.AvatarDisplay;
+        var border = new Border
+        {
+            Width = 16,
+            Height = 16,
+            CornerRadius = new CornerRadius(8),
+            Background = CurrentApp.Resources["AccentFillColorDefaultBrush"] as Media.Brush
+                          ?? new Media.SolidColorBrush(Media.Color.FromRgb(0xE8, 0x48, 0x2C)),
+            ClipToBounds = true,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+        };
+        if (avatarType == AvatarType.QqAvatar && account.UseQqAvatar)
+        {
+            var img = new System.Windows.Controls.Image
+            {
+                Stretch = Media.Stretch.UniformToFill,
+                Clip = new Media.EllipseGeometry(new System.Windows.Point(8, 8), 8, 8),
+            };
+            img.Source = new QqAvatarConverter().Convert(
+                new object[] { account, avatarType }, typeof(Media.ImageSource),
+                null!, CultureInfo.InvariantCulture) as Media.ImageSource;
+            border.Child = img;
+        }
+        else
+        {
+            var ch = new AvatarCharDisplayConverter().Convert(
+                new object[] { account, avatarType }, typeof(string),
+                null!, CultureInfo.InvariantCulture) as string ?? "?";
+            border.Child = new TextBlock
+            {
+                Text = ch,
+                FontSize = 8,
+                FontWeight = FontWeights.Bold,
+                Foreground = Media.Brushes.White,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+        }
+        return border;
     }
 
     /// <summary>动态绑定主题资源（主题切换自动更新）；键不存在时用不透明兜底色。</summary>
