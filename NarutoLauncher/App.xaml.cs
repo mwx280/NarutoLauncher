@@ -81,24 +81,24 @@ public partial class App : Application
         }
     }
 
-    /// <summary>构建托盘 WPF 菜单（WPF-UI MenuItem，深色主题 + 图标）。</summary>
+    /// <summary>构建托盘 WPF 菜单（WPF-UI MenuItem，动态主题：不透明背景 + 主题文字/图标色）。</summary>
     private ContextMenu BuildTrayMenu()
     {
-        var menu = new ContextMenu
-        {
-            Background = TryBrush("CardBackgroundFillColorDefaultBrush")
-                         ?? new Media.SolidColorBrush(Media.Color.FromRgb(0x1E, 0x1E, 0x1E)),
-            BorderBrush = TryBrush("CardStrokeColorDefaultBrush")
-                          ?? new Media.SolidColorBrush(Media.Color.FromRgb(0x3A, 0x3A, 0x3A)),
-            Foreground = TryBrush("TextFillColorPrimaryBrush")
-                         ?? new Media.SolidColorBrush(Media.Color.FromRgb(0xE8, 0xE8, 0xE8)),
-        };
+        var menu = new ContextMenu();
+        ApplyTheme(menu, ContextMenu.BackgroundProperty,
+            "SolidBackgroundFillColorBaseBrush", 0xFF1E1E1E);
+        ApplyTheme(menu, ContextMenu.BorderBrushProperty,
+            "CardStrokeColorDefaultBrush", 0xFF3A3A3A);
+        ApplyTheme(menu, ContextMenu.ForegroundProperty,
+            "TextFillColorPrimaryBrush", 0xFFE8E8E8);
 
         var home = new Ui.MenuItem { Header = "主窗口", Icon = MakeIcon(Ui.SymbolRegular.Home24) };
+        ApplyMenuItemTheme(home);
         home.Click += (_, _) => ShowMainWindow();
         menu.Items.Add(home);
 
         var start = new Ui.MenuItem { Header = "开始游戏", Icon = MakeIcon(Ui.SymbolRegular.Play24) };
+        ApplyMenuItemTheme(start);
         menu.Items.Add(start);
         menu.Opened += (_, _) =>
         {
@@ -111,6 +111,7 @@ public partial class App : Application
                     Header = acc.DisplayName,
                     Icon = MakeIcon(Ui.SymbolRegular.Person20),
                 };
+                ApplyMenuItemTheme(item);
                 item.Click += (_, _) =>
                 {
                     Dispatcher.Invoke(() =>
@@ -129,6 +130,7 @@ public partial class App : Application
         };
 
         var exit = new Ui.MenuItem { Header = "退出", Icon = MakeIcon(Ui.SymbolRegular.SignOut24) };
+        ApplyMenuItemTheme(exit);
         exit.Click += (_, _) =>
         {
             IsExiting = true;
@@ -139,22 +141,36 @@ public partial class App : Application
         return menu;
     }
 
-    /// <summary>创建菜单图标（前景随主题，默认主题文字色）。</summary>
-    private static Ui.SymbolIcon MakeIcon(Ui.SymbolRegular symbol)
+    /// <summary>菜单项前景跟随主题文字色（深色下白色，浅色下黑色）。</summary>
+    private static void ApplyMenuItemTheme(Ui.MenuItem item)
     {
-        return new Ui.SymbolIcon
-        {
-            Symbol = symbol,
-            FontSize = 16,
-            Foreground = TryBrush("TextFillColorPrimaryBrush")
-                         ?? new Media.SolidColorBrush(Media.Color.FromRgb(0xE8, 0xE8, 0xE8)),
-        };
+        ApplyTheme(item, Control.ForegroundProperty,
+            "TextFillColorPrimaryBrush", 0xFFE8E8E8);
     }
 
-    /// <summary>从应用主题资源取画刷（不存在返回 null）。</summary>
-    private static Media.Brush? TryBrush(string key)
+    /// <summary>创建菜单图标（前景跟随主题文字色）。</summary>
+    private static Ui.SymbolIcon MakeIcon(Ui.SymbolRegular symbol)
     {
-        return CurrentApp.Resources[key] as Media.Brush;
+        var icon = new Ui.SymbolIcon { Symbol = symbol, FontSize = 16 };
+        ApplyTheme(icon, Control.ForegroundProperty,
+            "TextFillColorPrimaryBrush", 0xFFE8E8E8);
+        return icon;
+    }
+
+    /// <summary>动态绑定主题资源（主题切换自动更新）；键不存在时用不透明兜底色。</summary>
+    private static void ApplyTheme(FrameworkElement el, DependencyProperty dp,
+                                   string key, uint fallbackRgb)
+    {
+        if (CurrentApp.Resources[key] is Media.Brush)
+        {
+            el.SetResourceReference(dp, key);
+        }
+        else
+        {
+            el.SetValue(dp, new Media.SolidColorBrush(Media.Color.FromRgb(
+                (byte)(fallbackRgb >> 16), (byte)(fallbackRgb >> 8),
+                (byte)fallbackRgb)));
+        }
     }
 
     /// <summary>显示并激活主窗口（最小化则恢复）。</summary>
