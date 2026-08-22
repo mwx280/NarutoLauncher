@@ -50,6 +50,18 @@ public static class ServerCatalog
         return d?.Recommend ?? new List<int>();
     }
 
+    /// <summary>全部区服（按 ID 升序），供区服选择下拉使用。</summary>
+    public static async Task<List<(int Id, string Name)>> GetAllServersAsync()
+    {
+        var d = await LoadAsync();
+        if (d is null)
+            return new List<(int, string)>();
+        return d.Servers
+            .OrderBy(kv => kv.Key)
+            .Select(kv => (kv.Key, kv.Value))
+            .ToList();
+    }
+
     private static async Task<Data?> LoadAsync()
     {
         if (_data is not null)

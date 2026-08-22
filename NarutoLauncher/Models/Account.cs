@@ -25,6 +25,7 @@ public class Account : INotifyPropertyChanged
     private string _qq = "";
     private string _pwd = "";
     private string _server = "";
+    private int _serverId;
     private int _level;
     private string _power = "";
     private string _character = "";
@@ -48,6 +49,13 @@ public class Account : INotifyPropertyChanged
 
     /// <summary>所在区服。</summary>
     public string Server { get => _server; set { _server = value; OnChanged(); } }
+
+    /// <summary>区服 ID（0 表示未知）。</summary>
+    public int ServerId
+    {
+        get => _serverId;
+        set { _serverId = value; OnChanged(); }
+    }
 
     /// <summary>角色等级。</summary>
     public int Level { get => _level; set { _level = value; OnChanged(); } }
