@@ -29,6 +29,9 @@ public partial class GameWindow : FluentWindow
 
     public static GameWindow? Shared { get; private set; }
 
+    /// <summary>选区页：开始游戏先进选区页，用户点「开始游戏」进对应区（可换区）。</summary>
+    private const string ServerSelectUrl = "https://huoying.qq.com/server/website/";
+
     private readonly List<SessionTab> _tabs = new();
     private SessionTab? _activeTab;
     private bool _isFullScreen;
@@ -77,7 +80,8 @@ public partial class GameWindow : FluentWindow
     private async Task StartTabAsync(Account account)
     {
         var session = App.CurrentApp.Games.StartGame(
-            account, new WindowInteropHelper(this).Handle);
+            account, new WindowInteropHelper(this).Handle,
+            urlOverride: ServerSelectUrl);
         if (session == null)
         {
             PlaceholderText.Text = "启动失败，请确认 GameHost 已就位";

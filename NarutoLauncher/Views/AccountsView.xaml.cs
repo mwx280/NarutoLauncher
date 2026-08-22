@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using NarutoLauncher.Models;
@@ -11,9 +10,6 @@ namespace NarutoLauncher.Views;
 
 public partial class AccountsView : UserControl
 {
-    /// <summary>官方选区页（用户自行选区，选区后写入 cookie）。</summary>
-    private const string ServerSelectUrl = "https://huoying.qq.com/server/website/";
-
     // 全局头像显示类型（依赖属性，支持 DataTemplate 内绑定）
     public static readonly DependencyProperty AvatarDisplayProperty =
         DependencyProperty.Register(nameof(AvatarDisplay), typeof(AvatarType),
@@ -121,41 +117,6 @@ public partial class AccountsView : UserControl
         if (acc == null) return;
         // 复用共享的多开游戏窗口（顶部标签栏），在该窗口打开/切换账号标签
         GameWindow.OpenAccount(acc, Window.GetWindow(this));
-    }
-
-    /// <summary>切换区服：用 GameHost 打开官网选区页，用户自行选区（选区后写入 cookie）。</summary>
-    private void OnChangeServer(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button b || b.Tag is not long id) return;
-        var acc = App.CurrentApp.Accounts.Accounts.FirstOrDefault(a => a.Id == id);
-        if (acc == null) return;
-
-        var exe = App.CurrentApp.Games.GameHostPath;
-        if (exe == null)
-            return;
-
-        var psi = new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = exe,
-            WorkingDirectory = Path.GetDirectoryName(exe),
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-        psi.ArgumentList.Add($"--url={ServerSelectUrl}");
-        var ud = ResolveUserDataDir(acc);
-        if (ud != null)
-            psi.ArgumentList.Add($"--userdata={ud}");
-        psi.ArgumentList.Add("--windowed");
-        psi.ArgumentList.Add("--title=选择区服");
-        // 账号密码账号：传 QQ/密码自动填表登录；扫码账号 cookie 由 userdata 提供
-        if (!acc.ScanLogin && !string.IsNullOrEmpty(acc.Password))
-        {
-            psi.ArgumentList.Add($"--user={Convert.ToBase64String(Encoding.UTF8.GetBytes(acc.QQ))}");
-            psi.ArgumentList.Add($"--pass={Convert.ToBase64String(Encoding.UTF8.GetBytes(acc.Password))}");
-        }
-        if (!string.IsNullOrEmpty(acc.Cookies))
-            psi.ArgumentList.Add($"--cookie={Convert.ToBase64String(Encoding.UTF8.GetBytes(acc.Cookies))}");
-        System.Diagnostics.Process.Start(psi);
     }
 
     private void OnEditAccount(object sender, RoutedEventArgs e)

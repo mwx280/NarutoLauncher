@@ -104,10 +104,6 @@
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal"
                                             VerticalAlignment="Center">
-                                    <ui:Button Content="切换区服" Appearance="Secondary"
-                                               Width="80" Height="30" Margin="0,0,6,0"
-                                               ToolTip="打开官网选区页，在游戏中自行选择区服"
-                                               Click="OnChangeServer" Tag="{Binding Id}"/>
                                     <ui:Button Content="开始游戏" Appearance="Primary"
                                                Width="80" Height="30" Margin="0,0,6,0"
                                                Click="OnStartGame" Tag="{Binding Id}"/>

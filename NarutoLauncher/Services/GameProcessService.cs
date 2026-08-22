@@ -76,7 +76,8 @@ public class GameProcessService
     /// 启动一个账号的游戏窗口（内嵌模式）。
     /// </summary>
     public GameSession? StartGame(Account account, nint parentHwnd = 0,
-                                  string? flashQuality = null)
+                                  string? flashQuality = null,
+                                  string? urlOverride = null)
     {
         var exe = GameHostPath;
         if (exe == null)
@@ -101,7 +102,7 @@ public class GameProcessService
             UseShellExecute = false,
             CreateNoWindow = true,
         };
-        psi.ArgumentList.Add($"--url={DefaultGameUrl}");
+        psi.ArgumentList.Add($"--url={urlOverride ?? DefaultGameUrl}");
         psi.ArgumentList.Add($"--userdata={userdata}");
         psi.ArgumentList.Add($"--title=火影忍者OL - {account.DisplayName}");
         psi.ArgumentList.Add("--embed");
