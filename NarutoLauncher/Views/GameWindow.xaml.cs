@@ -1,9 +1,11 @@
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Controls = System.Windows.Controls;
+using NarutoLauncher.Converters;
 using NarutoLauncher.Models;
 using NarutoLauncher.Services;
 using Wpf.Ui.Controls;
@@ -120,25 +122,46 @@ public partial class GameWindow : FluentWindow
 
     private TabViewItem BuildTabItem(Account account)
     {
-        // 账号首字小圆头像
+        // 账号头像小圆（复用账号管理的头像设置：备注首字/QQ首数字/QQ头像）
+        var avatarType = App.CurrentApp.Settings.AvatarDisplay;
         var avatar = new Controls.Border
         {
-            Width = 18,
-            Height = 18,
-            CornerRadius = new CornerRadius(9),
-            Background = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
+            Width = 20,
+            Height = 20,
+            CornerRadius = new CornerRadius(10),
+            Background = App.CurrentApp.Resources["AccentFillColorDefaultBrush"] as Brush
+                          ?? new SolidColorBrush(Color.FromRgb(0xE8, 0x48, 0x2C)),
             Margin = new Thickness(0, 0, 8, 0),
             VerticalAlignment = VerticalAlignment.Center,
+            ClipToBounds = true,
         };
-        avatar.Child = new Controls.TextBlock
+        if (avatarType == AvatarType.QqAvatar && account.UseQqAvatar)
         {
-            Text = account.AvatarChar,
-            FontSize = 10,
-            FontWeight = FontWeights.Bold,
-            Foreground = Brushes.White,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
+            var img = new Controls.Image
+            {
+                Stretch = Stretch.UniformToFill,
+                Clip = new EllipseGeometry(new Point(10, 10), 10, 10),
+            };
+            img.Source = new QqAvatarConverter().Convert(
+                new object[] { account, avatarType }, typeof(ImageSource),
+                null!, CultureInfo.InvariantCulture) as ImageSource;
+            avatar.Child = img;
+        }
+        else
+        {
+            var avatarChar = new AvatarCharDisplayConverter().Convert(
+                new object[] { account, avatarType }, typeof(string),
+                null!, CultureInfo.InvariantCulture) as string ?? "?";
+            avatar.Child = new Controls.TextBlock
+            {
+                Text = avatarChar,
+                FontSize = 11,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.White,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+        }
 
         var text = new Controls.TextBlock
         {
