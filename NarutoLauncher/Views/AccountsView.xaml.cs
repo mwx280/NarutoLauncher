@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using NarutoLauncher.Models;
@@ -10,13 +11,8 @@ namespace NarutoLauncher.Views;
 
 public partial class AccountsView : UserControl
 {
-    /// <summary>区服下拉选项（标题分组 + 区服项）。</summary>
-    public sealed class ServerOption
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public bool IsHeader { get; set; }
-    }
+    /// <summary>官方选区页（用户自行选区，选区后写入 cookie）。</summary>
+    private const string ServerSelectUrl = "https://huoying.qq.com/server/website/";
 
     // 全局头像显示类型（依赖属性，支持 DataTemplate 内绑定）
     public static readonly DependencyProperty AvatarDisplayProperty =
@@ -28,10 +24,6 @@ public partial class AccountsView : UserControl
         get => (AvatarType)GetValue(AvatarDisplayProperty);
         set => SetValue(AvatarDisplayProperty, value);
     }
-
-    /// <summary>区服下拉数据源（ElementName 绑定）。</summary>
-    public System.Collections.ObjectModel.ObservableCollection<ServerOption> ServerOptions { get; }
-        = new();
 
     public AccountsView()
     {
@@ -56,29 +48,6 @@ public partial class AccountsView : UserControl
         AccountList.ItemsSource = accounts;
         CountText.Text = $"共 {accounts.Count} 个账号";
         _ = RefreshServerInfoAsync(accounts);
-        _ = LoadServerOptionsAsync();
-    }
-
-    /// <summary>构建区服下拉：最新服务器 + 全部区服（带标题分组）。</summary>
-    private async Task LoadServerOptionsAsync()
-    {
-        ServerOptions.Clear();
-        var newIds = await ServerCatalog.GetNewServersAsync();
-        if (newIds.Count > 0)
-        {
-            ServerOptions.Add(new ServerOption { Name = "最新服务器", IsHeader = true });
-            foreach (var id in newIds)
-            {
-                var name = await ServerCatalog.GetServerNameAsync(id);
-                if (name != null)
-                    ServerOptions.Add(new ServerOption { Id = id, Name = name });
-            }
-        }
-
-        var all = await ServerCatalog.GetAllServersAsync();
-        ServerOptions.Add(new ServerOption { Name = "全部区服", IsHeader = true });
-        foreach (var (id, name) in all)
-            ServerOptions.Add(new ServerOption { Id = id, Name = name });
     }
 
     /// <summary>账号对应的 GameHost userdata 目录（不存在返回 null）。</summary>
@@ -120,26 +89,6 @@ public partial class AccountsView : UserControl
         }
     }
 
-    /// <summary>区服下拉切换：写入该账号 cookie 的区服信息。</summary>
-    private async void OnServerChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (sender is ComboBox cb && cb.Tag is Account acc &&
-            cb.SelectedItem is ServerOption opt && !opt.IsHeader)
-        {
-            if (acc.ServerId == opt.Id)
-                return;
-            var ud = ResolveUserDataDir(acc);
-            if (ud == null)
-                return;
-            var ok = await Task.Run(() => CookieWriter.WriteServerInfo(ud, opt.Id, opt.Name));
-            if (ok)
-            {
-                acc.Server = opt.Name;
-                acc.ServerId = opt.Id;
-            }
-        }
-    }
-
     private void OnAvatarDisplayChanged(object sender, SelectionChangedEventArgs e)
     {
         if (AvatarDisplayBox == null) return;
@@ -172,6 +121,41 @@ public partial class AccountsView : UserControl
         if (acc == null) return;
         // 复用共享的多开游戏窗口（顶部标签栏），在该窗口打开/切换账号标签
         GameWindow.OpenAccount(acc, Window.GetWindow(this));
+    }
+
+    /// <summary>切换区服：用 GameHost 打开官网选区页，用户自行选区（选区后写入 cookie）。</summary>
+    private void OnChangeServer(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button b || b.Tag is not long id) return;
+        var acc = App.CurrentApp.Accounts.Accounts.FirstOrDefault(a => a.Id == id);
+        if (acc == null) return;
+
+        var exe = App.CurrentApp.Games.GameHostPath;
+        if (exe == null)
+            return;
+
+        var psi = new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = exe,
+            WorkingDirectory = Path.GetDirectoryName(exe),
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+        psi.ArgumentList.Add($"--url={ServerSelectUrl}");
+        var ud = ResolveUserDataDir(acc);
+        if (ud != null)
+            psi.ArgumentList.Add($"--userdata={ud}");
+        psi.ArgumentList.Add("--windowed");
+        psi.ArgumentList.Add("--title=选择区服");
+        // 账号密码账号：传 QQ/密码自动填表登录；扫码账号 cookie 由 userdata 提供
+        if (!acc.ScanLogin && !string.IsNullOrEmpty(acc.Password))
+        {
+            psi.ArgumentList.Add($"--user={Convert.ToBase64String(Encoding.UTF8.GetBytes(acc.QQ))}");
+            psi.ArgumentList.Add($"--pass={Convert.ToBase64String(Encoding.UTF8.GetBytes(acc.Password))}");
+        }
+        if (!string.IsNullOrEmpty(acc.Cookies))
+            psi.ArgumentList.Add($"--cookie={Convert.ToBase64String(Encoding.UTF8.GetBytes(acc.Cookies))}");
+        System.Diagnostics.Process.Start(psi);
     }
 
     private void OnEditAccount(object sender, RoutedEventArgs e)

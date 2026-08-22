@@ -101,38 +101,13 @@
                                     <TextBlock Text="{Binding InfoText}"
                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                FontSize="12" Margin="0,2,0,0"/>
-                                    <!-- 切换区服下拉：最新服务器 / 全部区服 -->
-                                    <ComboBox Width="220" Height="24" FontSize="12" Margin="0,6,0,0"
-                                              ItemsSource="{Binding ServerOptions, ElementName=Root}"
-                                              SelectedValuePath="Id"
-                                              SelectedValue="{Binding ServerId, Mode=OneWay}"
-                                              Tag="{Binding}" SelectionChanged="OnServerChanged"
-                                              VerticalContentAlignment="Center"
-                                              Background="{DynamicResource ControlFillColorDefaultBrush}"
-                                              BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                                              BorderThickness="1">
-                                        <ComboBox.ItemContainerStyle>
-                                            <Style TargetType="ComboBoxItem">
-                                                <Setter Property="Padding" Value="6,3"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsHeader}" Value="True">
-                                                        <Setter Property="IsEnabled" Value="False"/>
-                                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                                        <Setter Property="Foreground"
-                                                                Value="{DynamicResource TextFillColorSecondaryBrush}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </ComboBox.ItemContainerStyle>
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal"
                                             VerticalAlignment="Center">
+                                    <ui:Button Content="切换区服" Appearance="Secondary"
+                                               Width="80" Height="30" Margin="0,0,6,0"
+                                               ToolTip="打开官网选区页，在游戏中自行选择区服"
+                                               Click="OnChangeServer" Tag="{Binding Id}"/>
                                     <ui:Button Content="开始游戏" Appearance="Primary"
                                                Width="80" Height="30" Margin="0,0,6,0"
                                                Click="OnStartGame" Tag="{Binding Id}"/>
