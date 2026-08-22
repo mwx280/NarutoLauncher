@@ -113,10 +113,9 @@ public:
                 command_line->AppendSwitch("disable-flash-stage3d");
                 command_line->AppendSwitch("disable-3d-apis");
             }
-            // 强制 device-scale-factor=1：让 Flash 以 1 倍分辨率渲染，
-            // quality=low 真正生效（渲染量减半）。配合移除 DPI 感知，
-            // 游戏页面视口保持大尺寸（Flash 固定 1920x1080 stage），
-            // 布局完整。
+            // 强制 device-scale-factor=1：Flash 以 1 倍物理分辨率渲染，
+            // quality=low 的降质真正生效。与 DPI 感知组合：DPI 感知保证
+            // 内嵌坐标一致（铺满），DPR=1 降低 Flash 渲染分辨率。
             command_line->AppendSwitchWithValue("force-device-scale-factor",
                                                 "1");
         }
@@ -337,7 +336,8 @@ void HandleProcessCrashed(const char* what) {
 // 上次选服的 sServerID 并拼到 URL 重载，避免用户每次手动选区。首次登录（cookie 无
 // sServerID）的账号不会触发重载，需先在官网选区后 cookie 才有 sServerID。
 
-// 遍历 cookie 收集 sServerID，结束后在 UI 线程补 zone_id 重载。
+// 遍历 cookie 收集 sServerID；若缺失则从 tmpLastLoginInfo 的 zonelist 提取
+// 上次登录区服作为 fallback。结束后在 UI 线程补 zone_id 重载。
 class ZoneIdVisitor : public CefCookieVisitor {
 public:
     ZoneIdVisitor() = default;
@@ -346,10 +346,17 @@ public:
                bool& deleteCookie) override {
         deleteCookie = false;
         std::string name = CefString(&cookie.name);
-        if (name == "sServerID")
+        if (name == "sServerID") {
             _server_id = CefString(&cookie.value);
+        } else if (name == "tmpLastLoginInfo") {
+            _last_login_info = CefString(&cookie.value);
+        }
         // 遍历到最后一个 cookie 时提交任务（CEF 可能不回调 count<0 结束信号）
         if (count >= 0 && total > 0 && count == total - 1) {
+            // sServerID 缺失时从 tmpLastLoginInfo 的 zonelist 提取（加固：
+            // 选区信息丢失/未写入 sServerID 时仍能补 zone_id，避免黑屏）。
+            if (_server_id.empty())
+                ExtractServerFromLoginInfo();
             AppLog::Write("自动补 zone_id: 遍历完成, sServerID=%s",
                           _server_id.empty() ? "(空)" : _server_id.c_str());
             if (!_server_id.empty())
@@ -360,6 +367,63 @@ public:
     }
 
 private:
+    // 简单的 URL 百分比解码（%XX -> 字节），用于解码 tmpLastLoginInfo cookie。
+    static std::string UrlDecode(const std::string& in) {
+        std::string out;
+        out.reserve(in.size());
+        for (size_t i = 0; i < in.size(); ++i) {
+            if (in[i] == '%' && i + 2 < in.size()) {
+                auto hex = [](char c) -> int {
+                    if (c >= '0' && c <= '9') return c - '0';
+                    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+                    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+                    return -1;
+                };
+                int hi = hex(in[i + 1]), lo = hex(in[i + 2]);
+                if (hi >= 0 && lo >= 0) {
+                    out.push_back(static_cast<char>((hi << 4) | lo));
+                    i += 2;
+                    continue;
+                }
+            }
+            out.push_back(in[i]);
+        }
+        return out;
+    }
+
+    // 从 tmpLastLoginInfo（URL 编码 JSON）提取 zonelist 第一个区服 ID。
+    // 格式：{"playerlist":[{"openid":"..","zonelist":[8856,..]}]}
+    void ExtractServerFromLoginInfo() {
+        if (_last_login_info.empty())
+            return;
+        // cookie 值为 URL 编码（如 %7B%22playerlist%22...），先解码为明文 JSON。
+        std::string raw = UrlDecode(_last_login_info);
+        if (raw.empty())
+            return;
+        // 定位 "zonelist":[...]
+        std::string key = "\"zonelist\"";
+        size_t pos = raw.find(key);
+        if (pos == std::string::npos)
+            return;
+        size_t colon = raw.find(':', pos);
+        size_t bracket = raw.find('[', colon);
+        if (bracket == std::string::npos)
+            return;
+        // 读取第一个数字
+        size_t i = bracket + 1;
+        while (i < raw.size() && (raw[i] == ' ' || raw[i] == '\t' ||
+                                  raw[i] == '\r' || raw[i] == '\n'))
+            ++i;
+        size_t start = i;
+        while (i < raw.size() && isdigit((unsigned char)raw[i]))
+            ++i;
+        if (i > start) {
+            _server_id = raw.substr(start, i - start);
+            AppLog::Write("自动补 zone_id: sServerID 缺失，从 tmpLastLoginInfo 提取=%s",
+                          _server_id.c_str());
+        }
+    }
+
     class ApplyZoneIdTask : public CefTask {
     public:
         explicit ApplyZoneIdTask(const std::string& server_id)
@@ -385,6 +449,7 @@ private:
     };
 
     std::string _server_id;
+    std::string _last_login_info;
     IMPLEMENT_REFCOUNTING(ZoneIdVisitor);
 };
 
@@ -593,6 +658,34 @@ public:
         // 使入口 SWF 以目标 quality 创建（quality 只在实例化时读取一次）。
         frame->ExecuteJavaScript(BuildQualityHookScript(g_flash_quality),
                                  frame->GetURL(), 0);
+        // Flash 画面铺满窗口：游戏页面在视口宽度较大时把 Flash 设为固定
+        // 1920x1080 stage，导致画面只占窗口一部分（不铺满）。这里用 CSS
+        // transform 把 Flash 容器等比放大到视口大小，视觉铺满且不改变
+        // Flash 内部逻辑尺寸。通过 MutationObserver 持续应用，防游戏重设。
+        frame->ExecuteJavaScript(
+            "(function(){"
+            "var __fit=function(){"
+            "try{"
+            "var rt=document.getElementById('resizeTarget');"
+            "if(!rt)return;"
+            "var w=window.innerWidth,h=window.innerHeight;"
+            "if(w<=0||h<=0)return;"
+            "rt.style.transformOrigin='0 0';"
+            "rt.style.transform='scale('+(w/1920)+','+(h/1080)+')';"
+            "}catch(e){}"
+            "};"
+            "var __fitAll=function(){__fit();setTimeout(__fit,300);};"
+            "__fit();"
+            "window.addEventListener('resize',__fitAll);"
+            "var mo=new MutationObserver(function(){__fit();});"
+            "var __watch=function(){"
+            "var rt=document.getElementById('resizeTarget');"
+            "if(rt){mo.observe(rt,{attributes:true,childList:true,subtree:true});}"
+            "else{setTimeout(__watch,200);}"
+            "};"
+            "__watch();"
+            "})();",
+            frame->GetURL(), 0);
     }
 
     // 扫码登录模式：页面加载完成后启动 cookie 轮询检测（出现 skey 即登录成功）
@@ -881,11 +974,23 @@ int RunBrowserProcess(const std::wstring& url,
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     (void)hInstance;
 
-    // DPI 感知说明：此处不设置 PROCESS_PER_MONITOR_DPI_AWARE。
-    // 原因：DPI 感知 + force-device-scale-factor=1 会使游戏页面视口（1280）
-    // 与窗口物理尺寸（1512）不匹配导致画面不完整；Flash 页游为全屏画面，
-    // 保持系统位图拉伸（与独立测试宿主一致），配合 --force-device-scale-factor=1
-    // 让 Flash 以 1 倍分辨率渲染、quality=low 真正生效（渲染量减半）。
+    // DPI 感知：必须保留 PROCESS_PER_MONITOR_DPI_AWARE。
+    // 移除后内嵌（HwndHost）时 WPF（DPI 感知）与 GameHost（无感知）坐标体系
+    // 不一致，占位窗口物理尺寸被 WPF 换算为 DIP×DPI，导致内嵌画面缩小。
+    // 注意：此模式下 DPR=2，quality=low 的降质不如 DPR=1 明显，但布局正确优先。
+    {
+        typedef HRESULT(WINAPI* SetProcessDpiAwarenessFn)(int);
+        HMODULE shcore = LoadLibraryW(L"shcore.dll");
+        if (shcore) {
+            auto fn = reinterpret_cast<SetProcessDpiAwarenessFn>(
+                GetProcAddress(shcore, "SetProcessDpiAwareness"));
+            if (fn)
+                fn(2);  // PROCESS_PER_MONITOR_DPI_AWARE
+            FreeLibrary(shcore);
+        } else {
+            SetProcessDPIAware();
+        }
+    }
 
     // 解析命令行参数
     std::wstring url = kDefaultUrl;
