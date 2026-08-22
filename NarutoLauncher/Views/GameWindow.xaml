@@ -40,6 +40,32 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- 工具栏按钮：图标 + 文字，hover 整体变亮（仿 Chrome） -->
+        <Style x:Key="ToolBarButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#9AA0A6"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="LayoutRoot" Property="Background" Value="#3C4043"/>
+                                <Setter Property="Foreground" Value="#E8EAED"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </ui:FluentWindow.Resources>
 
     <Grid>
@@ -59,20 +85,20 @@
                         <ui:TabView x:Name="TabBar" Margin="6,0,6,0"
                                     Background="Transparent" BorderThickness="0"
                                     TabStripPlacement="Top"
-                                    VerticalAlignment="Center"
+                                    VerticalAlignment="Stretch"
                                     SelectionChanged="OnTabSelectionChanged">
                             <ui:TabView.ItemContainerStyle>
                                 <Style TargetType="{x:Type ui:TabViewItem}">
-                                    <Setter Property="Padding" Value="12,6"/>
-                                    <Setter Property="Margin" Value="0,2,4,2"/>
+                                    <Setter Property="Padding" Value="14,5"/>
+                                    <Setter Property="Margin" Value="0,0,4,0"/>
                                     <Setter Property="FontSize" Value="12"/>
                                     <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="{x:Type ui:TabViewItem}">
                                                 <Border x:Name="Bd"
-                                                        Background="{DynamicResource ControlFillColorDefaultBrush}"
-                                                        CornerRadius="8"
+                                                        Background="Transparent"
+                                                        CornerRadius="10,10,0,0"
                                                         Padding="{TemplateBinding Padding}"
                                                         Margin="{TemplateBinding Margin}">
                                                     <ContentPresenter ContentSource="Header"
@@ -106,151 +132,76 @@
                     BorderBrush="Black" BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" Margin="8,6,0,6"
                             VerticalAlignment="Center">
-                    <Button x:Name="RefreshBtn"
-                            Height="30" Padding="10,0" Margin="0,0,2,0"
-                            Background="Transparent" Cursor="Hand"
+                    <Button x:Name="RefreshBtn" Style="{StaticResource ToolBarButtonStyle}"
                             ToolTip="重新加载当前选中的游戏页面"
                             Click="OnRefreshGame">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background" Value="#3C4043"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="ArrowClockwise20" FontSize="14" Foreground="#9AA0A6"/>
-                            <TextBlock Text="刷新" FontSize="12" Foreground="#9AA0A6" Margin="6,0,0,0"/>
+                            <ui:SymbolIcon Symbol="ArrowClockwise20" FontSize="14"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                            <TextBlock Text="刷新" FontSize="12"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                       Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Button x:Name="SelectServerBtn"
-                            Height="30" Padding="10,0" Margin="0,0,2,0"
-                            Background="Transparent" Cursor="Hand"
+                    <Button x:Name="SelectServerBtn" Style="{StaticResource ToolBarButtonStyle}"
                             ToolTip="选区（回到官网选区页）"
                             Click="OnSelectServer">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background" Value="#3C4043"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Map20" FontSize="14" Foreground="#9AA0A6"/>
-                            <TextBlock Text="选区" FontSize="12" Foreground="#9AA0A6" Margin="6,0,0,0"/>
+                            <ui:SymbolIcon Symbol="Map20" FontSize="14"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                            <TextBlock Text="选区" FontSize="12"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                       Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Button x:Name="MuteBtn"
-                            Height="30" Padding="10,0" Margin="0,0,2,0"
-                            Background="Transparent" Cursor="Hand"
+                    <Button x:Name="MuteBtn" Style="{StaticResource ToolBarButtonStyle}"
                             ToolTip="静音"
                             Click="OnToggleMute">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background" Value="#3C4043"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon x:Name="MuteIcon" Symbol="Speaker220" FontSize="14" Foreground="#9AA0A6"/>
-                            <TextBlock Text="静音" FontSize="12" Foreground="#9AA0A6" Margin="6,0,0,0"/>
+                            <ui:SymbolIcon x:Name="MuteIcon" Symbol="Speaker220" FontSize="14"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                            <TextBlock Text="静音" FontSize="12"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                       Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Button x:Name="SpeedBtn"
-                            Height="30" Padding="10,0" Margin="0,0,2,0"
-                            Background="Transparent" Cursor="Hand"
+                    <Button x:Name="SpeedBtn" Style="{StaticResource ToolBarButtonStyle}"
                             ToolTip="倍速"
                             MouseEnter="OnSpeedBtnMouseEnter"
                             MouseLeave="OnSpeedBtnMouseLeave">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background" Value="#3C4043"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="FastForward20" FontSize="14" Foreground="#9AA0A6"/>
-                            <TextBlock Text="倍速" FontSize="12" Foreground="#9AA0A6" Margin="6,0,0,0"/>
+                            <ui:SymbolIcon Symbol="FastForward20" FontSize="14"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                            <TextBlock Text="倍速" FontSize="12"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                       Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Button x:Name="UserBtn"
-                            Height="30" Padding="10,0" Margin="0,0,2,0"
-                            Background="Transparent" Cursor="Hand"
+                    <Button x:Name="UserBtn" Style="{StaticResource ToolBarButtonStyle}"
                             ToolTip="切换游戏账号"
                             MouseEnter="OnUserBtnMouseEnter"
                             MouseLeave="OnUserBtnMouseLeave">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background" Value="#3C4043"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Person20" FontSize="14" Foreground="#9AA0A6"/>
-                            <TextBlock Text="账号" FontSize="12" Foreground="#9AA0A6" Margin="6,0,0,0"/>
+                            <ui:SymbolIcon Symbol="Person20" FontSize="14"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                            <TextBlock Text="账号" FontSize="12"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                       Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Button x:Name="FullscreenBtn"
-                            Height="30" Padding="10,0" Margin="0,0,2,0"
-                            Background="Transparent" Cursor="Hand"
+                    <Button x:Name="FullscreenBtn" Style="{StaticResource ToolBarButtonStyle}"
                             ToolTip="全屏"
                             Click="OnToggleFullscreen">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <Viewbox Width="11" Height="11"
-                                             HorizontalAlignment="Center"
-                                             VerticalAlignment="Center"
-                                             Focusable="False"
-                                             RenderOptions.BitmapScalingMode="HighQuality">
-                                        <Canvas Width="72" Height="72" Focusable="False">
-                                            <Path Data="M0,0 H28 L20,8 H8 V20 L0,28 Z M72,0 H44 L52,8 H64 V20 L72,28 Z M0,72 H28 L20,64 H8 V52 L0,44 Z M72,72 H44 L52,64 H64 V52 L72,44 Z"
-                                                  Fill="#9AA0A6"/>
-                                        </Canvas>
-                                    </Viewbox>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background" Value="#3C4043"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="全屏" FontSize="12" Foreground="#9AA0A6"/>
+                            <Viewbox Width="11" Height="11" Stretch="Uniform">
+                                <Canvas Width="24" Height="24">
+                                    <Path Data="M4,4 L10,4 L10,6 L6,6 L6,10 L4,10 Z M20,20 L14,20 L14,18 L18,18 L18,14 L20,14 Z M4,20 L4,14 L6,14 L6,18 L10,18 L10,20 Z M20,4 L14,4 L14,6 L18,6 L18,10 L20,10 Z"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+                                </Canvas>
+                            </Viewbox>
+                            <TextBlock Text="全屏" FontSize="12"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                                       Margin="6,0,0,0"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
