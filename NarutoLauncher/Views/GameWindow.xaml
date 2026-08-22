@@ -101,22 +101,8 @@
                 </ui:TitleBar.Header>
             </ui:TitleBar>
 
-            <!-- 内嵌游戏窗口区域（多账号会话各自一个 GameHostView，切换时控制可见性） -->
-            <Border Background="#1E1E1E" ClipToBounds="True">
-                <Grid>
-                    <StackPanel x:Name="Placeholder" HorizontalAlignment="Center"
-                                VerticalAlignment="Center">
-                        <TextBlock x:Name="PlaceholderText" Text="尚未启动游戏" FontSize="15" Foreground="#999"
-                                   HorizontalAlignment="Center"/>
-                        <TextBlock Text="在「账号管理」页点击账号的开始游戏按钮即可添加标签" FontSize="12" Foreground="#777"
-                                   HorizontalAlignment="Center" Margin="0,6,0,0"/>
-                    </StackPanel>
-                    <Grid x:Name="GameHostContainer"/>
-                </Grid>
-            </Border>
-
-            <!-- 底部工具栏（深色背景，图标 + 文字） -->
-            <Border DockPanel.Dock="Bottom" Background="#1E1E1E"
+            <!-- 工具栏（标题栏下方，深色背景，图标 + 文字） -->
+            <Border DockPanel.Dock="Top" Background="#1E1E1E"
                     BorderBrush="Black" BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" Margin="8,6,0,6"
                             VerticalAlignment="Center">
@@ -268,6 +254,20 @@
                         </StackPanel>
                     </Button>
                 </StackPanel>
+            </Border>
+
+            <!-- 内嵌游戏窗口区域（多账号会话各自一个 GameHostView，切换时控制可见性） -->
+            <Border Background="#1E1E1E" ClipToBounds="True">
+                <Grid>
+                    <StackPanel x:Name="Placeholder" HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <TextBlock x:Name="PlaceholderText" Text="尚未启动游戏" FontSize="15" Foreground="#999"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="在「账号管理」页点击账号的开始游戏按钮即可添加标签" FontSize="12" Foreground="#777"
+                                   HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                    </StackPanel>
+                    <Grid x:Name="GameHostContainer"/>
+                </Grid>
             </Border>
         </DockPanel>
 
