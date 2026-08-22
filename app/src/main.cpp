@@ -758,6 +758,37 @@ public:
         // 使入口 SWF 以目标 quality 创建（quality 只在实例化时读取一次）。
         frame->ExecuteJavaScript(BuildQualityHookScript(g_flash_quality),
                                  frame->GetURL(), 0);
+        // Flash 画面铺满窗口（仅性能优先：DPR=1 时 Flash 按 1 倍渲染，铺满到
+        // 窗口；画质优先跟随系统 DPI，保持原始布局，不缩放）：游戏页面在视口
+        // 宽度较大时把 Flash 设为固定 1920x1080 stage，导致画面只占窗口一部分。
+        // 这里用 CSS transform 把 Flash 容器等比放大到视口大小，视觉铺满且不
+        // 改变 Flash 内部逻辑尺寸。通过 MutationObserver 持续应用，防游戏重设。
+        if (g_force_dpr) {
+        frame->ExecuteJavaScript(
+            "(function(){"
+            "var __fit=function(){"
+            "try{"
+            "var rt=document.getElementById('resizeTarget');"
+            "if(!rt)return;"
+            "var w=window.innerWidth,h=window.innerHeight;"
+            "if(w<=0||h<=0)return;"
+            "rt.style.transformOrigin='0 0';"
+            "rt.style.transform='scale('+(w/1920)+','+(h/1080)+')';"
+            "}catch(e){}"
+            "};"
+            "var __fitAll=function(){__fit();setTimeout(__fit,300);};"
+            "__fit();"
+            "window.addEventListener('resize',__fitAll);"
+            "var mo=new MutationObserver(function(){__fit();});"
+            "var __watch=function(){"
+            "var rt=document.getElementById('resizeTarget');"
+            "if(rt){mo.observe(rt,{attributes:true,childList:true,subtree:true});}"
+            "else{setTimeout(__watch,200);}"
+            "};"
+            "__watch();"
+            "})();",
+            frame->GetURL(), 0);
+        }
     }
 
     // 扫码登录模式：页面加载完成后启动 cookie 轮询检测（出现 skey 即登录成功）
