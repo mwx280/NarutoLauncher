@@ -76,13 +76,26 @@ public partial class MainWindow : FluentWindow
             _ when pageType == typeof(GamesView) => "games",
             _ when pageType == typeof(AccountsView) => "accounts",
             _ when pageType == typeof(SettingsView) => "settings",
+            _ when pageType == typeof(AboutView) => "about",
             _ => "home",
         };
-        for (int i = 0; i < NavList.Items.Count; i++)
+        // 先清除两个列表的选中
+        NavList.SelectedIndex = -1;
+        FooterList.SelectedIndex = -1;
+        // 在对应列表中选中
+        if (tag is "home" or "games" or "accounts")
+            SelectNavItem(NavList, tag);
+        else
+            SelectNavItem(FooterList, tag);
+    }
+
+    private static void SelectItemFromTag(ListBox list, string tag)
+    {
+        for (int i = 0; i < list.Items.Count; i++)
         {
-            if (NavList.Items[i] is ListBoxItem item && item.Tag as string == tag)
+            if (list.Items[i] is ListBoxItem item && item.Tag as string == tag)
             {
-                NavList.SelectedIndex = i;
+                list.SelectedIndex = i;
                 return;
             }
         }
@@ -91,18 +104,53 @@ public partial class MainWindow : FluentWindow
     // ---- 经典导航（ListBox） ----
     private void OnNavChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ClassicContentHost == null) return;
+        if (ClassicContentHost == null || NavList.SelectedIndex < 0) return;
+        // 切换主菜单时取消底部选中
+        FooterList.SelectionChanged -= OnFooterNavChanged;
+        FooterList.SelectedIndex = -1;
+        FooterList.SelectionChanged += OnFooterNavChanged;
+
         var tag = (NavList.SelectedItem as ListBoxItem)?.Tag as string;
+        NavigateClassic(tag);
+    }
+
+    private void OnFooterNavChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ClassicContentHost == null || FooterList.SelectedIndex < 0) return;
+        // 切换底部时取消主菜单选中
+        NavList.SelectionChanged -= OnNavChanged;
+        NavList.SelectedIndex = -1;
+        NavList.SelectionChanged += OnNavChanged;
+
+        var tag = (FooterList.SelectedItem as ListBoxItem)?.Tag as string;
+        NavigateClassic(tag);
+    }
+
+    private void NavigateClassic(string? tag)
+    {
         var (page, pageType) = tag switch
         {
             "home" => ((object)_home, typeof(HomeView)),
             "games" => ((object)_games, typeof(GamesView)),
             "accounts" => ((object)_accounts, typeof(AccountsView)),
             "settings" => ((object)_settings, typeof(SettingsView)),
+            "about" => ((object)_about, typeof(AboutView)),
             _ => ((object)_home, typeof(HomeView)),
         };
         ClassicContentHost.Content = page;
         _currentPageType = pageType;
+    }
+
+    private void SelectNavItem(ListBox list, string tag)
+    {
+        for (int i = 0; i < list.Items.Count; i++)
+        {
+            if (list.Items[i] is ListBoxItem item && item.Tag as string == tag)
+            {
+                list.SelectedIndex = i;
+                return;
+            }
+        }
     }
 
     // ---- 简约导航（NavigationView） ----
