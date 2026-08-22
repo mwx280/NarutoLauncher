@@ -1,10 +1,9 @@
-using System.ComponentModel;
 using System.Drawing;
 using System.Text;
 using System.Windows;
+using System.Windows.Controls;
 using NarutoLauncher.Services;
 using Wpf.Ui;
-using WinForms = System.Windows.Forms;
 
 namespace NarutoLauncher;
 
@@ -26,7 +25,7 @@ public partial class App : Application
     /// <summary>是否正在退出应用（放行窗口关闭，避免托盘拦截）。</summary>
     public bool IsExiting { get; private set; }
 
-    private WinForms.NotifyIcon? _trayIcon;
+    private TrayIcon? _trayIcon;
 
     public App()
     {
@@ -54,10 +53,16 @@ public partial class App : Application
         CreateTrayIcon();
     }
 
-    /// <summary>创建托盘图标（苦无 favicon）+ 菜单：主窗口 / 开始游戏（二级账号）/ 退出。</summary>
+    /// <summary>创建托盘图标（苦无 favicon）+ WPF 菜单：主窗口 / 开始游戏（二级账号）/ 退出。</summary>
     private void CreateTrayIcon()
     {
-        _trayIcon = new WinForms.NotifyIcon { Visible = true, Text = "火影忍者OL" };
+        _trayIcon = new TrayIcon
+        {
+            Text = "火影忍者OL",
+            ContextMenu = BuildTrayMenu(),
+            Visible = true,
+        };
+        _trayIcon.OnClick += (_, _) => ShowMainWindow();
         try
         {
             using var stream = Application.GetResourceStream(
@@ -72,22 +77,26 @@ public partial class App : Application
         {
             // 图标加载失败不阻塞托盘功能
         }
+    }
 
-        var menu = new WinForms.ContextMenuStrip();
+    /// <summary>构建托盘 WPF 菜单（应用 WPF-UI 主题资源样式）。</summary>
+    private ContextMenu BuildTrayMenu()
+    {
+        var menu = new ContextMenu();
 
-        var home = new WinForms.ToolStripMenuItem("主窗口");
+        var home = new MenuItem { Header = "主窗口" };
         home.Click += (_, _) => ShowMainWindow();
         menu.Items.Add(home);
 
-        var start = new WinForms.ToolStripMenuItem("开始游戏");
+        var start = new MenuItem { Header = "开始游戏" };
         menu.Items.Add(start);
-        menu.Opening += (_, _) =>
+        menu.Opened += (_, _) =>
         {
-            start.DropDownItems.Clear();
+            start.Items.Clear();
             foreach (var acc in Accounts.Accounts)
             {
                 var accRef = acc;
-                var item = new WinForms.ToolStripMenuItem(acc.DisplayName);
+                var item = new MenuItem { Header = acc.DisplayName };
                 item.Click += (_, _) =>
                 {
                     Dispatcher.Invoke(() =>
@@ -101,11 +110,11 @@ public partial class App : Application
                         Views.GameWindow.OpenAccount(accRef, MainWindow);
                     });
                 };
-                start.DropDownItems.Add(item);
+                start.Items.Add(item);
             }
         };
 
-        var exit = new WinForms.ToolStripMenuItem("退出");
+        var exit = new MenuItem { Header = "退出" };
         exit.Click += (_, _) =>
         {
             IsExiting = true;
@@ -113,8 +122,7 @@ public partial class App : Application
         };
         menu.Items.Add(exit);
 
-        _trayIcon.ContextMenuStrip = menu;
-        _trayIcon.DoubleClick += (_, _) => ShowMainWindow();
+        return menu;
     }
 
     /// <summary>显示并激活主窗口（最小化则恢复）。</summary>
@@ -136,7 +144,6 @@ public partial class App : Application
     {
         if (_trayIcon != null)
         {
-            _trayIcon.Visible = false;
             _trayIcon.Dispose();
             _trayIcon = null;
         }
