@@ -11,8 +11,8 @@
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round">
     <ui:FluentWindow.Resources>
-        <!-- 内容区背景对齐 LLT：ControlFillColorDefault（半透明白，透出 Mica），无边框 -->
-        <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{DynamicResource ControlFillColorDefault}" />
+        <!-- 内容区背景：深色卡片底 -->
+        <SolidColorBrush x:Key="NavigationViewContentBackground" Color="#1C1C1C" />
         <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
 
         <!-- 复刻 LenovoLegionToolkit 导航项模板（NavigationStoreItem）：
