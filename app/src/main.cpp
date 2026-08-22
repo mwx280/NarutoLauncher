@@ -1077,24 +1077,6 @@ int RunBrowserProcess(const std::wstring& url,
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     (void)hInstance;
 
-    // DPI 感知：必须保留 PROCESS_PER_MONITOR_DPI_AWARE。
-    // 移除后内嵌（HwndHost）时 WPF（DPI 感知）与 GameHost（无感知）坐标体系
-    // 不一致，占位窗口物理尺寸被 WPF 换算为 DIP×DPI，导致内嵌画面缩小。
-    // 注意：此模式下 DPR=2，quality=low 的降质不如 DPR=1 明显，但布局正确优先。
-    {
-        typedef HRESULT(WINAPI* SetProcessDpiAwarenessFn)(int);
-        HMODULE shcore = LoadLibraryW(L"shcore.dll");
-        if (shcore) {
-            auto fn = reinterpret_cast<SetProcessDpiAwarenessFn>(
-                GetProcAddress(shcore, "SetProcessDpiAwareness"));
-            if (fn)
-                fn(2);  // PROCESS_PER_MONITOR_DPI_AWARE
-            FreeLibrary(shcore);
-        } else {
-            SetProcessDPIAware();
-        }
-    }
-
     // 解析命令行参数
     std::wstring url = kDefaultUrl;
     std::wstring userdata;
