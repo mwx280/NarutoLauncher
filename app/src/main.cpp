@@ -664,10 +664,12 @@ public:
         // 使入口 SWF 以目标 quality 创建（quality 只在实例化时读取一次）。
         frame->ExecuteJavaScript(BuildQualityHookScript(g_flash_quality),
                                  frame->GetURL(), 0);
-        // Flash 画面铺满窗口：游戏页面在视口宽度较大时把 Flash 设为固定
-        // 1920x1080 stage，导致画面只占窗口一部分（不铺满）。这里用 CSS
-        // transform 把 Flash 容器等比放大到视口大小，视觉铺满且不改变
-        // Flash 内部逻辑尺寸。通过 MutationObserver 持续应用，防游戏重设。
+        // Flash 画面铺满窗口（仅性能优先：DPR=1 时 Flash 按 1 倍渲染，铺满到
+        // 窗口；画质优先跟随系统 DPI，保持原始布局，不缩放）：游戏页面在视口
+        // 宽度较大时把 Flash 设为固定 1920x1080 stage，导致画面只占窗口一部分。
+        // 这里用 CSS transform 把 Flash 容器等比放大到视口大小，视觉铺满且不
+        // 改变 Flash 内部逻辑尺寸。通过 MutationObserver 持续应用，防游戏重设。
+        if (g_force_dpr) {
         frame->ExecuteJavaScript(
             "(function(){"
             "var __fit=function(){"
@@ -692,6 +694,7 @@ public:
             "__watch();"
             "})();",
             frame->GetURL(), 0);
+        }
     }
 
     // 扫码登录模式：页面加载完成后启动 cookie 轮询检测（出现 skey 即登录成功）
