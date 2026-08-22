@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Controls = System.Windows.Controls;
@@ -351,6 +352,25 @@ public partial class GameWindow : FluentWindow
     private void OnToggleSpeed(object sender, RoutedEventArgs e)
     {
         SendCommand(CmdToggleSpeed);
+    }
+
+    /// <summary>hover 用户按钮：弹出已启动游戏的账号列表。</summary>
+    private void OnUserBtnMouseEnter(object sender, MouseEventArgs e)
+    {
+        UserList.ItemsSource = _tabs.Select(t => t.Account).ToList();
+        UserMenuPopup.IsOpen = UserList.Items.Count > 0;
+    }
+
+    /// <summary>点击账号：切换到对应游戏标签。</summary>
+    private void OnUserAccountClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Controls.Button { Tag: Account acc })
+        {
+            var tab = _tabs.FirstOrDefault(t => t.Account.Id == acc.Id);
+            if (tab != null)
+                ActivateTab(tab);
+            UserMenuPopup.IsOpen = false;
+        }
     }
 
     private void OnToggleFullscreen(object sender, RoutedEventArgs e)

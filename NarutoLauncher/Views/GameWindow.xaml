@@ -12,6 +12,33 @@
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round">
+    <ui:FluentWindow.Resources>
+        <!-- 用户列表账号项按钮 -->
+        <Style x:Key="UserItemButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="MinWidth" Value="170"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Left"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background"
+                                        Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ui:FluentWindow.Resources>
     <DockPanel>
         <!-- 标题栏：窗口图标右侧为多开游戏标签（WPF-UI 原生 TabView），右侧为刷新/全屏/系统按钮 -->
         <ui:TitleBar x:Name="TitleBarHost" DockPanel.Dock="Top"
@@ -167,6 +194,29 @@
                         <ui:SymbolIcon Symbol="FastForward20" FontSize="16"
                                        Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
                     </Button>
+                    <Button x:Name="UserBtn"
+                            Width="44" Height="30" Padding="0"
+                            VerticalAlignment="Top"
+                            Background="Transparent"
+                            ToolTip="切换游戏账号"
+                            MouseEnter="OnUserBtnMouseEnter">
+                        <Button.Template>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="LayoutRoot" Property="Background"
+                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <ui:SymbolIcon Symbol="Person20" FontSize="16"
+                                       Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
+                    </Button>
                     <Button x:Name="FullscreenBtn"
                             Width="44" Height="30" Padding="0"
                             VerticalAlignment="Top"
@@ -213,5 +263,29 @@
                 <Grid x:Name="GameHostContainer"/>
             </Grid>
         </Border>
+
+        <!-- 用户图标 hover：游戏账号切换列表 -->
+        <Popup x:Name="UserMenuPopup"
+               PlacementTarget="{Binding ElementName=UserBtn}"
+               Placement="Bottom" AllowsTransparency="True"
+               StaysOpen="False" PopupAnimation="Fade"
+               IsOpen="False">
+            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="6"
+                    Margin="0,4,0,0" MaxHeight="360">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="UserList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource UserItemButtonStyle}"
+                                        Content="{Binding DisplayName}"
+                                        Tag="{Binding}" Click="OnUserAccountClick"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </Popup>
     </DockPanel>
 </ui:FluentWindow>
