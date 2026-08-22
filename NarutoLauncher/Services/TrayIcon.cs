@@ -103,9 +103,8 @@ public sealed class TrayIcon : WinForms.NativeWindow, IDisposable
     {
         if (ContextMenu is null)
             return;
-        ContextMenu.Placement = PlacementMode.Mouse;
-        ContextMenu.PlacementRectangle = Rect.Empty;
-        ContextMenu.PlacementTarget = null;
+        // 使用默认放置（鼠标位置弹出，子菜单自动出现在父菜单项右侧）
+        ContextMenu.Placement = PlacementMode.MousePoint;
         ContextMenu.IsOpen = true;
         if (PresentationSource.FromVisual(ContextMenu) is HwndSource source &&
             source.Handle != IntPtr.Zero)

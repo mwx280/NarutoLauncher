@@ -2,8 +2,10 @@ using System.Drawing;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using Media = System.Windows.Media;
 using NarutoLauncher.Services;
 using Wpf.Ui;
+using Ui = Wpf.Ui.Controls;
 
 namespace NarutoLauncher;
 
@@ -79,16 +81,24 @@ public partial class App : Application
         }
     }
 
-    /// <summary>构建托盘 WPF 菜单（应用 WPF-UI 主题资源样式）。</summary>
+    /// <summary>构建托盘 WPF 菜单（WPF-UI MenuItem，深色主题 + 图标）。</summary>
     private ContextMenu BuildTrayMenu()
     {
-        var menu = new ContextMenu();
+        var menu = new ContextMenu
+        {
+            Background = TryBrush("CardBackgroundFillColorDefaultBrush")
+                         ?? new Media.SolidColorBrush(Media.Color.FromRgb(0x1E, 0x1E, 0x1E)),
+            BorderBrush = TryBrush("CardStrokeColorDefaultBrush")
+                          ?? new Media.SolidColorBrush(Media.Color.FromRgb(0x3A, 0x3A, 0x3A)),
+            Foreground = TryBrush("TextFillColorPrimaryBrush")
+                         ?? new Media.SolidColorBrush(Media.Color.FromRgb(0xE8, 0xE8, 0xE8)),
+        };
 
-        var home = new MenuItem { Header = "主窗口" };
+        var home = new Ui.MenuItem { Header = "主窗口", Icon = MakeIcon(Ui.SymbolRegular.Home24) };
         home.Click += (_, _) => ShowMainWindow();
         menu.Items.Add(home);
 
-        var start = new MenuItem { Header = "开始游戏" };
+        var start = new Ui.MenuItem { Header = "开始游戏", Icon = MakeIcon(Ui.SymbolRegular.Play24) };
         menu.Items.Add(start);
         menu.Opened += (_, _) =>
         {
@@ -96,7 +106,11 @@ public partial class App : Application
             foreach (var acc in Accounts.Accounts)
             {
                 var accRef = acc;
-                var item = new MenuItem { Header = acc.DisplayName };
+                var item = new Ui.MenuItem
+                {
+                    Header = acc.DisplayName,
+                    Icon = MakeIcon(Ui.SymbolRegular.Person20),
+                };
                 item.Click += (_, _) =>
                 {
                     Dispatcher.Invoke(() =>
@@ -114,7 +128,7 @@ public partial class App : Application
             }
         };
 
-        var exit = new MenuItem { Header = "退出" };
+        var exit = new Ui.MenuItem { Header = "退出", Icon = MakeIcon(Ui.SymbolRegular.SignOut24) };
         exit.Click += (_, _) =>
         {
             IsExiting = true;
@@ -123,6 +137,24 @@ public partial class App : Application
         menu.Items.Add(exit);
 
         return menu;
+    }
+
+    /// <summary>创建菜单图标（前景随主题，默认主题文字色）。</summary>
+    private static Ui.SymbolIcon MakeIcon(Ui.SymbolRegular symbol)
+    {
+        return new Ui.SymbolIcon
+        {
+            Symbol = symbol,
+            FontSize = 16,
+            Foreground = TryBrush("TextFillColorPrimaryBrush")
+                         ?? new Media.SolidColorBrush(Media.Color.FromRgb(0xE8, 0xE8, 0xE8)),
+        };
+    }
+
+    /// <summary>从应用主题资源取画刷（不存在返回 null）。</summary>
+    private static Media.Brush? TryBrush(string key)
+    {
+        return CurrentApp.Resources[key] as Media.Brush;
     }
 
     /// <summary>显示并激活主窗口（最小化则恢复）。</summary>
