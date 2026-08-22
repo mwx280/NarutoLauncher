@@ -32,7 +32,6 @@
 #include "frameless_window.h"
 #include "app_log.h"
 #include "no_console_hook.h"
-#include "speed_hook.h"
 #include "flash_hook.h"
 
 // ---------- 常量 ----------
@@ -1245,9 +1244,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
             if (env_len > 0 && env_len < sizeof(env_buf) && env_buf[0])
                 q = env_buf;
             InstallFlashQualityHooksAsync(q);
-
-            // 安装游戏变速 hook：按 speed.txt 倍速加速/减速 Flash（时间 API 变速）
-            InstallSpeedHooks();
         }
     }
 
