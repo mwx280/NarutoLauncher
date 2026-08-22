@@ -19,11 +19,16 @@
                      Icon="{ui:ImageIcon '/assets/favicon.png'}"
                      ShowMaximize="True" ShowMinimize="True" ShowClose="True">
             <ui:TitleBar.Header>
-                <ui:TabView x:Name="TabBar" Margin="6,0,6,0"
-                            Background="Transparent" BorderThickness="0"
-                            TabStripPlacement="Top"
-                            VerticalAlignment="Center"
-                            SelectionChanged="OnTabSelectionChanged">
+                <DockPanel>
+                    <TextBlock Text="火影忍者Online" VerticalAlignment="Center"
+                               Margin="0,0,12,0"
+                               FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                    <ui:TabView x:Name="TabBar" Margin="6,0,6,0"
+                                Background="Transparent" BorderThickness="0"
+                                TabStripPlacement="Top"
+                                VerticalAlignment="Center"
+                                SelectionChanged="OnTabSelectionChanged">
                     <ui:TabView.ItemContainerStyle>
                         <Style TargetType="{x:Type ui:TabViewItem}">
                             <Setter Property="Padding" Value="16,7"/>
@@ -66,6 +71,7 @@
                         </Style>
                     </ui:TabView.ItemContainerStyle>
                 </ui:TabView>
+                </DockPanel>
             </ui:TitleBar.Header>
             <ui:TitleBar.TrailingContent>
                 <StackPanel Orientation="Horizontal">
