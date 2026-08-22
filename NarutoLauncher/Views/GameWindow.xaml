@@ -13,6 +13,12 @@
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round">
     <ui:FluentWindow.Resources>
+        <!-- 品牌 logo（火影橙红渐变） -->
+        <LinearGradientBrush x:Key="BrandGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FF6B3D" Offset="0"/>
+            <GradientStop Color="#C22D18" Offset="1"/>
+        </LinearGradientBrush>
+
         <!-- 用户列表账号项按钮 -->
         <Style x:Key="UserItemButtonStyle" TargetType="{x:Type Button}">
             <Setter Property="Background" Value="Transparent"/>
@@ -38,36 +44,140 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- 工具栏功能按钮：图标 + 文字，跟随 WPF-UI 主题 -->
+        <Style x:Key="ToolButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background"
+                                        Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 窗口控制按钮（最小化/最大化/关闭） -->
+        <Style x:Key="WindowButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background"
+                                        Value="{DynamicResource ControlFillColorDefaultBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CloseButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource WindowButtonStyle}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#C42B1C"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </ui:FluentWindow.Resources>
+
     <Grid>
-        <DockPanel>
-        <!-- 标题栏：窗口图标右侧为多开游戏标签（WPF-UI 原生 TabView），右侧为刷新/全屏/系统按钮 -->
-        <ui:TitleBar x:Name="TitleBarHost" DockPanel.Dock="Top"
-                     Title="{x:Null}"
-                     Icon="{ui:ImageIcon '/assets/favicon.png'}"
-                     ShowMaximize="True" ShowMinimize="True" ShowClose="True">
-            <ui:TitleBar.Header>
-                <DockPanel>
-                    <TextBlock Text="火影忍者Online" VerticalAlignment="Center"
-                               Margin="0,0,12,0"
-                               FontSize="14"
-                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                    <ui:TabView x:Name="TabBar" Margin="6,0,6,0"
-                                Background="Transparent" BorderThickness="0"
-                                TabStripPlacement="Top"
-                                VerticalAlignment="Center"
-                                SelectionChanged="OnTabSelectionChanged">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="46"/>
+            <RowDefinition Height="45"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ===== 顶部标签条（Chrome 式，跟随 WPF-UI 主题） ===== -->
+        <Border x:Name="TabStripHost" Grid.Row="0" Background="Transparent"
+                MouseLeftButtonDown="OnTitleBarMouseDown">
+            <DockPanel>
+                <!-- 品牌标题 -->
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal"
+                            Margin="10,0,4,0" VerticalAlignment="Center"
+                            IsHitTestVisible="False">
+                    <Border Width="22" Height="22" CornerRadius="6"
+                            Background="{StaticResource BrandGradient}">
+                        <TextBlock Text="火" FontSize="12" FontWeight="Bold"
+                                   Foreground="White" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="火影忍者Online" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                               Margin="8,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- 窗口控制按钮 -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <Button x:Name="MinBtn" Style="{StaticResource WindowButtonStyle}"
+                            Click="OnMinimizeClick" ToolTip="最小化">
+                        <Path Data="M0,6 H12 V8 H0 Z"
+                              Fill="{DynamicResource TextFillColorSecondaryBrush}"
+                              Width="12" Height="8" Stretch="Uniform"/>
+                    </Button>
+                    <Button x:Name="MaxBtn" Style="{StaticResource WindowButtonStyle}"
+                            Click="OnMaximizeClick" ToolTip="最大化">
+                        <Grid Width="12" Height="12">
+                            <Path x:Name="MaxIcon" Data="M0,0 H12 V12 H0 Z"
+                                  Stroke="{DynamicResource TextFillColorSecondaryBrush}"
+                                  StrokeThickness="1.2" Stretch="Uniform"/>
+                            <Path x:Name="RestoreIcon" Data="M0,5 H5 V0 H12 V7 H7 V12 H0 Z"
+                                  Stroke="{DynamicResource TextFillColorSecondaryBrush}"
+                                  StrokeThickness="1.2" Stretch="Uniform"
+                                  Visibility="Collapsed"/>
+                        </Grid>
+                    </Button>
+                    <Button x:Name="CloseBtn" Style="{StaticResource CloseButtonStyle}"
+                            Click="OnCloseClick" ToolTip="关闭">
+                        <Path Data="M0,0 L12,12 M12,0 L0,12"
+                              Stroke="{DynamicResource TextFillColorSecondaryBrush}"
+                              StrokeThickness="1.4" Width="12" Height="12" Stretch="Uniform"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- 多开标签 -->
+                <ui:TabView x:Name="TabBar" Margin="6,0,6,0"
+                            Background="Transparent" BorderThickness="0"
+                            TabStripPlacement="Top"
+                            VerticalAlignment="Stretch"
+                            SelectionChanged="OnTabSelectionChanged">
                     <ui:TabView.ItemContainerStyle>
                         <Style TargetType="{x:Type ui:TabViewItem}">
-                            <Setter Property="Padding" Value="16,7"/>
-                            <Setter Property="Margin" Value="0,2,8,2"/>
-                            <Setter Property="FontSize" Value="14"/>
+                            <Setter Property="Padding" Value="12,8"/>
+                            <Setter Property="Margin" Value="0,6,4,0"/>
+                            <Setter Property="FontSize" Value="13"/>
                             <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="{x:Type ui:TabViewItem}">
                                         <Border x:Name="Bd"
-                                                Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                                Background="Transparent"
                                                 CornerRadius="10"
                                                 Padding="{TemplateBinding Padding}"
                                                 Margin="{TemplateBinding Margin}">
@@ -78,19 +188,13 @@
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
                                                 <Setter TargetName="Bd" Property="Background"
-                                                        Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                                                        Value="{DynamicResource ControlFillColorDefaultBrush}"/>
                                             </Trigger>
                                             <Trigger Property="IsSelected" Value="True">
                                                 <Setter TargetName="Bd" Property="Background"
                                                         Value="{DynamicResource AccentFillColorDefaultBrush}"/>
                                                 <Setter Property="Foreground"
                                                         Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
-                                                <Setter TargetName="Bd" Property="Effect">
-                                                    <Setter.Value>
-                                                        <DropShadowEffect BlurRadius="8" ShadowDepth="0"
-                                                                          Opacity="0.35" Color="Black"/>
-                                                    </Setter.Value>
-                                                </Setter>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
@@ -99,162 +203,92 @@
                         </Style>
                     </ui:TabView.ItemContainerStyle>
                 </ui:TabView>
-                </DockPanel>
-            </ui:TitleBar.Header>
-            <ui:TitleBar.TrailingContent>
-                <StackPanel Orientation="Horizontal">
-                    <Button x:Name="RefreshBtn"
-                            Width="44" Height="30" Padding="0"
-                            VerticalAlignment="Top"
-                            Background="Transparent"
-                            ToolTip="重新加载当前选中的游戏页面"
-                            Click="OnRefreshGame">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background"
-                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <ui:SymbolIcon Symbol="ArrowClockwise20" FontSize="16"
-                                       Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                    </Button>
-                    <Button x:Name="SelectServerBtn"
-                            Width="44" Height="30" Padding="0"
-                            VerticalAlignment="Top"
-                            Background="Transparent"
-                            ToolTip="选区（回到官网选区页）"
-                            Click="OnSelectServer">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background"
-                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <ui:SymbolIcon Symbol="Map20" FontSize="16"
-                                       Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                    </Button>
-                    <Button x:Name="MuteBtn"
-                            Width="44" Height="30" Padding="0"
-                            VerticalAlignment="Top"
-                            Background="Transparent"
-                            ToolTip="静音"
-                            Click="OnToggleMute">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background"
-                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <ui:SymbolIcon x:Name="MuteIcon" Symbol="Speaker220" FontSize="16"
-                                       Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                    </Button>
-                    <Button x:Name="SpeedBtn"
-                            Width="44" Height="30" Padding="0"
-                            VerticalAlignment="Top"
-                            Background="Transparent"
-                            ToolTip="倍速"
-                            MouseEnter="OnSpeedBtnMouseEnter"
-                            MouseLeave="OnSpeedBtnMouseLeave">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background"
-                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <ui:SymbolIcon Symbol="FastForward20" FontSize="16"
-                                       Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                    </Button>
-                    <Button x:Name="UserBtn"
-                            Width="44" Height="30" Padding="0"
-                            VerticalAlignment="Top"
-                            Background="Transparent"
-                            ToolTip="切换游戏账号"
-                            MouseEnter="OnUserBtnMouseEnter"
-                            MouseLeave="OnUserBtnMouseLeave">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <ContentPresenter HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background"
-                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <ui:SymbolIcon Symbol="Person20" FontSize="16"
-                                       Foreground="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                    </Button>
-                    <Button x:Name="FullscreenBtn"
-                            Width="44" Height="30" Padding="0"
-                            VerticalAlignment="Top"
-                            Background="Transparent"
-                            ToolTip="全屏"
-                            Click="OnToggleFullscreen">
-                        <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}">
-                                    <Viewbox Width="11" Height="11"
-                                             HorizontalAlignment="Center"
-                                             VerticalAlignment="Center"
-                                             Focusable="False"
-                                             RenderOptions.BitmapScalingMode="HighQuality">
-                                        <Canvas Width="72" Height="72" Focusable="False">
-                                            <Path Data="M0,0 H28 L20,8 H8 V20 L0,28 Z M72,0 H44 L52,8 H64 V20 L72,28 Z M0,72 H28 L20,64 H8 V52 L0,44 Z M72,72 H44 L52,64 H64 V52 L72,44 Z"
-                                                  Fill="{Binding ButtonsForeground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                        </Canvas>
-                                    </Viewbox>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="LayoutRoot" Property="Background"
-                                                Value="{Binding ButtonsBackground, RelativeSource={RelativeSource AncestorType={x:Type ui:TitleBar}}}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                </StackPanel>
-            </ui:TitleBar.TrailingContent>
-        </ui:TitleBar>
+            </DockPanel>
+        </Border>
 
-        <!-- 内嵌游戏窗口区域（多账号会话各自一个 GameHostView，切换时控制可见性） -->
-        <Border Background="#1E1E1E" ClipToBounds="True">
+        <!-- ===== 工具栏（图标 + 文字） ===== -->
+        <Border Grid.Row="1" Background="{DynamicResource ControlFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" Margin="8,0,0,0"
+                        VerticalAlignment="Center">
+                <Button x:Name="RefreshBtn" Style="{StaticResource ToolButtonStyle}"
+                        ToolTip="重新加载当前选中的游戏页面"
+                        Click="OnRefreshGame">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="ArrowClockwise20" FontSize="14"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Text="刷新" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="SelectServerBtn" Style="{StaticResource ToolButtonStyle}"
+                        ToolTip="选区（回到官网选区页）"
+                        Click="OnSelectServer">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Map20" FontSize="14"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Text="选区" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="MuteBtn" Style="{StaticResource ToolButtonStyle}"
+                        ToolTip="静音"
+                        Click="OnToggleMute">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon x:Name="MuteIcon" Symbol="Speaker220" FontSize="14"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Text="静音" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="SpeedBtn" Style="{StaticResource ToolButtonStyle}"
+                        ToolTip="倍速"
+                        MouseEnter="OnSpeedBtnMouseEnter"
+                        MouseLeave="OnSpeedBtnMouseLeave">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="FastForward20" FontSize="14"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Text="倍速" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="UserBtn" Style="{StaticResource ToolButtonStyle}"
+                        ToolTip="切换游戏账号"
+                        MouseEnter="OnUserBtnMouseEnter"
+                        MouseLeave="OnUserBtnMouseLeave">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Person20" FontSize="14"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        <TextBlock Text="账号" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="FullscreenBtn" Style="{StaticResource ToolButtonStyle}"
+                        ToolTip="全屏"
+                        Click="OnToggleFullscreen">
+                    <StackPanel Orientation="Horizontal">
+                        <Viewbox Width="14" Height="14" Stretch="Uniform">
+                            <Canvas Width="24" Height="24">
+                                <Path Data="M4,4 L10,4 L10,6 L6,6 L6,10 L4,10 Z M20,20 L14,20 L14,18 L18,18 L18,14 L20,14 Z M4,20 L4,14 L6,14 L6,18 L10,18 L10,20 Z M20,4 L14,4 L14,6 L18,6 L18,10 L20,10 Z"
+                                      Fill="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </Canvas>
+                        </Viewbox>
+                        <TextBlock Text="全屏" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- ===== 游戏画面区域 ===== -->
+        <Border Grid.Row="2" Background="#1E1E1E" ClipToBounds="True">
             <Grid>
                 <StackPanel x:Name="Placeholder" HorizontalAlignment="Center"
                             VerticalAlignment="Center">
@@ -266,9 +300,8 @@
                 <Grid x:Name="GameHostContainer"/>
             </Grid>
         </Border>
-        </DockPanel>
 
-        <!-- 用户图标 hover：游戏账号切换列表（放 Grid 重叠层，不参与 DockPanel 布局） -->
+        <!-- 用户图标 hover：游戏账号切换列表 -->
         <Popup x:Name="UserMenuPopup"
                PlacementTarget="{Binding ElementName=UserBtn}"
                Placement="Bottom" AllowsTransparency="True"
