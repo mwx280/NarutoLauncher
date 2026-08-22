@@ -45,7 +45,7 @@
         <ui:TitleBar x:Name="TitleBarHost" DockPanel.Dock="Top"
                      Title="{x:Null}"
                      Icon="{ui:ImageIcon '/assets/favicon.png'}"
-                     Background="#1E1E1E"
+                     Height="30"
                      ShowMaximize="True" ShowMinimize="True" ShowClose="True">
             <ui:TitleBar.Header>
                 <DockPanel>
