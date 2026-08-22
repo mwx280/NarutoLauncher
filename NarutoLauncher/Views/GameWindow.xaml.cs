@@ -354,21 +354,27 @@ public partial class GameWindow : FluentWindow
         SendCommand(CmdToggleSpeed);
     }
 
-    /// <summary>hover 用户按钮：弹出已启动游戏的账号列表。</summary>
+    /// <summary>hover 用户按钮：弹出全部账号列表。</summary>
     private void OnUserBtnMouseEnter(object sender, MouseEventArgs e)
     {
-        UserList.ItemsSource = _tabs.Select(t => t.Account).ToList();
+        UserList.ItemsSource = App.CurrentApp.Accounts.Accounts.ToList();
         UserMenuPopup.IsOpen = UserList.Items.Count > 0;
     }
 
-    /// <summary>点击账号：切换到对应游戏标签。</summary>
+    /// <summary>点击账号：已启动则切换标签，未启动则启动该账号游戏。</summary>
     private void OnUserAccountClick(object sender, RoutedEventArgs e)
     {
         if (sender is Controls.Button { Tag: Account acc })
         {
             var tab = _tabs.FirstOrDefault(t => t.Account.Id == acc.Id);
             if (tab != null)
+            {
                 ActivateTab(tab);
+            }
+            else
+            {
+                AddAccount(acc);
+            }
             UserMenuPopup.IsOpen = false;
         }
     }
