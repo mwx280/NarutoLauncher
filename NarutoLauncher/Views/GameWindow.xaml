@@ -26,16 +26,16 @@
                             SelectionChanged="OnTabSelectionChanged">
                     <ui:TabView.ItemContainerStyle>
                         <Style TargetType="{x:Type ui:TabViewItem}">
-                            <Setter Property="Padding" Value="14,5"/>
-                            <Setter Property="Margin" Value="0,2,6,2"/>
-                            <Setter Property="FontSize" Value="13"/>
+                            <Setter Property="Padding" Value="16,7"/>
+                            <Setter Property="Margin" Value="0,2,8,2"/>
+                            <Setter Property="FontSize" Value="14"/>
                             <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="{x:Type ui:TabViewItem}">
                                         <Border x:Name="Bd"
-                                                Background="Transparent"
-                                                CornerRadius="8"
+                                                Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                                CornerRadius="10"
                                                 Padding="{TemplateBinding Padding}"
                                                 Margin="{TemplateBinding Margin}">
                                             <ContentPresenter ContentSource="Header"
@@ -52,6 +52,12 @@
                                                         Value="{DynamicResource AccentFillColorDefaultBrush}"/>
                                                 <Setter Property="Foreground"
                                                         Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+                                                <Setter TargetName="Bd" Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect BlurRadius="8" ShadowDepth="0"
+                                                                          Opacity="0.35" Color="Black"/>
+                                                    </Setter.Value>
+                                                </Setter>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>

@@ -120,19 +120,40 @@ public partial class GameWindow : FluentWindow
 
     private TabViewItem BuildTabItem(Account account)
     {
-        var sp = new Controls.StackPanel { Orientation = Controls.Orientation.Horizontal };
+        // 账号首字小圆头像
+        var avatar = new Controls.Border
+        {
+            Width = 18,
+            Height = 18,
+            CornerRadius = new CornerRadius(9),
+            Background = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 0, 8, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        avatar.Child = new Controls.TextBlock
+        {
+            Text = account.AvatarChar,
+            FontSize = 10,
+            FontWeight = FontWeights.Bold,
+            Foreground = Brushes.White,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+
         var text = new Controls.TextBlock
         {
             Text = account.DisplayName,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
         };
+
+        // 关闭按钮：hover 显示淡红色圆形背景
         var close = new Controls.Button
         {
             Content = "✕",
             Tag = account,
-            Width = 18,
-            Height = 18,
+            Width = 20,
+            Height = 20,
             Padding = new Thickness(0),
             FontSize = 11,
             Background = Brushes.Transparent,
@@ -140,8 +161,21 @@ public partial class GameWindow : FluentWindow
             VerticalAlignment = VerticalAlignment.Center,
             ToolTip = $"关闭 {account.DisplayName} 的游戏窗口",
         };
+        var closeStyle = new Style(typeof(Controls.Button));
+        var closeHover = new Trigger
+        {
+            Property = Controls.Button.IsMouseOverProperty,
+            Value = true,
+        };
+        closeHover.Setters.Add(new Setter(Controls.Button.BackgroundProperty,
+            new SolidColorBrush(Color.FromArgb(0x40, 0xE8, 0x48, 0x2C))));
+        closeStyle.Triggers.Add(closeHover);
+        close.Style = closeStyle;
         close.PreviewMouseLeftButtonDown += (_, e) => e.Handled = true;
         close.Click += OnCloseTabClick;
+
+        var sp = new Controls.StackPanel { Orientation = Controls.Orientation.Horizontal };
+        sp.Children.Add(avatar);
         sp.Children.Add(text);
         sp.Children.Add(close);
 
