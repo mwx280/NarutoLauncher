@@ -39,7 +39,8 @@
             </Setter>
         </Style>
     </ui:FluentWindow.Resources>
-    <DockPanel>
+    <Grid>
+        <DockPanel>
         <!-- 标题栏：窗口图标右侧为多开游戏标签（WPF-UI 原生 TabView），右侧为刷新/全屏/系统按钮 -->
         <ui:TitleBar x:Name="TitleBarHost" DockPanel.Dock="Top"
                      Title="{x:Null}"
@@ -263,8 +264,9 @@
                 <Grid x:Name="GameHostContainer"/>
             </Grid>
         </Border>
+        </DockPanel>
 
-        <!-- 用户图标 hover：游戏账号切换列表 -->
+        <!-- 用户图标 hover：游戏账号切换列表（放 Grid 重叠层，不参与 DockPanel 布局） -->
         <Popup x:Name="UserMenuPopup"
                PlacementTarget="{Binding ElementName=UserBtn}"
                Placement="Bottom" AllowsTransparency="True"
@@ -287,5 +289,5 @@
                 </ScrollViewer>
             </Border>
         </Popup>
-    </DockPanel>
+    </Grid>
 </ui:FluentWindow>
