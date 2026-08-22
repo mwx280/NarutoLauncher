@@ -23,7 +23,26 @@
                             Background="Transparent" BorderThickness="0"
                             TabStripPlacement="Top"
                             VerticalAlignment="Center"
-                            SelectionChanged="OnTabSelectionChanged"/>
+                            SelectionChanged="OnTabSelectionChanged">
+                    <ui:TabView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ui:TabViewItem}">
+                            <Setter Property="Margin" Value="0,4,4,4"/>
+                            <Setter Property="Padding" Value="10,3"/>
+                            <Setter Property="FontSize" Value="13"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:TabView.ItemContainerStyle>
+                </ui:TabView>
             </ui:TitleBar.Header>
             <ui:TitleBar.TrailingContent>
                 <StackPanel Orientation="Horizontal">

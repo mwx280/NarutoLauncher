@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Controls = System.Windows.Controls;
@@ -134,7 +135,6 @@ public partial class GameWindow : FluentWindow
             Height = 18,
             Padding = new Thickness(0),
             FontSize = 11,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x99, 0x99, 0x99)),
             Background = Brushes.Transparent,
             BorderThickness = new Thickness(0),
             VerticalAlignment = VerticalAlignment.Center,
@@ -144,6 +144,15 @@ public partial class GameWindow : FluentWindow
         close.Click += OnCloseTabClick;
         sp.Children.Add(text);
         sp.Children.Add(close);
+
+        // 标题与关闭按钮颜色跟随标签选中状态（绑定 TabViewItem.Foreground）
+        var fgBinding = new Binding("Foreground")
+        {
+            RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor,
+                                                typeof(TabViewItem), 1),
+        };
+        text.SetBinding(Controls.TextBlock.ForegroundProperty, fgBinding);
+        close.SetBinding(Controls.Button.ForegroundProperty, fgBinding);
 
         var item = new TabViewItem
         {
