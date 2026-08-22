@@ -51,27 +51,62 @@
             </ui:TitleBar.TrailingContent>
         </ui:TitleBar>
 
-        <!-- 顶部菜单栏：刷新 / 画质调节 -->
+        <!-- 顶部菜单栏：刷新（作用于当前选中的游戏标签） -->
         <Border DockPanel.Dock="Top" Background="#252526"
                 BorderBrush="#3A3A3A" BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal" Margin="8,4">
                 <Button x:Name="RefreshBtn" Content="刷新" Padding="10,4"
                         Click="OnRefreshGame"
-                        ToolTip="重新加载游戏页面"/>
+                        ToolTip="重新加载当前选中的游戏页面"/>
             </StackPanel>
         </Border>
 
-        <!-- 内嵌游戏窗口区域（CEF GameHost 通过 HwndHost 嵌入） -->
+        <!-- 多开游戏标签栏：标签标题为账号备注，右侧小 ✕ 可关闭对应游戏窗口 -->
+        <Border DockPanel.Dock="Top" Background="#2D2D30"
+                BorderBrush="#3A3A3A" BorderThickness="0,0,0,1">
+            <ListBox x:Name="TabBar" Background="Transparent" BorderThickness="0"
+                     Padding="4,0" Margin="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                     SelectionChanged="OnTabSelectionChanged">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="Padding" Value="10,6"/>
+                        <Setter Property="Margin" Value="0,4,4,4"/>
+                        <Setter Property="Background" Value="#333"/>
+                        <Setter Property="Foreground" Value="#BBB"/>
+                        <Setter Property="Focusable" Value="False"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#4C4C4C"/>
+                                <Setter Property="Foreground" Value="#FFF"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#404040"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+        </Border>
+
+        <!-- 内嵌游戏窗口区域（多账号会话各自一个 GameHostView，切换时控制可见性） -->
         <Border Background="#1E1E1E" ClipToBounds="True">
             <Grid>
                 <StackPanel x:Name="Placeholder" HorizontalAlignment="Center"
                             VerticalAlignment="Center">
-                    <TextBlock x:Name="PlaceholderText" Text="正在启动游戏…" FontSize="15" Foreground="#999"
+                    <TextBlock x:Name="PlaceholderText" Text="尚未启动游戏" FontSize="15" Foreground="#999"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="如果长时间无响应请关闭本窗口" FontSize="12" Foreground="#777"
+                    <TextBlock Text="在「账号管理」页点击账号的开始游戏按钮即可添加标签" FontSize="12" Foreground="#777"
                                HorizontalAlignment="Center" Margin="0,6,0,0"/>
                 </StackPanel>
-                <views:GameHostView x:Name="GameHost" Visibility="Collapsed"/>
+                <Grid x:Name="GameHostContainer"/>
             </Grid>
         </Border>
     </DockPanel>

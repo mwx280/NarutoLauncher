@@ -1,5 +1,8 @@
+using System.Linq;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
+using Controls = System.Windows.Controls;
 using NarutoLauncher.Models;
 using NarutoLauncher.Services;
 using Wpf.Ui.Controls;
@@ -7,44 +10,78 @@ using Wpf.Ui.Controls;
 namespace NarutoLauncher.Views;
 
 /// <summary>
-/// 账号对应的无边框游戏窗口（带全屏/最小化/最大化/关闭）。
-/// 窗口显示后自动拉起 CEF GameHost，并把游戏窗口内嵌到内容区。
+/// 多开游戏宿主窗口：顶部标签栏按账号备注列出所有运行中的游戏会话，
+/// 点击标签切换显示对应游戏，标签右侧小 ✕ 关闭对应游戏窗口。
+/// 全局共享单例（AccountsView 添加账号时复用本窗口，不再每账号开一个窗口）。
 /// </summary>
 public partial class GameWindow : FluentWindow
 {
-    private readonly Account _account;
-    private GameSession? _session;
+    private sealed class SessionTab
+    {
+        public required Account Account { get; init; }
+        public required GameSession Session { get; init; }
+        public required GameHostView Host { get; init; }
+        public required Controls.ListBoxItem TabItem { get; init; }
+    }
+
+    public static GameWindow? Shared { get; private set; }
+
+    private readonly List<SessionTab> _tabs = new();
+    private SessionTab? _activeTab;
     private bool _isFullScreen;
     private Rect _normalBounds;
 
-    // 与 GameHost 主窗口通信的自定义消息（WM_APP + n，n=1 刷新）
     private const int WM_APP = 0x8000;
     private const int CmdRefresh = 1;
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool PostMessage(nint hWnd, int msg, nint wParam, nint lParam);
 
-    public GameWindow(Account account)
+    public static GameWindow GetShared(Window? owner)
+    {
+        var win = Shared;
+        if (win == null || !win.IsLoaded)
+        {
+            win = new GameWindow { Owner = owner };
+            Shared = win;
+            win.Show();
+        }
+        return win;
+    }
+
+    public static void OpenAccount(Account account, Window? owner)
+    {
+        GetShared(owner).AddAccount(account);
+    }
+
+    private GameWindow()
     {
         InitializeComponent();
-        _account = account;
-        Title = $"火影忍者OL - {account.DisplayName}";
-        Loaded += OnWindowLoaded;
         Closed += OnWindowClosed;
     }
 
-    private async void OnWindowLoaded(object sender, RoutedEventArgs e)
+    private void AddAccount(Account account)
     {
-        Loaded -= OnWindowLoaded;
-        var session = App.CurrentApp.Games.StartGame(_account, new WindowInteropHelper(this).Handle);
+        var existing = _tabs.FirstOrDefault(t => t.Account.Id == account.Id);
+        if (existing != null)
+        {
+            ActivateTab(existing);
+            return;
+        }
+        _ = StartTabAsync(account);
+    }
+
+    private async Task StartTabAsync(Account account)
+    {
+        var session = App.CurrentApp.Games.StartGame(
+            account, new WindowInteropHelper(this).Handle);
         if (session == null)
         {
             PlaceholderText.Text = "启动失败，请确认 GameHost 已就位";
+            Placeholder.Visibility = Visibility.Visible;
             return;
         }
-        _session = session;
 
-        // 等待 GameHost 窗口句柄
         nint hwnd = 0;
         for (int i = 0; i < 60; i++)
         {
@@ -59,31 +96,126 @@ public partial class GameWindow : FluentWindow
         if (hwnd == 0)
         {
             PlaceholderText.Text = "等待游戏窗口超时";
+            Placeholder.Visibility = Visibility.Visible;
             return;
         }
 
-        _account.Running = true;
+        account.Running = true;
+        var host = new GameHostView { ChildWindowHandle = hwnd };
+        GameHostContainer.Children.Add(host);
 
-        // 通过 HwndHost 内嵌
-        GameHost.ChildWindowHandle = hwnd;
+        var tabItem = BuildTabItem(account);
+        var tab = new SessionTab
+        {
+            Account = account,
+            Session = session,
+            Host = host,
+            TabItem = tabItem,
+        };
+        TabBar.Items.Add(tabItem);
+        _tabs.Add(tab);
+        ActivateTab(tab);
+    }
+
+    private Controls.ListBoxItem BuildTabItem(Account account)
+    {
+        var sp = new Controls.StackPanel { Orientation = Controls.Orientation.Horizontal };
+        var text = new Controls.TextBlock
+        {
+            Text = account.DisplayName,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+        };
+        var close = new Controls.Button
+        {
+            Content = "✕",
+            Tag = account,
+            Width = 18,
+            Height = 18,
+            Padding = new Thickness(0),
+            FontSize = 11,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x99, 0x99, 0x99)),
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            VerticalAlignment = VerticalAlignment.Center,
+            ToolTip = $"关闭 {account.DisplayName} 的游戏窗口",
+        };
+        close.PreviewMouseLeftButtonDown += (_, e) => e.Handled = true;
+        close.Click += OnCloseTabClick;
+        sp.Children.Add(text);
+        sp.Children.Add(close);
+
+        var item = new Controls.ListBoxItem { Content = sp, Tag = account };
+        return item;
+    }
+
+    private void OnCloseTabClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Controls.Button { Tag: Account acc })
+        {
+            e.Handled = true;
+            CloseTab(acc.Id);
+        }
+    }
+
+    private void OnTabSelectionChanged(object sender, Controls.SelectionChangedEventArgs e)
+    {
+        if (TabBar.SelectedItem is Controls.ListBoxItem { Tag: Account acc })
+        {
+            var tab = _tabs.FirstOrDefault(t => t.Account.Id == acc.Id);
+            if (tab != null)
+                ActivateTab(tab);
+        }
+    }
+
+    private void ActivateTab(SessionTab tab)
+    {
+        foreach (var t in _tabs)
+            t.Host.Visibility = t == tab ? Visibility.Visible : Visibility.Collapsed;
+        _activeTab = tab;
         Placeholder.Visibility = Visibility.Collapsed;
-        GameHost.Visibility = Visibility.Visible;
+        if (tab.TabItem != null)
+            TabBar.SelectedItem = tab.TabItem;
+    }
+
+    private void CloseTab(long accountId)
+    {
+        var tab = _tabs.FirstOrDefault(t => t.Account.Id == accountId);
+        if (tab == null)
+            return;
+        App.CurrentApp.Games.StopGame(tab.Account);
+        TabBar.Items.Remove(tab.TabItem);
+        GameHostContainer.Children.Remove(tab.Host);
+        tab.Host.ChildWindowHandle = 0;
+        _tabs.Remove(tab);
+
+        if (_tabs.Count == 0)
+        {
+            _activeTab = null;
+            PlaceholderText.Text = "尚未启动游戏";
+            Placeholder.Visibility = Visibility.Visible;
+            return;
+        }
+        ActivateTab(_tabs[0]);
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
     {
         Closed -= OnWindowClosed;
-        if (_session != null)
+        foreach (var t in _tabs.ToList())
         {
-            App.CurrentApp.Games.StopGame(_account);
-            _session = null;
+            App.CurrentApp.Games.StopGame(t.Account);
+            t.Host.ChildWindowHandle = 0;
         }
+        _tabs.Clear();
+        TabBar.Items.Clear();
+        GameHostContainer.Children.Clear();
+        Shared = null;
     }
 
-    /// <summary>发送自定义命令消息给 GameHost 主窗口（无会话则忽略）。</summary>
     private void SendCommand(int cmd, nint wParam = 0)
     {
-        var hwnd = _session?.ReadWindowHandle() ?? 0;
+        var hwnd = _activeTab?.Session.ReadWindowHandle() ?? 0;
         if (hwnd == 0)
             return;
         PostMessage(hwnd, WM_APP + cmd, wParam, IntPtr.Zero);

@@ -72,11 +72,8 @@ public partial class AccountsView : UserControl
         if (sender is not Button b || b.Tag is not long id) return;
         var acc = App.CurrentApp.Accounts.Accounts.FirstOrDefault(a => a.Id == id);
         if (acc == null) return;
-        var win = new GameWindow(acc)
-        {
-            Owner = Window.GetWindow(this),
-        };
-        win.Show();
+        // 复用共享的多开游戏窗口（顶部标签栏），在该窗口打开/切换账号标签
+        GameWindow.OpenAccount(acc, Window.GetWindow(this));
     }
 
     private void OnEditAccount(object sender, RoutedEventArgs e)
