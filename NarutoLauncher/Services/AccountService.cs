@@ -32,7 +32,7 @@ public class AccountService
     {
         if (!File.Exists(StoragePath))
         {
-            SeedDemoData();
+            // 新装/无账号文件：保持空列表，不填充演示账号
             return;
         }
         try
@@ -46,17 +46,7 @@ public class AccountService
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"加载账号失败: {ex.Message}");
-            SeedDemoData();
         }
-    }
-
-    private void SeedDemoData()
-    {
-        if (Accounts.Count > 0) return;
-        Accounts.Add(new Account { Id = 1, QQ = "3026661111", Name = "大号·鸣人", Server = "火影一区", Level = 168, Power = "3.2亿", LoggedIn = true, Running = true, Seed = 0 });
-        Accounts.Add(new Account { Id = 2, QQ = "3026662222", Name = "佐助小号", Server = "火影二区", Level = 152, Power = "2.8亿", LoggedIn = true, Running = true, Seed = 1 });
-        Accounts.Add(new Account { Id = 3, QQ = "3026663333", Name = "未登录新号", LoggedIn = false, Seed = 2 });
-        Save();
     }
 
     /// <summary>保存到磁盘（密码用 DPAPI 加密）。</summary>
