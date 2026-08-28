@@ -401,11 +401,43 @@ public partial class GameWindow : FluentWindow
     /// <summary>选择倍速：发送到 GameHost（wParam = 倍速×10）。</summary>
     private void OnSpeedChanged(object sender, RoutedEventArgs e)
     {
-        if (sender is System.Windows.Controls.RadioButton rb &&
-            rb.IsChecked == true && rb.Tag is string s &&
-            int.TryParse(s, out var speed10))
+        if (sender is not System.Windows.Controls.RadioButton rb || rb.IsChecked != true || rb.Tag is not string s)
+            return;
+        if (s == "custom")
+        {
+            // 自定义倍速：读取输入框，立即生效
+            SendCustomSpeed();
+            return;
+        }
+        if (int.TryParse(s, out var speed10))
         {
             SendCommand(CmdToggleSpeed, (nint)speed10);
+        }
+    }
+
+    /// <summary>自定义倍速输入框回车：立即发送。</summary>
+    private void OnCustomSpeedKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+            return;
+        SendCustomSpeed();
+        e.Handled = true;
+    }
+
+    /// <summary>解析自定义倍速并发送（wParam = 倍速×10，关闭菜单避免遮挡）。</summary>
+    private void SendCustomSpeed()
+    {
+        var text = CustomSpeedBox.Text.Trim();
+        if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture,
+                out var speed) && speed is >= 0.1 and <= 100)
+        {
+            var speed10 = (int)Math.Round(speed * 10);
+            SendCommand(CmdToggleSpeed, (nint)speed10);
+            SpeedMenuPopup.IsOpen = false;
+        }
+        else
+        {
+            CustomSpeedBox.Text = "";
         }
     }
 

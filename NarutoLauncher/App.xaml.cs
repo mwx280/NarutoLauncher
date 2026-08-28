@@ -285,15 +285,24 @@ public partial class App : Application
     private static void ActivateExistingInstance()
     {
         var hwnd = FindWindow(null, "火影忍者Online 启动器");
-        if (hwnd != IntPtr.Zero)
-        {
-            ShowWindow(hwnd, 9);  // SW_RESTORE
-            SetForegroundWindow(hwnd);
-        }
+        if (hwnd == IntPtr.Zero)
+            return;
+        // 托盘模式下主窗口是 Hide() 隐藏（非最小化）。直接 PostMessage 通知已有
+        // 实例走 managed 的 ShowMainWindow（保证 WPF 可见性/渲染状态同步），
+        // 避免重新启动时窗口恢复不当导致白屏。
+        PostMessage(hwnd, App.WmShowMain, IntPtr.Zero, IntPtr.Zero);
     }
+
+    /// <summary>唤醒主窗口的自定义消息（第二实例发来）。</summary>
+    public const int WmShowMain = WM_APP + 0x0100;
+
+    private const int WM_APP = 0x8000;
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern nint FindWindow(string? className, string windowName);
+
+    [DllImport("user32.dll")]
+    private static extern bool PostMessage(nint hWnd, int msg, nint wParam, nint lParam);
 
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(nint hWnd, int nCmdShow);

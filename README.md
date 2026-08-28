@@ -128,4 +128,4 @@ cef_flash_game_host.exe --help
 
 ## 许可证
 
-本项目以 **GNU General Public License v3.0（GPL-3.0）** 开源，见 [LICENSE](LICENSE)。游戏内核上游项目 [CEFFlashGameHost](https://github.com/mwx280/CEFFlashGameHost) 以 AGPL-3.0 开源。
+本项目与游戏内核一致，以 **GNU Affero General Public License v3.0（AGPL-3.0）** 开源，见 [LICENSE](LICENSE)，并注明改造来源 [CEFFlashGameHost](https://github.com/mwx280/CEFFlashGameHost)（同样以 AGPL-3.0 开源）。

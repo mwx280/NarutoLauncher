@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using NarutoLauncher.Services;
 using NarutoLauncher.Views;
 using Wpf.Ui;
@@ -23,7 +24,36 @@ public partial class MainWindow : FluentWindow
         InitializeComponent();
         App.CurrentApp.DialogService.SetDialogHost(ContentDialogHost);
         App.CurrentApp.Settings.NavigationStyleChanged += OnNavigationStyleChanged;
+        SourceInitialized += MainWindow_SourceInitialized;
         Loaded += MainWindow_Loaded;
+    }
+
+    // 监听第二实例发来的"显示主窗口"消息，走 managed 的 ShowMainWindow，
+    // 保证托盘 Hide 后重新启动时 WPF 可见性/渲染状态正确，避免白屏。
+    private void MainWindow_SourceInitialized(object? sender, EventArgs e)
+    {
+        var helper = new WindowInteropHelper(this);
+        var source = HwndSource.FromHwnd(helper.Handle);
+        source?.AddHook(WndProc);
+    }
+
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (msg == App.WmShowMain)
+        {
+            ShowMainWindow();
+            handled = true;
+        }
+        return IntPtr.Zero;
+    }
+
+    /// <summary>显示并激活主窗口（供单实例唤醒调用）。</summary>
+    private void ShowMainWindow()
+    {
+        Show();
+        if (WindowState == WindowState.Minimized)
+            WindowState = WindowState.Normal;
+        Activate();
     }
 
     private void OnNavigationStyleChanged()

@@ -281,6 +281,17 @@
                                  Margin="4,3" FontSize="13"
                                  Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                                  Checked="OnSpeedChanged"/>
+                    <StackPanel Orientation="Horizontal" Margin="4,3">
+                        <RadioButton Content="自定义" GroupName="SpeedGroup" Tag="custom"
+                                     FontSize="13" VerticalAlignment="Center"
+                                     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                     Checked="OnSpeedChanged"/>
+                        <TextBox x:Name="CustomSpeedBox" Width="52" FontSize="12"
+                                 VerticalContentAlignment="Center"
+                                 Margin="6,0,0,0" Padding="4,2"
+                                 ToolTip="输入倍速，如 1.5、3、10"
+                                 KeyDown="OnCustomSpeedKeyDown"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </Popup>
