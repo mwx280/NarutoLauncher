@@ -321,47 +321,6 @@
                 </Grid>
             </Border>
 
-            <!-- ===== 自动化分组 ===== -->
-            <TextBlock Text="自动化" Style="{StaticResource GroupTitleStyle}"/>
-
-            <!-- 自动脚本 -->
-            <Border Style="{StaticResource SettingRowStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE713;" Style="{StaticResource SettingIconTextStyle}"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="自动脚本" Style="{StaticResource ItemNameStyle}"/>
-                        <TextBlock Text="自动执行预设脚本任务" Style="{StaticResource ItemDescStyle}"/>
-                    </StackPanel>
-                    <ui:ToggleSwitch Grid.Column="2" x:Name="AutoScriptBox"/>
-                </Grid>
-            </Border>
-
-            <!-- 自动任务 -->
-            <Border Style="{StaticResource SettingRowStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE9D5;" Style="{StaticResource SettingIconTextStyle}"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="自动任务" Style="{StaticResource ItemNameStyle}"/>
-                        <TextBlock Text="自动完成日常任务" Style="{StaticResource ItemDescStyle}"/>
-                    </StackPanel>
-                    <ui:ToggleSwitch Grid.Column="2" x:Name="AutoTaskBox"/>
-                </Grid>
-            </Border>
-
             <!-- ===== 界面分组 ===== -->
             <TextBlock Text="界面" Style="{StaticResource GroupTitleStyle}"/>
 
@@ -422,28 +381,6 @@
                         <TextBlock Text="本地 DPAPI 加密存储，安全保存账号密码" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ui:ToggleSwitch Grid.Column="2" x:Name="RememberPwdBox"/>
-                </Grid>
-            </Border>
-
-            <!-- ===== 关于分组 ===== -->
-            <TextBlock Text="关于" Style="{StaticResource GroupTitleStyle}"/>
-
-            <!-- 关于 -->
-            <Border Style="{StaticResource SettingRowStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE946;" Style="{StaticResource SettingIconTextStyle}"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="NarutoLauncher" Style="{StaticResource ItemNameStyle}"/>
-                        <TextBlock Text="v1.0.0 · 火影忍者Online 多账号多开启动器"
-                                   Style="{StaticResource ItemDescStyle}"/>
-                    </StackPanel>
                 </Grid>
             </Border>
         </StackPanel>

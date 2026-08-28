@@ -194,16 +194,10 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE80F;" FontFamily="Segoe Fluent Icons" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="首页" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </ListBoxItem>
-                            <ListBoxItem Tag="games">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="&#xE7FC;" FontFamily="Segoe Fluent Icons" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="游戏" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </ListBoxItem>
-                            <ListBoxItem Tag="accounts">
-                                <StackPanel Orientation="Horizontal">
+                                 </StackPanel>
+                             </ListBoxItem>
+                             <ListBoxItem Tag="accounts">
+                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE77B;" FontFamily="Segoe Fluent Icons" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="账号管理" VerticalAlignment="Center"/>
                                 </StackPanel>
@@ -283,11 +277,6 @@
                 <ui:NavigationViewItem Content="首页" TargetPageType="{x:Type views:HomeView}">
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="Home24" />
-                    </ui:NavigationViewItem.Icon>
-                </ui:NavigationViewItem>
-                <ui:NavigationViewItem Content="游戏" TargetPageType="{x:Type views:GamesView}">
-                    <ui:NavigationViewItem.Icon>
-                        <ui:SymbolIcon Symbol="Play24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
                 <ui:NavigationViewItem Content="账号管理" TargetPageType="{x:Type views:AccountsView}">

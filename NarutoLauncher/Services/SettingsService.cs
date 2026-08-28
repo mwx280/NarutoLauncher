@@ -64,8 +64,6 @@ public class SettingsService
     private readonly string _path;
     private bool _gameSpeed = true;
     private bool _antiDrop = true;
-    private bool _autoScript;
-    private bool _autoTask;
     private bool _minimizeToTray = true;
     private bool _minimizeOnGameStart = true;
     private bool _rememberPassword = true;
@@ -91,8 +89,6 @@ public class SettingsService
 
     public bool GameSpeed { get => _gameSpeed; set { if (_gameSpeed != value) { _gameSpeed = value; Save(); } } }
     public bool AntiDrop { get => _antiDrop; set { if (_antiDrop != value) { _antiDrop = value; Save(); } } }
-    public bool AutoScript { get => _autoScript; set { if (_autoScript != value) { _autoScript = value; Save(); } } }
-    public bool AutoTask { get => _autoTask; set { if (_autoTask != value) { _autoTask = value; Save(); } } }
     public bool MinimizeToTray { get => _minimizeToTray; set { if (_minimizeToTray != value) { _minimizeToTray = value; Save(); } } }
     public bool RememberPassword { get => _rememberPassword; set { if (_rememberPassword != value) { _rememberPassword = value; Save(); } } }
 
@@ -232,8 +228,6 @@ public class SettingsService
             {
                 GameSpeed = _gameSpeed,
                 AntiDrop = _antiDrop,
-                AutoScript = _autoScript,
-                AutoTask = _autoTask,
                 MinimizeToTray = _minimizeToTray,
                 RememberPassword = _rememberPassword,
                 MinimizeOnGameStart = _minimizeOnGameStart,
@@ -266,8 +260,6 @@ public class SettingsService
             if (dto == null) return;
             _gameSpeed = dto.GameSpeed;
             _antiDrop = dto.AntiDrop;
-            _autoScript = dto.AutoScript;
-            _autoTask = dto.AutoTask;
             _minimizeToTray = dto.MinimizeToTray;
             _rememberPassword = dto.RememberPassword;
             _minimizeOnGameStart = dto.MinimizeOnGameStart;
@@ -292,8 +284,6 @@ public class SettingsService
     {
         public bool GameSpeed { get; set; } = true;
         public bool AntiDrop { get; set; } = true;
-        public bool AutoScript { get; set; }
-        public bool AutoTask { get; set; }
         public bool MinimizeToTray { get; set; } = true;
         public bool RememberPassword { get; set; } = true;
         public bool MinimizeOnGameStart { get; set; } = true;

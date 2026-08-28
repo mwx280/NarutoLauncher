@@ -13,7 +13,6 @@ namespace NarutoLauncher;
 public partial class MainWindow : FluentWindow
 {
     private readonly HomeView _home = new();
-    private readonly GamesView _games = new();
     private readonly AccountsView _accounts = new();
     private readonly SettingsView _settings = new();
     private readonly AboutView _about = new();
@@ -103,7 +102,6 @@ public partial class MainWindow : FluentWindow
     private object CreatePage(Type type)
     {
         if (type == typeof(HomeView)) return _home;
-        if (type == typeof(GamesView)) return _games;
         if (type == typeof(AccountsView)) return _accounts;
         if (type == typeof(SettingsView)) return _settings;
         if (type == typeof(AboutView)) return _about;
@@ -115,7 +113,6 @@ public partial class MainWindow : FluentWindow
         var tag = pageType switch
         {
             _ when pageType == typeof(HomeView) => "home",
-            _ when pageType == typeof(GamesView) => "games",
             _ when pageType == typeof(AccountsView) => "accounts",
             _ when pageType == typeof(SettingsView) => "settings",
             _ when pageType == typeof(AboutView) => "about",
@@ -125,7 +122,7 @@ public partial class MainWindow : FluentWindow
         NavList.SelectedIndex = -1;
         FooterList.SelectedIndex = -1;
         // 在对应列表中选中
-        if (tag is "home" or "games" or "accounts")
+        if (tag is "home" or "accounts")
             SelectNavItem(NavList, tag);
         else
             SelectNavItem(FooterList, tag);
@@ -173,7 +170,6 @@ public partial class MainWindow : FluentWindow
         var (page, pageType) = tag switch
         {
             "home" => ((object)_home, typeof(HomeView)),
-            "games" => ((object)_games, typeof(GamesView)),
             "accounts" => ((object)_accounts, typeof(AccountsView)),
             "settings" => ((object)_settings, typeof(SettingsView)),
             "about" => ((object)_about, typeof(AboutView)),

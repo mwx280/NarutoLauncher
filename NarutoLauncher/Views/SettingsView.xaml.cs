@@ -53,8 +53,6 @@ public partial class SettingsView : UserControl
         AntiDropBox.IsChecked = s.AntiDrop;
         AutoEnterGameBox.IsChecked = s.AutoEnterGame;
         FlashGpuBox.IsChecked = s.FlashHardwareAcceleration;
-        AutoScriptBox.IsChecked = s.AutoScript;
-        AutoTaskBox.IsChecked = s.AutoTask;
         TrayBox.IsChecked = s.MinimizeToTray;
         MinOnGameStartBox.IsChecked = s.MinimizeOnGameStart;
         RememberPwdBox.IsChecked = s.RememberPassword;
@@ -74,10 +72,6 @@ public partial class SettingsView : UserControl
         AntiDropBox.Unchecked += SaveSwitches;
         AutoEnterGameBox.Checked += SaveSwitches;
         AutoEnterGameBox.Unchecked += SaveSwitches;
-        AutoScriptBox.Checked += SaveSwitches;
-        AutoScriptBox.Unchecked += SaveSwitches;
-        AutoTaskBox.Checked += SaveSwitches;
-        AutoTaskBox.Unchecked += SaveSwitches;
         TrayBox.Checked += SaveSwitches;
         TrayBox.Unchecked += SaveSwitches;
         MinOnGameStartBox.Checked += SaveSwitches;
@@ -96,8 +90,6 @@ public partial class SettingsView : UserControl
         s.GameSpeed = GameSpeedBox.IsChecked == true;
         s.AntiDrop = AntiDropBox.IsChecked == true;
         s.AutoEnterGame = AutoEnterGameBox.IsChecked == true;
-        s.AutoScript = AutoScriptBox.IsChecked == true;
-        s.AutoTask = AutoTaskBox.IsChecked == true;
         s.MinimizeToTray = TrayBox.IsChecked == true;
         s.MinimizeOnGameStart = MinOnGameStartBox.IsChecked == true;
         s.RememberPassword = RememberPwdBox.IsChecked == true;
