@@ -1,5 +1,5 @@
 // HostClient 实现：浏览器生命周期、Flash 插件 ALLOW、崩溃自动恢复、
-// 画质 hook 注入、zone_id 自动补全、登录检测（扫码/自动登录）、窗口铺满。
+// 画质 hook 注入、登录检测（扫码/自动登录）、窗口铺满。
 
 #include "host_client.h"
 
@@ -292,153 +292,6 @@ t();
     return js;
 }
 
-// ---------- 自动补 zone_id（修复 main.html 无 zone_id 时 fcgi 500 导致 Flash 不加载的黑屏） ----------
-class ZoneIdVisitor : public CefCookieVisitor {
-public:
-    ZoneIdVisitor() = default;
-
-    bool Visit(const CefCookie& cookie, int count, int total,
-               bool& deleteCookie) override {
-        deleteCookie = false;
-        std::string name = CefString(&cookie.name);
-        if (name == "sServerID") {
-            _server_id = CefString(&cookie.value);
-        } else if (name == "tmpLastLoginInfo") {
-            _last_login_info = CefString(&cookie.value);
-        }
-        // 遍历到最后一个 cookie 时提交任务（CEF 可能不回调 count<0 结束信号）
-        if (count >= 0 && total > 0 && count == total - 1) {
-            if (_server_id.empty())
-                ExtractServerFromLoginInfo();
-            AppLog::Write("自动补 zone_id: 遍历完成, sServerID=%s",
-                          _server_id.empty() ? "(空)" : _server_id.c_str());
-            if (!_server_id.empty())
-                CefPostTask(TID_UI, new ApplyZoneIdTask(_server_id));
-            return false;
-        }
-        return true;
-    }
-
-private:
-    static std::string UrlDecode(const std::string& in) {
-        std::string out;
-        out.reserve(in.size());
-        for (size_t i = 0; i < in.size(); ++i) {
-            if (in[i] == '%' && i + 2 < in.size()) {
-                auto hex = [](char c) -> int {
-                    if (c >= '0' && c <= '9') return c - '0';
-                    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-                    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-                    return -1;
-                };
-                int hi = hex(in[i + 1]), lo = hex(in[i + 2]);
-                if (hi >= 0 && lo >= 0) {
-                    out.push_back(static_cast<char>((hi << 4) | lo));
-                    i += 2;
-                    continue;
-                }
-            }
-            out.push_back(in[i]);
-        }
-        return out;
-    }
-
-    void ExtractServerFromLoginInfo() {
-        if (_last_login_info.empty())
-            return;
-        std::string raw = UrlDecode(_last_login_info);
-        if (raw.empty())
-            return;
-        std::string key = "\"zonelist\"";
-        size_t pos = raw.find(key);
-        if (pos == std::string::npos)
-            return;
-        size_t colon = raw.find(':', pos);
-        size_t bracket = raw.find('[', colon);
-        if (bracket == std::string::npos)
-            return;
-        size_t i = bracket + 1;
-        while (i < raw.size() && (raw[i] == ' ' || raw[i] == '\t' ||
-                                  raw[i] == '\r' || raw[i] == '\n'))
-            ++i;
-        size_t start = i;
-        while (i < raw.size() && isdigit((unsigned char)raw[i]))
-            ++i;
-        if (i > start) {
-            _server_id = raw.substr(start, i - start);
-            AppLog::Write("自动补 zone_id: sServerID 缺失，从 tmpLastLoginInfo 提取=%s",
-                          _server_id.c_str());
-        }
-    }
-
-    static std::string SetZoneId(const std::string& url,
-                                 const std::string& sid) {
-        size_t q = url.find('?');
-        if (q == std::string::npos)
-            return url + "?zone_id=" + sid;
-        std::string base = url.substr(0, q);
-        std::string newq;
-        size_t pos = q + 1;
-        while (pos <= url.size()) {
-            size_t amp = url.find('&', pos);
-            std::string part =
-                url.substr(pos, amp == std::string::npos
-                                    ? std::string::npos
-                                    : amp - pos);
-            if (part.rfind("zone_id=", 0) != 0) {
-                if (!newq.empty()) newq += '&';
-                newq += part;
-            }
-            if (amp == std::string::npos) break;
-            pos = amp + 1;
-        }
-        if (!newq.empty()) newq += '&';
-        newq += "zone_id=" + sid;
-        return base + "?" + newq;
-    }
-
-    class ApplyZoneIdTask : public CefTask {
-    public:
-        explicit ApplyZoneIdTask(const std::string& server_id)
-            : server_id_(server_id) {}
-        void Execute() override {
-            if (!g_game_browser) return;
-            CefRefPtr<CefFrame> frame = g_game_browser->GetMainFrame();
-            if (!frame || !frame->IsValid()) return;
-            std::string url = frame->GetURL().ToString();
-            if (url.empty()) return;
-            if (url.find("zone_id=" + server_id_) != std::string::npos)
-                return;
-            std::string new_url = SetZoneId(url, server_id_);
-            AppLog::Write("自动补 zone_id: %s -> %s", url.c_str(),
-                          new_url.c_str());
-            frame->LoadURL(new_url);
-        }
-        IMPLEMENT_REFCOUNTING(ApplyZoneIdTask);
-
-    private:
-        std::string server_id_;
-    };
-
-    std::string _server_id;
-    std::string _last_login_info;
-    IMPLEMENT_REFCOUNTING(ZoneIdVisitor);
-};
-
-// 从 cookie 管理器读取 sServerID（存于 .huoying.qq.com 父域，用 VisitAllCookies 全量遍历）。
-void CheckAndApplyZoneId() {
-    CefRefPtr<CefCookieManager> mgr =
-        CefCookieManager::GetGlobalManager(nullptr);
-    if (mgr)
-        mgr->VisitAllCookies(new ZoneIdVisitor());
-}
-
-class CheckAndApplyZoneIdTask : public CefTask {
-public:
-    void Execute() override { CheckAndApplyZoneId(); }
-    IMPLEMENT_REFCOUNTING(CheckAndApplyZoneIdTask);
-};
-
 // ---------- 崩溃自动恢复 ----------
 namespace {
 const int kMaxCrashReloads = 3;       // 连续崩溃自动重载上限
@@ -679,14 +532,6 @@ void HostClient::OnLoadEnd(CefRefPtr<CefBrowser> browser,
             "*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}';"
             "document.head.appendChild(s);}",
             frame->GetURL(), 0);
-        // main.html 缺 zone_id 时 fcgi 返回 500 导致 Flash 不加载（黑屏），
-        // 从 cookie 读取 sServerID 自动补 zone_id 重载。
-        std::string url = frame->GetURL().ToString();
-        if (url.find("main.html") != std::string::npos &&
-            url.find("zone_id") == std::string::npos) {
-            AppLog::Write("自动补 zone_id: main.html 无 zone_id, 启动检查");
-            CefPostTask(TID_UI, new CheckAndApplyZoneIdTask());
-        }
     }
     if ((g_login_mode || g_auto_login) && !_login_detected &&
         frame->IsMain()) {

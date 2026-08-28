@@ -35,7 +35,7 @@ public class Account : INotifyPropertyChanged
     private bool _isSelected;
     private string _scanUserDataDir = "";
     private string _cookies = "";
-    private AvatarType _avatarType = AvatarType.NameChar;
+    private AvatarType _avatarType = AvatarType.QqAvatar;
 
     public long Id { get; set; }
 

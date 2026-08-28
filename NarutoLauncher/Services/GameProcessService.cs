@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using NarutoLauncher.Models;
@@ -8,10 +9,20 @@ namespace NarutoLauncher.Services;
 
 /// <summary>
 /// 一个账号对应的游戏会话（进程 + 隔离目录）。
+/// 同一账号可开多个会话（多区多开），会话以唯一 Key 区分、可单独停止。
 /// </summary>
 public class GameSession
 {
+    /// <summary>会话唯一标识（同账号多开时区分）。</summary>
+    public required string Key { get; init; }
+
+    /// <summary>所属账号 Id（用于按账号查询/停止）。</summary>
+    public required long AccountId { get; init; }
+
+    /// <summary>进程。</summary>
     public required Process Process { get; init; }
+
+    /// <summary>隔离目录。</summary>
     public required string UserdataDir { get; init; }
 
     public string WindowHandleFile => Path.Combine(UserdataDir, "window_hwnd.txt");
@@ -51,7 +62,8 @@ public class GameProcessService
     /// <summary>启动器目录下的游戏 URL 约定。</summary>
     private const string DefaultGameUrl = "https://game.huoying.qq.com/main.html";
 
-    private readonly Dictionary<long, GameSession> _sessions = new();
+    /// <summary>会话集合（按唯一 Key 索引，同账号可多个会话）。</summary>
+    private readonly Dictionary<string, GameSession> _sessions = new();
 
     /// <summary>GameHost exe 绝对路径（不存在则返回 null）。</summary>
     public string? GameHostPath
@@ -64,16 +76,21 @@ public class GameProcessService
         }
     }
 
-    /// <summary>是否有运行中的游戏进程。</summary>
+    /// <summary>账号是否有运行中的游戏进程（任一会话）。</summary>
     public bool IsRunning(long accountId) =>
-        _sessions.TryGetValue(accountId, out var s) && !s.Process.HasExited;
+        GetSessions(accountId).Any(s => !s.Process.HasExited);
 
-    /// <summary>获取账号对应的会话（无则 null）。</summary>
-    public GameSession? GetSession(long accountId) =>
-        _sessions.TryGetValue(accountId, out var s) ? s : null;
+    /// <summary>获取账号的全部会话（无则空列表）。</summary>
+    public List<GameSession> GetSessions(long accountId) =>
+        _sessions.Values.Where(s => s.AccountId == accountId).ToList();
+
+    /// <summary>按会话唯一 Key 获取会话（无则 null）。</summary>
+    public GameSession? GetSession(string key) =>
+        _sessions.TryGetValue(key, out var s) ? s : null;
 
     /// <summary>
-    /// 启动一个账号的游戏窗口（内嵌模式）。
+    /// 启动一个账号的游戏窗口（内嵌模式）。同账号可多次调用（多区多开），
+    /// 各会话共用账号 cookie，仅以唯一 Key 区分，可分别停止。
     /// </summary>
     public GameSession? StartGame(Account account, nint parentHwnd = 0,
                                   string? flashQuality = null,
@@ -136,8 +153,15 @@ public class GameProcessService
         {
             var proc = Process.Start(psi);
             if (proc == null) return null;
-            var session = new GameSession { Process = proc, UserdataDir = userdata };
-            _sessions[account.Id] = session;
+            var key = $"{account.Id}-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+            var session = new GameSession
+            {
+                Key = key,
+                AccountId = account.Id,
+                Process = proc,
+                UserdataDir = userdata,
+            };
+            _sessions[key] = session;
             account.Running = true;
             return session;
         }
@@ -148,15 +172,24 @@ public class GameProcessService
         }
     }
 
-    /// <summary>停止一个账号的游戏进程（异步，不阻塞 UI）。</summary>
+    /// <summary>停止一个账号的所有游戏进程（异步，不阻塞 UI）。</summary>
     public void StopGame(Account account)
     {
-        if (_sessions.TryGetValue(account.Id, out var session))
+        foreach (var s in GetSessions(account.Id))
+            _ = StopSession(s);
+        foreach (var key in _sessions.Keys.Where(k => _sessions[k].AccountId == account.Id).ToList())
+            _sessions.Remove(key);
+        account.Running = false;
+    }
+
+    /// <summary>按会话唯一 Key 停止一个游戏进程。</summary>
+    public void StopSessionByKey(string key)
+    {
+        if (_sessions.TryGetValue(key, out var session))
         {
             _ = StopSession(session);
-            _sessions.Remove(account.Id);
+            _sessions.Remove(key);
         }
-        account.Running = false;
     }
 
     /// <summary>
@@ -293,10 +326,10 @@ public class GameProcessService
     /// <summary>停止全部游戏进程。</summary>
     public void StopAll()
     {
-        foreach (var (id, session) in _sessions.ToList())
+        foreach (var session in _sessions.Values.ToList())
         {
             _ = StopSession(session);
-            var acc = App.CurrentApp.Accounts.Accounts.FirstOrDefault(a => a.Id == id);
+            var acc = App.CurrentApp.Accounts.Accounts.FirstOrDefault(a => a.Id == session.AccountId);
             if (acc != null)
                 acc.Running = false;
         }
@@ -343,7 +376,14 @@ public class GameProcessService
         {
             var proc = Process.Start(psi);
             if (proc == null) return null;
-            return new GameSession { Process = proc, UserdataDir = userdata };
+            var key = "scan-" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            return new GameSession
+            {
+                Key = key,
+                AccountId = -1,  // 扫码登录会话暂不属于具体账号
+                Process = proc,
+                UserdataDir = userdata,
+            };
         }
         catch (Exception ex)
         {

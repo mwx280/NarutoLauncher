@@ -121,12 +121,7 @@ public partial class GameWindow : FluentWindow
 
     private void AddAccount(Account account)
     {
-        var existing = _tabs.FirstOrDefault(t => t.Account.Id == account.Id);
-        if (existing != null)
-        {
-            ActivateTab(existing);
-            return;
-        }
+        // 同账号可开多个 tab（多区多开）：每次调用都新开一个游戏会话
         _ = StartTabAsync(account);
     }
 
@@ -164,7 +159,7 @@ public partial class GameWindow : FluentWindow
         var host = new GameHostView { ChildWindowHandle = hwnd };
         GameHostContainer.Children.Add(host);
 
-        var (tabItem, avatar) = BuildTabItem(account);
+        var (tabItem, avatar) = BuildTabItem(account, session.Key);
         var tab = new SessionTab
         {
             Account = account,
@@ -223,7 +218,7 @@ public partial class GameWindow : FluentWindow
         return avatar;
     }
 
-    private (TabViewItem Item, Controls.Border Avatar) BuildTabItem(Account account)
+    private (TabViewItem Item, Controls.Border Avatar) BuildTabItem(Account account, string sessionKey)
     {
         var avatar = BuildAvatar(account);
 
@@ -241,7 +236,7 @@ public partial class GameWindow : FluentWindow
             Height = 20,
             CornerRadius = new CornerRadius(10),
             Background = Brushes.Transparent,
-            Tag = account,
+            Tag = sessionKey,
             VerticalAlignment = VerticalAlignment.Center,
             ToolTip = $"关闭 {account.DisplayName} 的游戏窗口",
         };
@@ -260,7 +255,7 @@ public partial class GameWindow : FluentWindow
         close.MouseLeftButtonDown += (_, e) =>
         {
             e.Handled = true;
-            CloseTab(account.Id);
+            CloseTab(sessionKey);
         };
 
         var sp = new Controls.StackPanel { Orientation = Controls.Orientation.Horizontal };
@@ -281,7 +276,7 @@ public partial class GameWindow : FluentWindow
         {
             Header = sp,
             Content = null,
-            Tag = account,
+            Tag = sessionKey,
             Padding = new Thickness(8, 2, 8, 2),
         };
         return (item, avatar);
@@ -289,9 +284,9 @@ public partial class GameWindow : FluentWindow
 
     private void OnTabSelectionChanged(object sender, Controls.SelectionChangedEventArgs e)
     {
-        if (TabBar.SelectedItem is TabViewItem { Tag: Account acc })
+        if (TabBar.SelectedItem is TabViewItem { Tag: string key })
         {
-            var tab = _tabs.FirstOrDefault(t => t.Account.Id == acc.Id);
+            var tab = _tabs.FirstOrDefault(t => t.Session.Key == key);
             if (tab != null)
                 ActivateTab(tab);
         }
@@ -307,12 +302,13 @@ public partial class GameWindow : FluentWindow
             TabBar.SelectedItem = tab.TabItem;
     }
 
-    private void CloseTab(long accountId)
+    private void CloseTab(string sessionKey)
     {
-        var tab = _tabs.FirstOrDefault(t => t.Account.Id == accountId);
+        var tab = _tabs.FirstOrDefault(t => t.Session.Key == sessionKey);
         if (tab == null)
             return;
-        App.CurrentApp.Games.StopGame(tab.Account);
+        // 只关闭这个会话（同账号多开时不影响其它区）
+        App.CurrentApp.Games.StopSessionByKey(sessionKey);
         TabBar.Items.Remove(tab.TabItem);
         GameHostContainer.Children.Remove(tab.Host);
         tab.Host.ChildWindowHandle = 0;

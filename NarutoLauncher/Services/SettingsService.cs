@@ -74,7 +74,7 @@ public class SettingsService
     private ThemeMode _themeMode = ThemeMode.System;
     private AccentMode _accentMode = AccentMode.System;
     private string _accentColor = "#E8482C";
-    private AvatarType _avatarDisplay = AvatarType.NameChar;
+    private AvatarType _avatarDisplay = AvatarType.QqAvatar;
     private NavigationStyle _navigationStyle = NavigationStyle.Classic;
 
     public SettingsService()
