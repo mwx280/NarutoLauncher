@@ -45,4 +45,9 @@
     <Resource Include="..\assets\favicon.png" Link="assets\favicon.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- 游戏窗口顶部 UI（WebView2 渲染，随程序集嵌入） -->
+    <EmbeddedResource Include="Views\GameWindowUi\index.html" LogicalName="NarutoMai.GameWindowUi.index.html" />
+  </ItemGroup>
+
 </Project>

@@ -33,6 +33,7 @@ public class Account : INotifyPropertyChanged
     private bool _loggedIn;
     private bool _scanLogin;
     private bool _isSelected;
+    private bool _isMuted;
     private string _scanUserDataDir = "";
     private string _cookies = "";
     private AvatarType _avatarType = AvatarType.QqAvatar;
@@ -79,6 +80,9 @@ public class Account : INotifyPropertyChanged
 
     /// <summary>是否运行中（对应 GameHost 进程）。</summary>
     public bool Running { get => _running; set { _running = value; OnChanged(); } }
+
+    /// <summary>该账号的游戏窗口是否静音（持久化）。</summary>
+    public bool IsMuted { get => _isMuted; set { _isMuted = value; OnChanged(); } }
 
     /// <summary>是否扫码登录（无密码）。</summary>
     public bool ScanLogin { get => _scanLogin; set { _scanLogin = value; OnChanged(); } }

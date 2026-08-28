@@ -33,6 +33,18 @@ public partial class App : Application
     /// <summary>是否正在退出应用（放行窗口关闭，避免托盘拦截）。</summary>
     public bool IsExiting { get; private set; }
 
+    /// <summary>无游戏标签且主窗口已隐藏时退出应用（托盘常驻模式除外）。</summary>
+    public void TryExitWhenNoGame()
+    {
+        if (IsExiting)
+            return;
+        if (MainWindow != null && MainWindow.IsVisible)
+            return;
+        var gw = Views.GameWindow.Shared;
+        if (gw == null || !gw.HasTabs)
+            Shutdown();
+    }
+
     private TrayIcon? _trayIcon;
     private Mutex? _instanceMutex;
 

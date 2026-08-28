@@ -134,6 +134,7 @@ public class AccountService
         public bool LoggedIn { get; set; }
         public bool ScanLogin { get; set; }
         public bool IsSelected { get; set; }
+        public bool IsMuted { get; set; }
         public int Seed { get; set; }
         public string Cookies { get; set; } = "";
         public string ScanUserDataDir { get; set; } = "";
@@ -152,6 +153,7 @@ public class AccountService
             LoggedIn = a.LoggedIn,
             ScanLogin = a.ScanLogin,
             IsSelected = a.IsSelected,
+            IsMuted = a.IsMuted,
             Seed = a.Seed,
             Cookies = a.Cookies,
             ScanUserDataDir = a.ScanUserDataDir,
@@ -171,6 +173,7 @@ public class AccountService
             LoggedIn = LoggedIn,
             ScanLogin = ScanLogin,
             IsSelected = IsSelected,
+            IsMuted = IsMuted,
             Seed = Seed,
             Cookies = Cookies,
             ScanUserDataDir = ScanUserDataDir,

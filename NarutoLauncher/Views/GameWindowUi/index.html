@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root {
+    --chrome: #202124;
+    --chrome-hover: #282a2d;
+    --tab-active: #292a2d;
+    --hover: #3c4043;
+    --text: #e8eaed;
+    --text-dim: #9aa0a6;
+    --accent: #0f6cbd;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; user-select: none; }
+  html, body { height: 100%; overflow: hidden; background: var(--chrome); }
+
+  /* ===== 顶部标签条（Chrome 式） ===== */
+  .tabstrip {
+    display: flex; align-items: flex-end;
+    background: var(--chrome);
+    padding: 6px 6px 0 6px;
+    height: 44px;
+  }
+  .app-title {
+    display: flex; align-items: center; gap: 7px;
+    align-self: flex-end;
+    height: 34px;
+    padding: 0 12px 0 4px;
+    color: var(--text);
+    font-size: 13px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .app-title .logo {
+    width: 18px; height: 18px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    overflow: hidden;
+  }
+  .app-title .logo img { width: 18px; height: 18px; }
+  .tabs { display: flex; flex: 1; overflow: hidden; gap: 4px; align-self: flex-end; }
+  .tab {
+    display: flex; align-items: center; gap: 7px;
+    background: transparent;
+    color: var(--text-dim);
+    border-radius: 9px 9px 0 0;
+    padding: 0 10px;
+    height: 34px;
+    max-width: 220px;
+    cursor: default;
+    transition: background .15s;
+  }
+  .tab:hover { background: var(--chrome-hover); }
+  .tab.active {
+    background: var(--tab-active);
+    color: var(--text);
+  }
+  .tab .avatar {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent);
+    color: #fff; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .tab .avatar img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
+  .tab .title { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tab .close {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .tab .close:hover { background: #c42b1c; color: #fff; }
+  .tab.add {
+    align-self: flex-end; justify-content: center;
+    width: 26px; padding: 0; margin-left: 2px;
+    color: var(--text-dim); font-size: 16px;
+    border-radius: 8px; cursor: default;
+    flex-shrink: 0;
+  }
+  .tab.add:hover { background: var(--chrome-hover); color: var(--text); }
+
+  /* 窗口控制按钮 */
+  .winbtns { display: flex; align-self: flex-end; height: 34px; }
+  .wbtn {
+    width: 40px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim); cursor: default;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+  .wbtn svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 1.3; }
+  .wbtn.min svg { fill: currentColor; stroke: none; }
+  .wbtn:hover { background: var(--chrome-hover); color: var(--text); }
+  .wbtn.active { color: var(--accent); }
+  .wbtn.close:hover { background: #c42b1c; color: #fff; }
+
+  /* ===== 工具栏 ===== */
+  .toolbar {
+    display: flex; align-items: center; gap: 2px;
+    background: var(--tab-active);
+    padding: 5px 8px;
+    height: 42px;
+    border-top: 1px solid #000;
+  }
+  .tbtn {
+    height: 30px; padding: 0 10px; gap: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim); cursor: default; font-size: 12px;
+    border-radius: 6px;
+    transition: background .12s, color .12s;
+    white-space: nowrap;
+  }
+  .tbtn svg { width: 15px; height: 15px; fill: currentColor; }
+  .tbtn:hover { background: var(--hover); color: var(--text); }
+  .toolbar .spacer { flex: 1; }
+</style>
+</head>
+<body>
+  <div class="tabstrip">
+    <div class="app-title"><span class="logo"><img id="logoImg" src="__LOGO__"/></span>火影忍者Online</div>
+    <div class="tabs" id="tabs"></div>
+    <div class="winbtns">
+      <div class="wbtn" id="btnFullscreen" title="全屏"><svg viewBox="0 0 12 12"><path d="M2 2 H5 M2 2 V5 M10 10 H7 M10 10 V7 M2 10 H5 M2 10 V7 M10 2 H7 M10 2 V5" stroke="currentColor" fill="none" stroke-width="1.2"/></svg></div>
+      <div class="wbtn min" id="btnMin" title="最小化"><svg viewBox="0 0 12 12"><rect x="0" y="6" width="12" height="2" rx="0.5"/></svg></div>
+      <div class="wbtn" id="btnMax" title="最大化"><svg viewBox="0 0 12 12"><rect x="1" y="1" width="10" height="10" rx="1"/></svg></div>
+      <div class="wbtn close" id="btnClose" title="关闭"><svg viewBox="0 0 12 12"><path d="M2 2 L10 10 M10 2 L2 10"/></svg></div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tbtn" id="btnRefresh" title="重新加载当前选中的游戏页面">
+      <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.9 9h-2.02A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      <span>刷新</span>
+    </div>
+    <div class="tbtn" id="btnServer" title="选区（回到官网选区页）">
+      <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+      <span>选区</span>
+    </div>
+    <div class="tbtn" id="btnMute" title="静音">
+      <svg id="muteIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05A4.47 4.47 0 0 0 16.5 12zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      <span>静音</span>
+    </div>
+    <div class="tbtn" id="btnSpeed">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <span id="speedText">1x</span>
+    </div>
+    <div class="tbtn" id="btnUser">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span>账号</span>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+<script>
+  function notify(cmd, payload) {
+    var msg = { cmd: cmd };
+    if (payload) Object.assign(msg, payload);
+    if (window.chrome && chrome.webview) chrome.webview.postMessage(JSON.stringify(msg));
+  }
+
+  var state = { tabs: [], muted: false, maximized: false };
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  function renderTabs() {
+    var tabs = document.getElementById('tabs');
+    tabs.innerHTML = '';
+    state.tabs.forEach(function (t) {
+      var d = el('div', 'tab' + (t.active ? ' active' : ''));
+      if (t.avatarUrl) {
+        var img = document.createElement('img');
+        img.className = 'avatar';
+        img.src = t.avatarUrl;
+        img.title = t.name;
+        d.appendChild(img);
+      } else {
+        d.appendChild(el('span', 'avatar', t.avatar));
+      }
+      var title = el('span', 'title', t.name);
+      title.title = t.name;
+      d.appendChild(title);
+      var close = el('span', 'close', '✕');
+      close.title = '关闭 ' + t.name + ' 的游戏窗口';
+      close.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        notify('tab-close', { id: t.id });
+      });
+      d.appendChild(close);
+      d.addEventListener('click', function () { notify('tab-select', { id: t.id }); });
+      tabs.appendChild(d);
+    });
+    // "+ 新建标签"按钮：始终显示在最后一个标签后面
+    var add = el('div', 'tab add', '+');
+    add.title = '新建游戏标签';
+    add.addEventListener('click', function () { notify('add-account'); });
+    tabs.appendChild(add);
+  }
+
+  // ---- C# 侧注入接口 ----
+  function __setTabs(tabs) { state.tabs = tabs || []; renderTabs(); }
+  function __setSpeedText(t) {
+    var el = document.getElementById('speedText');
+    if (el) el.textContent = t;
+  }
+  function __setMuted(m) {
+    state.muted = m;
+    var ic = document.getElementById('muteIcon');
+    if (m) ic.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+    else ic.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05A4.47 4.47 0 0 0 16.5 12zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+    document.getElementById('btnMute').title = m ? '已静音' : '静音';
+  }
+  function __setMaximized(m) {
+    state.maximized = m;
+    document.getElementById('btnMax').title = m ? '还原' : '最大化';
+  }
+
+  // ---- 事件 ----
+  function bind(id, cb) { document.getElementById(id).addEventListener('click', cb); }
+  bind('btnMin', function () { notify('win-min'); });
+  bind('btnMax', function () { notify('win-max'); });
+  bind('btnClose', function () { notify('win-close'); });
+  bind('btnRefresh', function () { notify('cmd-refresh'); });
+  bind('btnServer', function () { notify('cmd-server'); });
+  bind('btnMute', function () { notify('cmd-mute'); });
+  bind('btnFullscreen', function () { notify('cmd-fullscreen'); });
+
+  function menuPos(id) {
+    var r = document.getElementById(id).getBoundingClientRect();
+    return { x: r.left, y: r.bottom };
+  }
+  bind('btnSpeed', function () { notify('menu-speed', menuPos('btnSpeed')); });
+  bind('btnUser', function () { notify('menu-users', menuPos('btnUser')); });
+
+  // 标签条空白：拖动 + 双击
+  var tabstrip = document.querySelector('.tabstrip');
+  tabstrip.addEventListener('mousedown', function (ev) {
+    if (ev.target === tabstrip ||
+        ev.target.classList.contains('tabs') ||
+        ev.target.classList.contains('add') ||
+        ev.target.classList.contains('app-title')) {
+      notify('win-drag');
+    }
+  });
+  tabstrip.addEventListener('dblclick', function (ev) {
+    if (ev.target.classList.contains('tabstrip') || ev.target.classList.contains('tabs') ||
+        ev.target.classList.contains('add') || ev.target.classList.contains('app-title')) {
+      notify('win-max');
+    }
+  });
+
+  notify('ui-ready');
+</script>
+</body>
+</html>
