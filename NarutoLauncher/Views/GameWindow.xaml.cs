@@ -49,6 +49,8 @@ public partial class GameWindow : FluentWindow
     private readonly List<SessionTab> _tabs = new();
     // 各标签倍速（标签 Key → 倍速×10），默认 1x
     private readonly Dictionary<string, int> _speedByTab = new();
+    // 各标签静音（标签 Key → 是否静音），单窗口单独控制，互不影响
+    private readonly Dictionary<string, bool> _mutedByTab = new();
     private SessionTab? _activeTab;
     private bool _isFullScreen;
     private Rect _normalBounds;
@@ -583,7 +585,8 @@ public partial class GameWindow : FluentWindow
             Host = host,
         };
         _tabs.Add(tab);
-        if (account.IsMuted)
+        // 新标签默认不静音；静音按标签 Key 单独控制（若已设置过则应用）
+        if (_mutedByTab.TryGetValue(tab.Key, out var tabMuted) && tabMuted)
         {
             var gh = session.ReadWindowHandle();
             if (gh != 0)
@@ -713,15 +716,19 @@ public partial class GameWindow : FluentWindow
     {
         if (_activeTab == null)
             return;
-        var acc = _activeTab.Account;
-        acc.IsMuted = !acc.IsMuted;
-        SendCommand(CmdSetMute, acc.IsMuted ? 1 : 0);
+        var key = _activeTab.Key;
+        var muted = !(_mutedByTab.TryGetValue(key, out var m) && m);
+        _mutedByTab[key] = muted;
+        // 只对当前标签的窗口发送静音命令（各窗口独立控制）
+        SendCommand(CmdSetMute, muted ? 1 : 0);
         SyncMuteState();
     }
 
     private void SyncMuteState()
     {
-        var muted = _activeTab?.Account.IsMuted ?? false;
+        var muted = false;
+        if (_activeTab != null)
+            _mutedByTab.TryGetValue(_activeTab.Key, out muted);
         Eval($"__setMuted({(muted ? "true" : "false")})");
     }
 

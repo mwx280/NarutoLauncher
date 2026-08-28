@@ -208,6 +208,10 @@ public class GameProcessService
         var parent = parentHwnd != 0 ? parentHwnd : App.CurrentApp.MainWindowHandle;
         if (parent != 0)
             psi.ArgumentList.Add($"--parent={parent}");
+        // 调试分析：设置环境变量 HUOYIN_DEBUG_PORT 时开启 CEF DevTools 远程调试（不设则关闭）
+        var debugPort = Environment.GetEnvironmentVariable("HUOYIN_DEBUG_PORT");
+        if (!string.IsNullOrEmpty(debugPort))
+            psi.ArgumentList.Add($"--debug-port={debugPort}");
 
         try
         {

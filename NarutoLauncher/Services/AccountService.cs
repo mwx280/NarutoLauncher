@@ -174,7 +174,7 @@ public class AccountService
             IsSelected = a.IsSelected,
             IsMuted = a.IsMuted,
             Seed = a.Seed,
-            Cookies = a.Cookies,
+            Cookies = EncryptPassword(a.Cookies) ?? "",
             ScanUserDataDir = a.ScanUserDataDir,
             AvatarType = a.AvatarType,
         };
@@ -194,7 +194,7 @@ public class AccountService
             IsSelected = IsSelected,
             IsMuted = IsMuted,
             Seed = Seed,
-            Cookies = Cookies,
+            Cookies = DecryptPassword(Cookies) ?? "",
             ScanUserDataDir = ScanUserDataDir,
             AvatarType = AvatarType,
         };

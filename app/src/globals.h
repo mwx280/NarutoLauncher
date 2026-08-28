@@ -49,6 +49,9 @@ void ReloadPage();
 // 设置 Flash 画质（level: 0=low / 1=medium / 2=high），改档自动重载页面。
 void SetFlashQuality(int level);
 
+// 把倍速写入 speed.txt（优先账号 userdata，多开隔离；兜底 exe 目录）。
+void SaveSpeedToFile(double speed);
+
 // base64 解码（cookie 注入用）。
 std::string Base64Decode(const std::string& input);
 

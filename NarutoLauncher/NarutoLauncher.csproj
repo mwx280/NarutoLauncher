@@ -23,6 +23,12 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- 反破解硬化：Release 不生成/不发布调试符号，避免被 dnSpy/ILSpy 直接还原源码结构 -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
   <ItemGroup>
     <Using Include="System.IO" />
     <Using Include="System.Linq" />

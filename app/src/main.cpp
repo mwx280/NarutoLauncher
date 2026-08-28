@@ -210,6 +210,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     if (wcsstr(lpCmdLine, L"--type=") == nullptr) {
         ::SetEnvironmentVariableA("HUOYIN_FLASH_QUALITY",
                                   g_flash_quality.c_str());
+        // 启动时把倍速重置为 1x，避免上次退出遗留倍速影响本次会话
+        SaveSpeedToFile(1.0);
     }
     if (!opt.userdata.empty()) {
         ::SetEnvironmentVariableW(L"HUOYIN_USERDATA", opt.userdata.c_str());
