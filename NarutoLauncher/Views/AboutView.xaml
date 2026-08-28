@@ -3,186 +3,159 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <UserControl.Resources>
-        <Style x:Key="CardStyle" TargetType="Border">
-            <Setter Property="Padding" Value="22,18"/>
+        <!-- 与设置页一致 -->
+        <Style x:Key="SettingRowStyle" TargetType="Border">
+            <Setter Property="Padding" Value="20,14"/>
             <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Margin" Value="0,4"/>
+        </Style>
+        <Style x:Key="SettingIconStyle" TargetType="Border">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Margin" Value="0,0,14,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="SettingIconTextStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ItemNameStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        </Style>
+        <Style x:Key="ItemDescStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
         <Style x:Key="GroupTitleStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
-            <Setter Property="Margin" Value="2,6,0,10"/>
+            <Setter Property="Margin" Value="4,10,0,4"/>
         </Style>
-        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16"/>
+        <Style x:Key="PageTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
-        </Style>
-        <Style x:Key="BodyTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="LineHeight" Value="23"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
     </UserControl.Resources>
 
     <ScrollViewer>
-        <StackPanel Margin="32,26,32,28" MaxWidth="760">
+        <StackPanel Margin="28,20,28,24">
 
-            <!-- ===== 头部：图标 + 名称 + 版本 ===== -->
-            <StackPanel Orientation="Horizontal" Margin="0,4,0,18">
-                <Border Width="76" Height="76" CornerRadius="16" ClipToBounds="True"
-                        Background="{DynamicResource ControlFillColorSecondaryBrush}">
-                    <Image Source="/assets/favicon.png" Stretch="Uniform"
-                           RenderOptions.BitmapScalingMode="HighQuality"/>
-                </Border>
-                <StackPanel Margin="18,2,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="火影忍者Online 启动器" FontSize="22" FontWeight="Bold"
-                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                        <TextBlock Text="基于开源项目 CEFFlashGameHost 改造" FontSize="13"
-                                   VerticalAlignment="Center"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                        <Border Background="{DynamicResource AccentFillColorDefaultBrush}"
-                                CornerRadius="10" Padding="8,2" Margin="14,0,0,0"
-                                VerticalAlignment="Center">
-                            <TextBlock Text="v1.0.0" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="White"/>
-                        </Border>
-                    </StackPanel>
-                </StackPanel>
-            </StackPanel>
+            <TextBlock Text="关于" Style="{StaticResource PageTitleStyle}"/>
 
-            <!-- ===== 介绍 ===== -->
-            <TextBlock Text="关于这个启动器" Style="{StaticResource GroupTitleStyle}"/>
-            <Border Style="{StaticResource CardStyle}">
-                <StackPanel>
-                    <TextBlock Style="{StaticResource BodyTextStyle}" FontSize="14"
-                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                               Text="火影忍者Online 是 Flash 游戏，而 Chromium 88 起彻底移除了 Flash（PPAPI）支持。这个启动器基于最后一个能跑 PPAPI Flash 的 CEF 87 内核做了大量兼容与性能优化，让游戏在现代系统上稳定流畅地运行。"/>
-                    <TextBlock Style="{StaticResource BodyTextStyle}" Margin="0,10,0,0"
-                               Text="WPF 界面 + 独立 CEF 游戏进程，游戏窗口通过 HwndHost 跨进程内嵌，支持多账号多开、QQ 扫码登录、记住密码、自动登录、游戏变速、画质调节。"/>
-                    <TextBlock Style="{StaticResource BodyTextStyle}" Margin="0,10,0,0"
-                               Text="项目以开源方式发布，欢迎到 GitHub 仓库 Star、提交 Issue 或参与改进。"/>
-                </StackPanel>
-            </Border>
-
-            <!-- ===== 功能 ===== -->
-            <TextBlock Text="能做什么" Style="{StaticResource GroupTitleStyle}"/>
-            <Border Style="{StaticResource CardStyle}">
-                <UniformGrid Columns="2">
-                    <StackPanel Margin="0,0,18,16">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="34" Height="34" CornerRadius="8"
-                                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <TextBlock Text="&#xE77B;" FontFamily="Segoe Fluent Icons" FontSize="17" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="多开挂机" Style="{StaticResource SectionTitleStyle}"
-                                       Margin="10,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Style="{StaticResource BodyTextStyle}" Margin="0,6,0,0"
-                                   Text="每个账号独立进程、独立缓存，cookie 互不串，想开几个开几个。"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,0,16">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="34" Height="34" CornerRadius="8"
-                                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <TextBlock Text="&#xE8EC;" FontFamily="Segoe Fluent Icons" FontSize="17" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="扫码登录" Style="{StaticResource SectionTitleStyle}"
-                                       Margin="10,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Style="{StaticResource BodyTextStyle}" Margin="0,6,0,0"
-                                   Text="扫一下二维码直接进，不用记密码；也能记住密码，本地加密保存。"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,18,16">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="34" Height="34" CornerRadius="8"
-                                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <TextBlock Text="&#xE823;" FontFamily="Segoe Fluent Icons" FontSize="17" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="游戏变速" Style="{StaticResource SectionTitleStyle}"
-                                       Margin="10,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Style="{StaticResource BodyTextStyle}" Margin="0,6,0,0"
-                                   Text="倍速随便调，支持自定义倍速，每个账号各自独立。刷日常省时间。"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,0,16">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="34" Height="34" CornerRadius="8"
-                                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <TextBlock Text="&#xE7C8;" FontFamily="Segoe Fluent Icons" FontSize="17" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="画质调节" Style="{StaticResource SectionTitleStyle}"
-                                       Margin="10,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Style="{StaticResource BodyTextStyle}" Margin="0,6,0,0"
-                                   Text="低中高三档随便切，还有分辨率模式可选。机器差就低画质跑。"/>
-                    </StackPanel>
-                    <StackPanel Margin="0,0,18,0">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="34" Height="34" CornerRadius="8"
-                                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <TextBlock Text="&#xE72C;" FontFamily="Segoe Fluent Icons" FontSize="17" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="崩溃自愈" Style="{StaticResource SectionTitleStyle}"
-                                       Margin="10,0,0,0" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Style="{StaticResource BodyTextStyle}" Margin="0,6,0,0"
-                                   Text="Flash 插件崩了自动重载，进游戏自动补全区服参数，少遇到黑屏和卡加载。"/>
-                    </StackPanel>
-                </UniformGrid>
-            </Border>
-
-            <!-- ===== 更新 ===== -->
-            <TextBlock Text="更新" Style="{StaticResource GroupTitleStyle}"/>
-            <Border Style="{StaticResource CardStyle}">
+            <!-- ===== 版本信息 ===== -->
+            <Border Style="{StaticResource SettingRowStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock Text="检查更新" Style="{StaticResource SectionTitleStyle}"/>
-                        <TextBlock x:Name="UpdateStatus" Style="{StaticResource BodyTextStyle}"
-                                   Margin="0,4,0,0" Text="有新版会在启动时提醒，也可以手动点一下"/>
+                    <Border Grid.Column="0" Width="34" Height="34" CornerRadius="8"
+                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                            VerticalAlignment="Center" Margin="0,0,12,0">
+                        <Image Source="/assets/favicon.png" Stretch="Uniform"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="火影忍者Online 启动器" Style="{StaticResource ItemNameStyle}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="作者 XiaoWu · 基于 " Style="{StaticResource ItemDescStyle}"/>
+                            <TextBlock Text="CEFFlashGameHost" Style="{StaticResource ItemDescStyle}"/>
+                            <TextBlock Text=" 改造" Style="{StaticResource ItemDescStyle}"/>
+                        </StackPanel>
                     </StackPanel>
-                    <ui:Button Grid.Column="1" x:Name="UpdateButton" Content="检查更新"
-                               Appearance="Primary" Click="OnCheckUpdate" Margin="12,0,0,0"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{DynamicResource AccentFillColorDefaultBrush}"
+                                CornerRadius="9" Padding="9,2" VerticalAlignment="Center">
+                            <TextBlock Text="v1.0.0" FontSize="11" FontWeight="SemiBold" Foreground="White"/>
+                        </Border>
+                        <ui:Button x:Name="UpdateButton" Content="检查更新" Appearance="Primary"
+                                   Click="OnCheckUpdate" Margin="12,0,0,0"/>
+                    </StackPanel>
                 </Grid>
+            </Border>
+
+            <!-- ===== 关于 ===== -->
+            <TextBlock Text="关于这个启动器" Style="{StaticResource GroupTitleStyle}"/>
+            <Border Style="{StaticResource SettingRowStyle}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ItemDescStyle}" FontSize="13" LineHeight="22"
+                               Text="基于 CEF 87 内核开发。从 2020 年的想法到如今的落地，期间给 Flash 插件打补丁、修各种崩溃，近乎每天 16 小时的高强度开发。愿这份优化能取代掉满是广告的游戏大厅。"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ===== 致谢 ===== -->
+            <TextBlock Text="特别致谢" Style="{StaticResource GroupTitleStyle}"/>
+            <Border Style="{StaticResource SettingRowStyle}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ItemDescStyle}" FontSize="13" LineHeight="22"
+                               Text="感谢「atao鱼」提供的优化版 Flash 插件。"/>
+                    <TextBlock Style="{StaticResource ItemDescStyle}" FontSize="13" LineHeight="22"
+                               Margin="0,6,0,0"
+                               Text="以及「第一章」「fish229」「退后」「Ereshkigal」「丶丶丶」「豫风」「虎虎生威e」「墨简辰」「Cupid」「刘嘉欣」「热心市民刘大爷」「烟锁池塘柳」及一位无名氏参与调研。"/>
+                </StackPanel>
             </Border>
 
             <!-- ===== 开源仓库 ===== -->
-            <TextBlock Text="参与开源" Style="{StaticResource GroupTitleStyle}"/>
-            <Border Style="{StaticResource CardStyle}">
+            <TextBlock Text="开源仓库" Style="{StaticResource GroupTitleStyle}"/>
+
+            <!-- 游戏内核 -->
+            <Border Style="{StaticResource SettingRowStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock Text="GitHub 开源仓库" Style="{StaticResource SectionTitleStyle}"/>
-                        <TextBlock Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"
-                                   Text="查看源码、Star、提交 Issue，一起改进这个启动器"/>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE774;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="游戏内核" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Style="{StaticResource ItemDescStyle}" Text="CEFFlashGameHost · 通用 CEF 87 Flash 渲染内核"/>
                     </StackPanel>
-                    <ui:Button Grid.Column="1" Content="打开仓库"
-                               Appearance="Secondary" Click="OnOpenRepo" Margin="12,0,0,0"/>
+                    <ui:Button Grid.Column="2" Content="打开" Appearance="Secondary"
+                               Click="OnOpenGameKernel" Margin="14,0,0,0" VerticalAlignment="Center"/>
                 </Grid>
             </Border>
 
-            <!-- ===== 许可证 ===== -->
-            <TextBlock Text="许可证" Style="{StaticResource GroupTitleStyle}"/>
-            <Border Style="{StaticResource CardStyle}">
-                <TextBlock Style="{StaticResource BodyTextStyle}"
-                           Text="本项目及游戏内核均以 GNU Affero General Public License v3.0（AGPL-3.0）开源，详见仓库 LICENSE 文件。"/>
+            <!-- 启动器 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE7A2;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="启动器" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Style="{StaticResource ItemDescStyle}" Text="NarutoLauncher · 本启动器源码"/>
+                    </StackPanel>
+                    <ui:Button Grid.Column="2" Content="打开" Appearance="Secondary"
+                               Click="OnOpenRepo" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                </Grid>
             </Border>
+
+            <!-- ===== 版权 ===== -->
+            <TextBlock Style="{StaticResource ItemDescStyle}" HorizontalAlignment="Center"
+                       TextAlignment="Center" Margin="0,18,0,0"
+                       Text="本项目以 GNU AGPL-3.0 开源，版权所有 © 2026 XiaoWu。"/>
 
         </StackPanel>
     </ScrollViewer>

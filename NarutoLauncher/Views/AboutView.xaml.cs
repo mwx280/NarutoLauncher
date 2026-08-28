@@ -21,23 +21,33 @@ public partial class AboutView : UserControl
     private async void OnCheckUpdate(object sender, RoutedEventArgs e)
     {
         UpdateButton.IsEnabled = false;
-        UpdateStatus.Text = "正在检查更新…";
         try
         {
             var result = await _update.CheckAsync();
             if (result == null)
             {
-                UpdateStatus.Text = "已是最新版本";
+                await App.CurrentApp.DialogService.ShowSimpleDialogAsync(
+                    new SimpleContentDialogCreateOptions
+                    {
+                        Title = "检查更新",
+                        Content = "已是最新版本。",
+                        CloseButtonText = "知道了",
+                    });
             }
             else
             {
-                UpdateStatus.Text = $"发现新版本 v{result.Version}";
                 await PromptUpdateAsync(result);
             }
         }
         catch
         {
-            UpdateStatus.Text = "检查更新失败，请检查网络后重试";
+            await App.CurrentApp.DialogService.ShowSimpleDialogAsync(
+                new SimpleContentDialogCreateOptions
+                {
+                    Title = "检查更新",
+                    Content = "无法连接 GitHub，请检查网络后重试。",
+                    CloseButtonText = "知道了",
+                });
         }
         finally
         {
@@ -84,6 +94,19 @@ public partial class AboutView : UserControl
         try
         {
             GitHubUpdateService.OpenRelease("https://github.com/" + GitHubUpdateService.Repo);
+        }
+        catch
+        {
+            // 打开失败静默
+        }
+    }
+
+    /// <summary>打开游戏内核（CEFFlashGameHost）开源仓库页面。</summary>
+    private void OnOpenGameKernel(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            GitHubUpdateService.OpenRelease("https://github.com/mwx280/CEFFlashGameHost");
         }
         catch
         {

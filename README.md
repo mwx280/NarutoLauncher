@@ -126,6 +126,10 @@ cef_flash_game_host.exe --help
 - 当前版本：`v1.0.0`（在 `GitHubUpdateService.cs` 的 `CurrentVersion` 修改，须与 GitHub tag 一致）
 - 发布新版：在 GitHub 打 tag（如 `v1.0.0`），由 CI 自动构建安装包并上传到 Release
 
+## 致谢
+
+感谢「atao鱼」提供的优化版 Flash 插件，以及「第一章」「fish229」「退后」「Ereshkigal」「丶丶丶」「豫风」「虎虎生威e」「墨简辰」「Cupid」「刘嘉欣」「热心市民刘大爷」「烟锁池塘柳」及一位无名氏参与调研。
+
 ## 许可证
 
 本项目与游戏内核一致，以 **GNU Affero General Public License v3.0（AGPL-3.0）** 开源，见 [LICENSE](LICENSE)，并注明改造来源 [CEFFlashGameHost](https://github.com/mwx280/CEFFlashGameHost)（同样以 AGPL-3.0 开源）。
