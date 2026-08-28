@@ -1,4 +1,4 @@
-﻿# NarutoLauncher 一键构建脚本
+# NarutoLauncher 一键构建脚本
 # 用法：powershell -ExecutionPolicy Bypass -File tools/build.ps1 [-Arch x86|x64] [-Clean]
 #
 # 说明：
@@ -75,8 +75,8 @@ Invoke-Step "构建 WPF 启动器（dotnet build，RID=$Rid）" {
     & dotnet build (Join-Path $Root 'NarutoLauncher\NarutoLauncher.csproj') -c Release -p:RuntimeIdentifier=$Rid -p:PlatformTarget=$PlatformTarget
 }
 $OutBase = Join-Path $Root "NarutoLauncher\bin\Release\net10.0-windows\$Rid"
-$GameHostSrc = Join-Path $Root "$BuildDir\cef_flash_game_host.exe"
-$GameHostDir = Join-Path $OutBase 'GameHost'
+$GameHostSrc = Join-Path $Root "$BuildDir\CEFFlashGameHost.exe"
+$GameHostDir = Join-Path $OutBase 'CEFFlashGameHost'
 if (-not (Test-Path $GameHostSrc)) {
     throw "未找到 GameHost 输出: $GameHostSrc"
 }

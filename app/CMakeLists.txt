@@ -8,7 +8,7 @@
 #       Flash 插件（官方 32/64 位版本，随仓库分发）
 
 cmake_minimum_required(VERSION 3.16)
-project(cef_flash_game_host VERSION 1.0.0 LANGUAGES CXX)
+project(CEFFlashGameHost VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,7 +33,7 @@ if(NOT EXISTS "${CEF_SDK_DIR}/include/cef_version.h")
     message(FATAL_ERROR "未找到 CEF SDK。请先运行: powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1")
 endif()
 
-add_executable(cef_flash_game_host WIN32
+add_executable(CEFFlashGameHost WIN32
     src/main.cpp
     src/app_log.cpp
     src/app_log.h
@@ -54,12 +54,12 @@ add_executable(cef_flash_game_host WIN32
     src/host_client.h
 )
 
-target_include_directories(cef_flash_game_host PRIVATE
+target_include_directories(CEFFlashGameHost PRIVATE
     "${CEF_SDK_DIR}"
     "${MINHOOK_DIR}/include"
 )
 
-target_link_libraries(cef_flash_game_host PRIVATE
+target_link_libraries(CEFFlashGameHost PRIVATE
     "${CEF_SDK_DIR}/${CEF_PLATFORM_DIR}/release/libcef.lib"
     "${CEF_SDK_DIR}/${CEF_PLATFORM_DIR}/release/VS2017/libcef_dll_wrapper.lib"
     "${MINHOOK_LIB}"
@@ -70,7 +70,7 @@ target_link_libraries(cef_flash_game_host PRIVATE
     imm32
 )
 
-target_compile_definitions(cef_flash_game_host PRIVATE
+target_compile_definitions(CEFFlashGameHost PRIVATE
     _CRT_SECURE_NO_WARNINGS
     NOMINMAX
     UNICODE
@@ -79,15 +79,11 @@ target_compile_definitions(cef_flash_game_host PRIVATE
 
 # 源码含中文注释，强制 MSVC 以 UTF-8 解析源码
 if(MSVC)
-    target_compile_options(cef_flash_game_host PRIVATE /utf-8)
+    target_compile_options(CEFFlashGameHost PRIVATE /utf-8)
 endif()
 
-# 反破解硬化：Release 全程序优化 + 链接时代码生成（/GL /LTCG），
-# 提高优化程度并增加反汇编还原难度；不生成 PDB（CMake Release 默认）。
-set_target_properties(cef_flash_game_host PROPERTIES
+set_target_properties(CEFFlashGameHost PROPERTIES
     OUTPUT_NAME CEFFlashGameHost
-    COMPILE_FLAGS_RELEASE "/GL /O2"
-    LINK_FLAGS_RELEASE "/LTCG"
 )
 
 # 构建后复制 CEF 运行时、Flash 插件、MinHook 运行时到可执行目录
@@ -100,13 +96,13 @@ else()
     set(FLASH_SRC "${NARUTO_ROOT}/third_party/pepflashplayer_x64.dll")
     set(MINHOOK_RUNTIME "${MINHOOK_DIR}/lib/MinHook.x64.dll")
 endif()
-add_custom_command(TARGET cef_flash_game_host POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CEF_RUNTIME_DIR}" "$<TARGET_FILE_DIR:cef_flash_game_host>"
+add_custom_command(TARGET CEFFlashGameHost POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CEF_RUNTIME_DIR}" "$<TARGET_FILE_DIR:CEFFlashGameHost>"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${FLASH_SRC}"
-            "$<TARGET_FILE_DIR:cef_flash_game_host>/pepflashplayer.dll"
+            "$<TARGET_FILE_DIR:CEFFlashGameHost>/pepflashplayer.dll"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${MINHOOK_RUNTIME}"
-            "$<TARGET_FILE_DIR:cef_flash_game_host>"
+            "$<TARGET_FILE_DIR:CEFFlashGameHost>"
     COMMENT "复制 CEF 运行时、Flash 插件与 MinHook 运行时到可执行目录"
 )

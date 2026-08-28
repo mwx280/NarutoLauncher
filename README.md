@@ -4,7 +4,7 @@
 
 > **技术背景**：Chromium 88+ 彻底移除了 Flash（PPAPI）支持，**CEF 87 是最后一个支持 PPAPI Flash 的版本**。本项目围绕这一内核做了大量兼容与性能打磨，使其能稳定、流畅地承载火影忍者Online 页游。
 
-> **游戏内核来源**：本仓库的 `cef_flash_game_host.exe`（游戏渲染进程）基于开源项目 [CEFFlashGameHost](https://github.com/mwx280/CEFFlashGameHost)（通用 CEF 87 Flash 渲染内核）改造而来，在其模块化架构上增加了火影忍者Online 的登录、cookie、zone_id、变速等特定功能。
+> **游戏内核来源**：本仓库的 `CEFFlashGameHost.exe`（游戏渲染进程）基于开源项目 [CEFFlashGameHost](https://github.com/mwx280/CEFFlashGameHost)（通用 CEF 87 Flash 渲染内核）改造而来，在其模块化架构上增加了火影忍者Online 的登录、cookie、zone_id、变速等特定功能。
 
 ## 核心亮点
 
@@ -44,7 +44,7 @@
 └───────────────────────────┬─────────────────────────────────┘
                             │ HwndHost / SetParent 内嵌
                             ▼
-   cef_flash_game_host.exe   CEF 87 · C++ · x64（每账号一个实例）
+   CEFFlashGameHost.exe   CEF 87 · C++ · x64（每账号一个实例）
    ├─ 无边框窗口（FramelessWindow，WM_NCHITTEST 缩放/拖拽）
    ├─ Flash 插件（pepflashplayer.dll，PPAPI 34）
    └─ Flash 画质 hook / 沙箱弹窗 hook / 变速 hook（MinHook）
@@ -82,7 +82,7 @@ powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1 -Arch x64
 powershell -ExecutionPolicy Bypass -File tools/build.ps1 -Arch x64
 ```
 
-产物：`NarutoLauncher\bin\Release\net10.0-windows\win-x64\NarutoLauncher.exe`（含 `GameHost\cef_flash_game_host.exe`、CEF 运行时、Flash 插件、MinHook）。
+产物：`NarutoLauncher\bin\Release\net10.0-windows\win-x64\NarutoLauncher.exe`（含 `CEFFlashGameHost\CEFFlashGameHost.exe`、CEF 运行时、Flash 插件、MinHook）。
 
 > 说明：CEF SDK 与运行时由脚本从 NuGet 下载，不提交进仓库；Flash 插件与 MinHook 已随仓库分发。
 
@@ -93,10 +93,10 @@ powershell -ExecutionPolicy Bypass -File tools/build.ps1 -Arch x64
 NarutoLauncher.exe
 
 # 游戏内核嵌入宿主（由启动器调用）
-cef_flash_game_host.exe --embed --parent=123456 --url="https://game.huoying.qq.com/main.html" --userdata="C:\game\account1" --flash-quality=low
+CEFFlashGameHost.exe --embed --parent=123456 --url="https://game.huoying.qq.com/main.html" --userdata="C:\game\account1" --flash-quality=low
 
 # 查看内核帮助
-cef_flash_game_host.exe --help
+CEFFlashGameHost.exe --help
 ```
 
 ## 命令行参数

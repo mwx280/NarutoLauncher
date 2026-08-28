@@ -7,7 +7,7 @@
 
 ## 一、问题现象
 
-1. x64 版 GameHost（cef_flash_game_host.exe + CEF 87 x64 + Flash x64）启动游戏后，Flash 无法加载。
+1. x64 版 GameHost（CEFFlashGameHost.exe + CEF 87 x64 + Flash x64）启动游戏后，Flash 无法加载。
 2. 右键页面出现"启用 Flash"提示，手动启用后 Flash 仍不启动（无 ppapi 进程）。
 3. 对比：x86 版（CEF 87 x86 + Flash x86）完全正常。
 4. 朋友在 x64 真机上跑极简版正常 → 排除"x64 Flash 本身不可用"。
