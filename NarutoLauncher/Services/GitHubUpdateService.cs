@@ -24,7 +24,7 @@ public class GitHubUpdateService
     public const string Repo = "mwx280/NarutoLauncher";
 
     /// <summary>当前版本（发布新版本时同步修改，须与 GitHub tag 一致）。</summary>
-    public static string CurrentVersion => "1.0.3";
+    public static string CurrentVersion => "1.0.0";
 
     private readonly HttpClient _http;
 
@@ -89,7 +89,7 @@ public class GitHubUpdateService
         return null;
     }
 
-    /// <summary>把 GitHub tag（如 "v1.0.3" / "1.0.3"）解析为版本号，无法解析返回 null。</summary>
+    /// <summary>把 GitHub tag（如 "v1.0.0" / "1.0.0"）解析为版本号，无法解析返回 null。</summary>
     private static string? ParseTagVersion(string tag)
     {
         var m = Regex.Match(tag, @"v?([0-9]+(?:\.[0-9]+){0,3})");

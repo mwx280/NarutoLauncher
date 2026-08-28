@@ -441,7 +441,7 @@
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="NarutoLauncher" Style="{StaticResource ItemNameStyle}"/>
-                        <TextBlock Text="v0.1.0 · 火影忍者Online 多账号多开启动器"
+                        <TextBlock Text="v1.0.0 · 火影忍者Online 多账号多开启动器"
                                    Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                 </Grid>

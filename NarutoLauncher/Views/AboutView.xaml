@@ -5,7 +5,7 @@
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
         <TextBlock Text="火影忍者Online 启动器" FontSize="28" FontWeight="Bold"
                    HorizontalAlignment="Center"/>
-        <TextBlock Text="v1.0.3（开源版）" FontSize="16" Margin="0,12,0,0"
+        <TextBlock Text="v1.0.0（开源版）" FontSize="16" Margin="0,12,0,0"
                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                    HorizontalAlignment="Center"/>
 

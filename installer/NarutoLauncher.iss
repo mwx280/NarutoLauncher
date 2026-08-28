@@ -4,7 +4,7 @@
 ; 注：中文语言文件使用官方自带的 Languages\ChineseSimplified.isl，无需随仓库分发。
 
 #define AppName "火影忍者Online 启动器"
-#define AppVersion "1.0.3"
+#define AppVersion "1.0.0"
 #define AppPublisher "NarutoLauncher Contributors"
 #define AppExe "NarutoLauncher.exe"
 #define SrcDir "..\NarutoLauncher\bin\Release\net10.0-windows\win-x64"
@@ -27,6 +27,14 @@ PrivilegesRequired=lowest
 ArchitecturesInstallIn64BitMode=x64compatible
 ArchitecturesAllowed=x64compatible
 DisableProgramGroupPage=yes
+
+; ---- 版本信息（避免 FileVersion 为空/显示 0.0.0.0）----
+VersionInfoVersion={#AppVersion}
+VersionInfoDescription={#AppName} 安装程序
+VersionInfoProductName={#AppName}
+VersionInfoProductVersion={#AppVersion}
+VersionInfoCopyright={#AppPublisher}
+VersionInfoCompany={#AppPublisher}
 
 [Languages]
 Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"

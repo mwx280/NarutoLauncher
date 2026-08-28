@@ -86,7 +86,7 @@
 
 ### 4.1 环境准备
 
-- 用扫码账号 **0725354631**（userdata：`scan_20260821_013709`，已含登录 cookie）进入游戏。
+- 用一个已含登录 cookie 的扫码账号进入游戏。
 - 观察 main.html 的 Flash 创建方式（swfobject 版本、quality 参数、entry.swf 加载）。
 
 ### 4.2 待验证问题清单
