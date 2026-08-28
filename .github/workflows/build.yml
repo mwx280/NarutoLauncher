@@ -88,11 +88,3 @@ jobs:
         with:
           name: NarutoLauncher-Setup
           path: publish/NarutoLauncher-*-Setup.exe
-
-      - name: 发布到 GitHub Release（仅 tag）
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: publish/NarutoLauncher-*-Setup.exe
-          draft: false
-          generate_release_notes: true
