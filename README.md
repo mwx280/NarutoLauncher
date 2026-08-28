@@ -2,6 +2,8 @@
 
 基于 **CEF 87** 的火影忍者Online Flash 游戏启动器，开源版本。WPF 界面 + 独立 CEF 游戏宿主，游戏窗口通过 HwndHost 跨进程内嵌，支持多账号多开、QQ 扫码登录、记住密码、自动登录。
 
+> **下载**：安装包见 [GitHub Releases](https://github.com/mwx280/NarutoLauncher/releases)（`NarutoLauncher-1.0.0-Setup.exe`）。**目前仅提供 x64 版本** —— x86 版本游戏内核的 Flash 插件会导致卡死，暂未修复，尚未提供 x86 安装包。
+
 > **技术背景**：Chromium 88+ 彻底移除了 Flash（PPAPI）支持，**CEF 87 是最后一个支持 PPAPI Flash 的版本**。本项目围绕这一内核做了大量兼容与性能打磨，使其能稳定、流畅地承载火影忍者Online 页游。
 
 > **游戏内核来源**：本仓库的 `CEFFlashGameHost.exe`（游戏渲染进程）基于开源项目 [CEFFlashGameHost](https://github.com/mwx280/CEFFlashGameHost)（通用 CEF 87 Flash 渲染内核）改造而来，在其模块化架构上增加了火影忍者Online 的登录、cookie、zone_id、变速等特定功能。
@@ -123,8 +125,10 @@ CEFFlashGameHost.exe --help
 
 更新走 **GitHub Releases**。`GitHubUpdateService` 请求 `api.github.com/repos/mwx280/NarutoLauncher/releases/latest`，比对语义化版本号，有新版弹窗提示并跳转下载页。
 
+- **下载**：安装包见 [Releases](https://github.com/mwx280/NarutoLauncher/releases) 页的资产（`NarutoLauncher-1.0.0-Setup.exe`）
 - 当前版本：`v1.0.0`（在 `GitHubUpdateService.cs` 的 `CurrentVersion` 修改，须与 GitHub tag 一致）
 - 发布新版：在 GitHub 打 tag（如 `v1.0.0`），本地运行 `installer\NarutoLauncher.iss`（Inno Setup）生成安装包，作为 release 资产上传。CI 只做编译检查，不打包发布。
+- **目前仅提供 x64 版本**：x86 构建的 Flash 插件会导致游戏卡死，暂未修复，尚未提供 x86 安装包。
 
 ## 致谢
 
