@@ -10,6 +10,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <SelfContained>true</SelfContained>
     <AssemblyName>NarutoLauncher</AssemblyName>
+    <ApplicationIcon>..\assets\app.ico</ApplicationIcon>
     <!-- 版本与元数据（开源版）：更新检查对照 GitHub Release tag（v1.0.3） -->
     <Version>1.0.3</Version>
     <FileVersion>1.0.3</FileVersion>
