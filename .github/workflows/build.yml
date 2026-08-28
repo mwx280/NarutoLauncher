@@ -47,10 +47,10 @@ jobs:
       - name: 校验
         shell: pwsh
         run: |
-          # 递归查找启动器 exe（dotnet build 输出路径随 RID 配置变动）
-          $exe = Get-ChildItem -Path "NarutoLauncher/bin/Release" -Recurse -Filter "NarutoLauncher.exe" |
+          # 在整个 bin 树递归查找启动器 exe（dotnet build 输出路径受 Platform/RID 影响而变动）
+          $exe = Get-ChildItem -Path "NarutoLauncher/bin" -Recurse -Filter "NarutoLauncher.exe" |
                  Select-Object -First 1
-          if (-not $exe) { throw "未找到启动器 exe" }
+          if (-not $exe) { throw "未找到启动器 exe（bin 树）" }
           Write-Host "启动器: $($exe.FullName)"
           $b = [System.IO.File]::ReadAllBytes($exe.FullName)
           $pe = [BitConverter]::ToInt32($b, 0x3C)
