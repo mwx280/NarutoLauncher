@@ -1,0 +1,37 @@
+// 游戏宿主版本资源（文件信息：公司/作者 XiaoWu）
+#pragma code_page(65001)
+
+#include <windows.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+FILEFLAGSMASK   0x3fL
+#ifdef _DEBUG
+FILEFLAGS       0x1L
+#else
+FILEFLAGS       0x0L
+#endif
+FILEOS          0x40004L
+FILETYPE        0x1L
+FILESUBTYPE     0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080404b0"
+        BEGIN
+            VALUE "CompanyName",      "XiaoWu"
+            VALUE "FileDescription",  "火影忍者Online 启动器 - 游戏内核"
+            VALUE "FileVersion",      "1.0.0"
+            VALUE "InternalName",     "CEFFlashGameHost"
+            VALUE "LegalCopyright",   "Copyright © 2026 XiaoWu"
+            VALUE "OriginalFilename", "CEFFlashGameHost.exe"
+            VALUE "ProductName",      "火影忍者Online 启动器"
+            VALUE "ProductVersion",   "1.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0804, 1200
+    END
+END

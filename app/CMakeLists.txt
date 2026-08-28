@@ -52,6 +52,7 @@ add_executable(CEFFlashGameHost WIN32
     src/host_app.h
     src/host_client.cpp
     src/host_client.h
+    src/resource.rc
 )
 
 target_include_directories(CEFFlashGameHost PRIVATE

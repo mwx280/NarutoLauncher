@@ -5,7 +5,8 @@
 
 #define AppName "火影忍者Online 启动器"
 #define AppVersion "1.0.0"
-#define AppPublisher "NarutoLauncher Contributors"
+#define AppPublisher "XiaoWu"
+#define AppCopyright "Copyright © 2026 XiaoWu"
 #define AppExe "NarutoLauncher.exe"
 #define SrcDir "..\NarutoLauncher\bin\Release\net10.0-windows\win-x64"
 
@@ -33,7 +34,7 @@ VersionInfoVersion={#AppVersion}
 VersionInfoDescription={#AppName} 安装程序
 VersionInfoProductName={#AppName}
 VersionInfoProductVersion={#AppVersion}
-VersionInfoCopyright={#AppPublisher}
+VersionInfoCopyright={#AppCopyright}
 VersionInfoCompany={#AppPublisher}
 
 [Languages]

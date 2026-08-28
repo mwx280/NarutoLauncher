@@ -1,4 +1,4 @@
-# 构建全 x64 版本（WPF x64 + GameHost x64）
+﻿# 构建全 x64 版本（WPF x64 + GameHost x64）
 # 用法：powershell -ExecutionPolicy Bypass -File tools/build-x64.ps1 [-Clean]
 param([switch]$Clean)
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path

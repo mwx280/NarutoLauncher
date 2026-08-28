@@ -1,4 +1,4 @@
-# NarutoLauncher 一键构建脚本
+﻿# NarutoLauncher 一键构建脚本
 # 用法：powershell -ExecutionPolicy Bypass -File tools/build.ps1 [-Arch x86|x64] [-Clean]
 #
 # 说明：

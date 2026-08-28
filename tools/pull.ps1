@@ -1,4 +1,4 @@
-# 拉取最新代码并一键构建
+﻿# 拉取最新代码并一键构建
 # 用法：powershell -ExecutionPolicy Bypass -File pull.ps1 [-Arch x86|x64] [-Clean]
 #
 # 说明：
