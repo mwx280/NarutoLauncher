@@ -362,6 +362,25 @@
                 </Grid>
             </Border>
 
+            <!-- 关闭游戏窗口后显示主界面 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE8E5;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="关闭游戏窗口后显示主界面" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="关闭游戏标签后，自动回到启动器主窗口" Style="{StaticResource ItemDescStyle}"/>
+                    </StackPanel>
+                    <ui:ToggleSwitch Grid.Column="2" x:Name="ShowMainOnGameCloseBox"/>
+                </Grid>
+            </Border>
+
             <!-- ===== 账号与安全分组 ===== -->
             <TextBlock Text="账号与安全" Style="{StaticResource GroupTitleStyle}"/>
 

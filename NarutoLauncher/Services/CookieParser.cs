@@ -49,6 +49,23 @@ public static class CookieParser
         }
     }
 
+    /// <summary>读取 userdata 目录中所有明文 cookie（name → value），无登录态返回 null。</summary>
+    public static Dictionary<string, string>? ReadAllCookies(string userdataDir)
+    {
+        try
+        {
+            var key = LoadKey(userdataDir);
+            if (key is null)
+                return null;
+            var cookies = ReadCookies(userdataDir, key);
+            return cookies.Count == 0 ? null : cookies;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     /// <summary>从 LocalPrefs.json / Local State 读取并解密 AES key（DPAPI）。</summary>
     private static byte[]? LoadKey(string userdataDir)
     {

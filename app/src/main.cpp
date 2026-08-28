@@ -190,9 +190,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
     NarutoRunOptions opt = ParseCommandLine(lpCmdLine);
 
     // 扫码登录模式：加载官网首页（自动弹出 QQ 登录二维码），登录成功写 login_result.txt
+    // 所有模式统一记录 userdata 目录（用于写本账号 speed.txt、传环境变量给 ppapi）
+    g_userdata_dir = opt.userdata;
+
     if (opt.login) {
         g_login_mode = true;
-        g_userdata_dir = opt.userdata;
         if (opt.url == kDefaultUrl) {
             opt.url = L"https://huoying.qq.com/server/website/";
         }
@@ -204,9 +206,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, wchar_t* lpCmdLine, int) {
 
     // 浏览器进程：把 Flash 渲染质量写入环境变量，供 ppapi 子进程读取
     // （CEF 会过滤命令行自定义开关，环境变量必然被子进程继承）。
+    // 同时把 userdata 目录通过 HUOYIN_USERDATA 传给子进程，供变速 hook 定位本账号 speed.txt。
     if (wcsstr(lpCmdLine, L"--type=") == nullptr) {
         ::SetEnvironmentVariableA("HUOYIN_FLASH_QUALITY",
                                   g_flash_quality.c_str());
+    }
+    if (!opt.userdata.empty()) {
+        ::SetEnvironmentVariableW(L"HUOYIN_USERDATA", opt.userdata.c_str());
     }
 
     // 阻止 Flash 插件（ppapi 子进程）加载时弹 cmd 窗口：Flash 会执行

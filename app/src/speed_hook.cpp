@@ -24,17 +24,26 @@ GetTickCount64Fn g_real_tick64 = nullptr;
 GetTickCountFn g_real_tick = nullptr;
 QPCFn g_real_qpc = nullptr;
 
-// 读取 exe 目录 speed.txt 的倍速值。
+// 读取 speed.txt 的倍速值：优先本账号 userdata 目录（环境变量 HUOYIN_USERDATA，多开隔离），
+// 兜底 exe 目录。返回是否成功读取。
 void UpdateSpeed() {
-    wchar_t exe[MAX_PATH] = {0};
-    DWORD n = GetModuleFileNameW(nullptr, exe, MAX_PATH);
-    if (n == 0 || n >= MAX_PATH)
-        return;
-    std::wstring path(exe, n);
-    size_t sep = path.find_last_of(L"\\/");
-    if (sep != std::wstring::npos)
-        path = path.substr(0, sep + 1);
-    path += L"speed.txt";
+    std::wstring path;
+    wchar_t buf[1024] = {0};
+    DWORD len = GetEnvironmentVariableW(L"HUOYIN_USERDATA", buf, 1024);
+    if (len > 0 && len < 1024) {
+        path = buf;
+        path += L"\\speed.txt";
+    } else {
+        wchar_t exe[MAX_PATH] = {0};
+        DWORD n = GetModuleFileNameW(nullptr, exe, MAX_PATH);
+        if (n == 0 || n >= MAX_PATH)
+            return;
+        path.assign(exe, n);
+        size_t sep = path.find_last_of(L"\\/");
+        if (sep != std::wstring::npos)
+            path = path.substr(0, sep + 1);
+        path += L"speed.txt";
+    }
     FILE* f = nullptr;
     if (_wfopen_s(&f, path.c_str(), L"r") == 0 && f) {
         double s = 1.0;

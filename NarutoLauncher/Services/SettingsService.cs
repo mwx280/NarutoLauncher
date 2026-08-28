@@ -66,6 +66,7 @@ public class SettingsService
     private bool _antiDrop = true;
     private bool _minimizeToTray = true;
     private bool _minimizeOnGameStart = true;
+    private bool _showMainOnGameClose = true;
     private bool _rememberPassword = true;
     private bool _autoEnterGame;
     private bool _flashHardwareAcceleration = true;
@@ -101,6 +102,13 @@ public class SettingsService
 
     /// <summary>开始游戏是否自动进入游戏（关闭则先进选区页，手动点开始）。</summary>
     public bool AutoEnterGame { get => _autoEnterGame; set { if (_autoEnterGame != value) { _autoEnterGame = value; Save(); } } }
+
+    /// <summary>关闭游戏窗口后，自动显示启动器主界面。</summary>
+    public bool ShowMainOnGameClose
+    {
+        get => _showMainOnGameClose;
+        set { if (_showMainOnGameClose != value) { _showMainOnGameClose = value; Save(); } }
+    }
 
     /// <summary>Flash 硬件加速（默认开启：GPU 合成显著提升流畅度，实测优于纯 CPU 合成）。</summary>
     public bool FlashHardwareAcceleration
@@ -231,6 +239,7 @@ public class SettingsService
                 MinimizeToTray = _minimizeToTray,
                 RememberPassword = _rememberPassword,
                 MinimizeOnGameStart = _minimizeOnGameStart,
+                ShowMainOnGameClose = _showMainOnGameClose,
                 AutoEnterGame = _autoEnterGame,
                 FlashHardwareAcceleration = _flashHardwareAcceleration,
                 FlashQuality = _flashQuality,
@@ -263,6 +272,7 @@ public class SettingsService
             _minimizeToTray = dto.MinimizeToTray;
             _rememberPassword = dto.RememberPassword;
             _minimizeOnGameStart = dto.MinimizeOnGameStart;
+            _showMainOnGameClose = dto.ShowMainOnGameClose;
             _autoEnterGame = dto.AutoEnterGame;
             _flashHardwareAcceleration = dto.FlashHardwareAcceleration;
             _flashQuality = string.IsNullOrEmpty(dto.FlashQuality) ? "low" : dto.FlashQuality;
@@ -287,6 +297,7 @@ public class SettingsService
         public bool MinimizeToTray { get; set; } = true;
         public bool RememberPassword { get; set; } = true;
         public bool MinimizeOnGameStart { get; set; } = true;
+        public bool ShowMainOnGameClose { get; set; } = true;
         public bool AutoEnterGame { get; set; }
         public bool FlashHardwareAcceleration { get; set; }
         public string FlashQuality { get; set; } = "low";

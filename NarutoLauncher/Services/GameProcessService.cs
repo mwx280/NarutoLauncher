@@ -88,6 +88,68 @@ public class GameProcessService
     public GameSession? GetSession(string key) =>
         _sessions.TryGetValue(key, out var s) ? s : null;
 
+    /// <summary>构建账号的游戏 userdata 目录：同账号多开时每个会话唯一，避免 CEF 锁库。</summary>
+    private string BuildUserdataDir(Account account, string exe)
+    {
+        var baseDir = Path.GetDirectoryName(exe)!;
+        var sourceUserdata = account.ScanUserDataDir;
+
+        // 该账号当前是否已有会话在运行（多开判断）
+        var running = GetSessions(account.Id).Where(s => !s.Process.HasExited).ToList();
+
+        // 首次启动：扫码账号复用扫码目录（含登录态），账号密码账号用主目录
+        if (running.Count == 0)
+        {
+            if (!string.IsNullOrEmpty(account.ScanUserDataDir))
+                return account.ScanUserDataDir;
+            return Path.Combine(baseDir, "userdata", account.QQ);
+        }
+
+        // 多开：每个会话用唯一序号目录，并把首会话的登录态（cookie）复制过去，
+        // 使新区共享登录；既避免 CEF 锁库白屏，又保留登录 cookie。
+        var unique = Path.Combine(baseDir, "userdata",
+            $"{account.QQ}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}");
+        Directory.CreateDirectory(unique);
+
+        // 复制登录态文件（Cookies、Local State、LocalPrefs.json 等）自登录源目录
+        var loginSrc = !string.IsNullOrEmpty(sourceUserdata)
+            ? sourceUserdata
+            : Path.Combine(baseDir, "userdata", account.QQ);
+        CopyLoginState(loginSrc, unique);
+        return unique;
+    }
+
+    /// <summary>复制 CEF 登录态文件（Cookies / Local State / LocalPrefs.json 等）到目标目录。</summary>
+    private static void CopyLoginState(string src, string dest)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(src) || !Directory.Exists(src))
+                return;
+            foreach (var name in new[] { "Cookies", "Local State", "LocalPrefs.json", "Network" })
+            {
+                var s = Path.Combine(src, name);
+                if (File.Exists(s))
+                    File.Copy(s, Path.Combine(dest, name), overwrite: true);
+                else if (Directory.Exists(s))
+                    CopyDirectory(s, Path.Combine(dest, name));
+            }
+        }
+        catch
+        {
+            // 复制失败不阻断启动（新区可能无登录态）
+        }
+    }
+
+    private static void CopyDirectory(string src, string dest)
+    {
+        Directory.CreateDirectory(dest);
+        foreach (var f in Directory.GetFiles(src))
+            File.Copy(f, Path.Combine(dest, Path.GetFileName(f)), overwrite: true);
+        foreach (var d in Directory.GetDirectories(src))
+            CopyDirectory(d, Path.Combine(dest, Path.GetFileName(d)));
+    }
+
     /// <summary>
     /// 启动一个账号的游戏窗口（内嵌模式）。同账号可多次调用（多区多开），
     /// 各会话共用账号 cookie，仅以唯一 Key 区分，可分别停止。
@@ -103,13 +165,10 @@ public class GameProcessService
         // 清理上次运行残留的孤儿 GameHost 进程（CEF 子进程），避免争用 userdata 目录
         KillOrphanedGameHosts();
 
-        // 每账号独立缓存目录（多开 cookie 隔离）；扫码登录账号复用扫码时的 userdata
-        var userdata = !string.IsNullOrEmpty(account.ScanUserDataDir)
-            ? account.ScanUserDataDir
-            : Path.Combine(
-                Path.GetDirectoryName(exe)!,
-                "userdata",
-                account.QQ);
+        // 每账号独立缓存目录。同账号多开（多区）时，首个会话用账号主目录（扫码账号复用
+        // 扫码目录，含登录态 cookie）；后续会话用唯一序号目录，避免多个 CEF 进程争用同一
+        // userdata（锁库）导致新标签白屏。登录态通过 --cookie 注入共享。
+        var userdata = BuildUserdataDir(account, exe);
         Directory.CreateDirectory(userdata);
 
         var psi = new ProcessStartInfo
@@ -132,7 +191,8 @@ public class GameProcessService
         // 分辨率模式（性能优先=强制DPR1，画质优先=跟随系统DPI）
         psi.ArgumentList.Add(App.CurrentApp.Settings.DprMode == Services.DprMode.Performance
             ? "--force-dpr=1" : "--force-dpr=0");
-        // 账号有保存的 cookie 时注入（域分组的 JSON，base64 编码后传给 GameHost）
+        // 账号有保存的 cookie 时注入（域分组的 JSON，base64 编码后传给 GameHost）；
+        // 多开会话的登录态由 BuildUserdataDir 复制自首会话 userdata 获得。
         if (!string.IsNullOrEmpty(account.Cookies))
         {
             var b64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(account.Cookies));

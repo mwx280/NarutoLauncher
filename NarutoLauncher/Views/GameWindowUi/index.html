@@ -242,14 +242,14 @@
   tabstrip.addEventListener('mousedown', function (ev) {
     if (ev.target === tabstrip ||
         ev.target.classList.contains('tabs') ||
-        ev.target.classList.contains('add') ||
+        ev.target.classList.contains('empty') ||
         ev.target.classList.contains('app-title')) {
       notify('win-drag');
     }
   });
   tabstrip.addEventListener('dblclick', function (ev) {
     if (ev.target.classList.contains('tabstrip') || ev.target.classList.contains('tabs') ||
-        ev.target.classList.contains('add') || ev.target.classList.contains('app-title')) {
+        ev.target.classList.contains('empty') || ev.target.classList.contains('app-title')) {
       notify('win-max');
     }
   });

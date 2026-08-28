@@ -50,20 +50,26 @@ void EmbedChild(HWND child) {
     g_window.SetClientChild(child);
 }
 
-// 把倍速写入 exe 目录 speed.txt，供 ppapi 子进程（Flash）读取变速。
+// 把倍速写入 speed.txt（优先账号 userdata 目录，多开隔离；兜底 exe 目录）。
+// 供 ppapi 子进程（Flash）通过 HUOYIN_USERDATA 定位本账号目录后读取变速。
 void SaveSpeedToFile(double speed) {
-    wchar_t exe[MAX_PATH] = {0};
-    DWORD n = ::GetModuleFileNameW(nullptr, exe, MAX_PATH);
-    if (n == 0 || n >= MAX_PATH)
-        return;
-    std::wstring path(exe, n);
-    size_t sep = path.find_last_of(L"\\/");
-    if (sep != std::wstring::npos)
-        path = path.substr(0, sep + 1);
-    path += L"speed.txt";
+    std::wstring path;
+    if (!g_userdata_dir.empty()) {
+        path = g_userdata_dir + L"\\speed.txt";
+    } else {
+        wchar_t exe[MAX_PATH] = {0};
+        DWORD n = ::GetModuleFileNameW(nullptr, exe, MAX_PATH);
+        if (n == 0 || n >= MAX_PATH)
+            return;
+        path.assign(exe, n);
+        size_t sep = path.find_last_of(L"\\/");
+        if (sep != std::wstring::npos)
+            path = path.substr(0, sep + 1);
+        path += L"speed.txt";
+    }
     FILE* f = nullptr;
     if (_wfopen_s(&f, path.c_str(), L"w") == 0 && f) {
-        fprintf(f, "%.1f", speed);
+        fprintf(f, "%.2f", speed);
         fclose(f);
     }
 }
@@ -109,6 +115,14 @@ void OnWindowCommand(int cmd, WPARAM w, LPARAM l) {
                 g_speed = speed;
                 AppLog::Write("命令: 倍速=%.1f", speed);
                 SaveSpeedToFile(speed);
+            }
+            break;
+        case 6:
+            // 设置静音（w=1 静音 / 0 取消）：用于全局/标签静音，不受单次 toggle 影响
+            if (g_game_browser && g_game_browser->GetHost()) {
+                g_muted = (w != 0);
+                g_game_browser->GetHost()->SetAudioMuted(g_muted);
+                AppLog::Write("命令: 设置静音=%d", g_muted ? 1 : 0);
             }
             break;
         default:

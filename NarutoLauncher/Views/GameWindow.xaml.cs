@@ -459,11 +459,8 @@ public partial class GameWindow : FluentWindow
     {
         if (sender is Controls.Button { Tag: Account acc })
         {
-            var tab = _tabs.FirstOrDefault(t => t.Account.Id == acc.Id);
-            if (tab != null)
-                ActivateTab(tab);
-            else
-                AddAccount(acc);
+            // 同账号可多开：点击账号菜单始终新开一个标签
+            AddAccount(acc);
             UserMenuPopup.IsOpen = false;
         }
     }
@@ -492,6 +489,24 @@ public partial class GameWindow : FluentWindow
             return;
         SendCustomSpeed();
         e.Handled = true;
+    }
+
+    /// <summary>自定义倍速框按下：保持焦点，防止 Popup 因点击选中倍速而关闭输入。</summary>
+    private void OnCustomSpeedBoxPreviewMouseDown(object sender, RoutedEventArgs e)
+    {
+        CustomSpeedBox.Focus();
+        e.Handled = true;
+    }
+
+    /// <summary>倍速菜单移出鼠标但输入框有焦点时保持打开，否则关闭。</summary>
+    private void OnSpeedMenuMouseLeave(object sender, RoutedEventArgs e)
+    {
+        // 若输入框正获焦，延迟关闭，避免失去焦点时输入被中断
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+        {
+            if (!CustomSpeedBox.IsKeyboardFocused)
+                SpeedMenuPopup.IsOpen = false;
+        });
     }
 
     /// <summary>解析自定义倍速并发送（×10，关闭菜单）。</summary>
@@ -623,8 +638,12 @@ public partial class GameWindow : FluentWindow
     /// <summary>新建标签（「+」号）：打开添加账号窗口，登录后自动添加并开标签。</summary>
     private void OnAddAccount()
     {
-        var win = new AddAccountWindow { Owner = this };
-        win.ShowInTaskbar = true;
+        var win = new AddAccountWindow
+        {
+            Owner = null,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            ShowInTaskbar = true,
+        };
         if (win.ShowDialog() == true && win.Result is { } account)
         {
             AddAccount(account);
@@ -648,6 +667,21 @@ public partial class GameWindow : FluentWindow
         catch
         {
         }
+        // 关闭游戏窗口后，按设置决定是否显示启动器主界面
+        if (App.CurrentApp.Settings.ShowMainOnGameClose &&
+            App.CurrentApp.MainWindow is { } main)
+        {
+            try
+            {
+                if (!main.IsVisible)
+                    main.Show();
+                main.WindowState = WindowState.Normal;
+                main.Activate();
+            }
+            catch
+            {
+            }
+        }
         App.CurrentApp.TryExitWhenNoGame();
     }
 
@@ -661,11 +695,8 @@ public partial class GameWindow : FluentWindow
         var account = App.CurrentApp.Accounts.Accounts.FirstOrDefault(a => a.Id == accountId);
         if (account == null)
             return;
-        var tab = _tabs.FirstOrDefault(t => t.Account.Id == accountId);
-        if (tab != null)
-            ActivateTab(tab);
-        else
-            AddAccount(account);
+        // 同账号可多开：点击账号选择始终新开一个标签
+        AddAccount(account);
     }
 
     // ==================== 命令发送 ====================
