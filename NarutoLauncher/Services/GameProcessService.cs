@@ -46,7 +46,7 @@ public class GameSession
 public class GameProcessService
 {
     /// <summary>GameHost 可执行文件名（相对启动器目录）。</summary>
-    private const string GameHostExe = "GameHost/huoyin_launcher.exe";
+    private const string GameHostExe = "GameHost/cef_flash_game_host.exe";
 
     /// <summary>启动器目录下的游戏 URL 约定。</summary>
     private const string DefaultGameUrl = "https://game.huoying.qq.com/main.html";
@@ -215,7 +215,7 @@ public class GameProcessService
     {
         try
         {
-            var procs = Process.GetProcessesByName("huoyin_launcher");
+            var procs = Process.GetProcessesByName("cef_flash_game_host");
             if (procs.Length == 0) return;
             // 所有存活进程 PID 集合：父进程不在其中即视为孤儿
             var liveIds = new HashSet<int>(Process.GetProcesses().Select(p => p.Id));

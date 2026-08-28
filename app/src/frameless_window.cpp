@@ -30,7 +30,7 @@ FramelessWindow::~FramelessWindow() {
 bool FramelessWindow::Create(int width, int height, bool embed, HWND parent,
                              bool windowed) {
     // 无边框窗口类
-    static const wchar_t kClassName[] = L"HuoYinFramelessWindow";
+    static const wchar_t kClassName[] = L"CefFlashGameHostWindow";
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = &FramelessWindow::WndProc;

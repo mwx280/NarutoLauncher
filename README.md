@@ -11,12 +11,20 @@
 ```
 NarutoLauncher.exe   WPF / C# / x64 —— 启动器界面
 └─ HwndHost（GameHostView）跨进程 SetParent，把游戏窗口嵌入界面里
-   └─ GameHost.exe（huoyin_launcher）  CEF 87 / x64 / C++ —— 每个账号一个实例
+   └─ cef_flash_game_host.exe  CEF 87 / x64 / C++ —— 每个账号一个实例
       ├─ 加载 game.huoying.qq.com 的 Flash 游戏
       └─ 变速用 MinHook 挂钩时间 API
 ```
 
 界面和游戏进程是分开的，游戏崩了不影响启动器，平时也能独立调试。
+
+## 游戏渲染内核
+
+启动器里的 `cef_flash_game_host.exe`（游戏渲染进程）基于开源项目 **CEFFlashGameHost** 改造而来：
+
+<https://github.com/mwx280/CEFFlashGameHost>
+
+CEFFlashGameHost 是通用的 CEF 87 Flash 渲染内核（模块化结构：主机应用、浏览器客户端、参数解析、无边框窗口、hook 等分离）。本仓库在其基础上按火影忍者Online 的实际需求做了扩展，保留了内核的模块化拆分，并加入了扫码登录、账号密码自动登录、cookie 注入、zone_id 自动补全、变速等游戏特定功能。游戏内核单独双击（无 `--embed` / `--windowed` 参数）会静默退出，避免误启动。
 
 ## 主要功能
 
@@ -30,7 +38,7 @@ NarutoLauncher.exe   WPF / C# / x64 —— 启动器界面
 
 ```
 NarutoLauncher/
-├── app/              游戏宿主（C++/CEF）
+├── app/              游戏渲染内核（C++/CEF，模块化）：main、params、host_app、host_client、globals 等
 ├── NarutoLauncher/   启动器（C#/WPF）
 ├── assets/           图标等资源
 ├── tools/            构建、依赖下载脚本

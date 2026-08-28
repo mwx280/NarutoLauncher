@@ -75,7 +75,7 @@ Invoke-Step "构建 WPF 启动器（dotnet build，RID=$Rid）" {
     & dotnet build (Join-Path $Root 'NarutoLauncher\NarutoLauncher.csproj') -c Release -p:RuntimeIdentifier=$Rid -p:PlatformTarget=$PlatformTarget
 }
 $OutBase = Join-Path $Root "NarutoLauncher\bin\Release\net10.0-windows\$Rid"
-$GameHostSrc = Join-Path $Root "$BuildDir\huoyin_launcher.exe"
+$GameHostSrc = Join-Path $Root "$BuildDir\cef_flash_game_host.exe"
 $GameHostDir = Join-Path $OutBase 'GameHost'
 if (-not (Test-Path $GameHostSrc)) {
     throw "未找到 GameHost 输出: $GameHostSrc"
