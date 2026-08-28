@@ -1,18 +1,15 @@
-name: 构建与发布
+name: 检查
 
 on:
   push:
     branches: [ master ]
-    tags: [ 'v*' ]
   pull_request:
     branches: [ master ]
 
 jobs:
-  build:
-    name: 构建 x64（安装包）
+  build-check:
+    name: 编译检查（x64）
     runs-on: windows-latest
-    permissions:
-      contents: write   # 发布时上传 release 资产
 
     steps:
       - name: 检出代码
@@ -35,56 +32,26 @@ jobs:
         shell: pwsh
         run: powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1 -Arch x64
 
-      - name: 配置 CEFFlashGameHost（CMake x64）
+      - name: 编译 CEFFlashGameHost（CMake x64）
         shell: pwsh
         run: |
           cmake -S app -B build/app_x64 -G Ninja -DCMAKE_BUILD_TYPE=Release
-
-      - name: 构建 CEFFlashGameHost
-        shell: pwsh
-        run: |
           cmake --build build/app_x64
 
-      - name: 构建 WPF 启动器（win-x64，SelfContained）
+      - name: 编译 WPF 启动器（win-x64）
         shell: pwsh
         run: |
-          $out = "NarutoLauncher/bin/Release/net10.0-windows/win-x64"
-          dotnet publish NarutoLauncher/NarutoLauncher.csproj -c Release `
-            -p:RuntimeIdentifier=win-x64 -p:PlatformTarget=x64 `
-            -p:SelfContained=true -o $out
+          dotnet build NarutoLauncher/NarutoLauncher.csproj -c Release `
+            -p:RuntimeIdentifier=win-x64 -p:PlatformTarget=x64
 
-      - name: 布置 CEFFlashGameHost 到启动器输出
+      - name: 校验
         shell: pwsh
         run: |
-          $base = "NarutoLauncher/bin/Release/net10.0-windows/win-x64"
-          $out = "$base/CEFFlashGameHost"
-          New-Item -ItemType Directory -Force -Path $out | Out-Null
-          Copy-Item -Path "build/app_x64/*" -Destination $out -Recurse -Force
-
-      - name: 安装 Inno Setup
-        shell: pwsh
-        run: |
-          if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) {
-            choco install innosetup -y --no-progress
-          }
-
-      - name: 获取 Inno Setup 中文语言包
-        shell: pwsh
-        run: |
-          $dest = "C:\Program Files (x86)\Inno Setup 6\Languages\ChineseSimplified.isl"
-          if (-not (Test-Path $dest)) {
-            $url = "https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/ChineseSimplified.isl"
-            Invoke-WebRequest -Uri $url -OutFile $dest -ErrorAction Stop
-          }
-          Test-Path $dest
-
-      - name: 构建安装包
-        shell: pwsh
-        run: |
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\NarutoLauncher.iss"
-
-      - name: 上传安装包为工件
-        uses: actions/upload-artifact@v4
-        with:
-          name: NarutoLauncher-Setup
-          path: publish/NarutoLauncher-*-Setup.exe
+          # 确认 exe 位深为 x64
+          $exe = "NarutoLauncher/bin/Release/net10.0-windows/win-x64/NarutoLauncher.exe"
+          if (-not (Test-Path $exe)) { throw "未找到启动器 exe: $exe" }
+          $b = [System.IO.File]::ReadAllBytes($exe)
+          $pe = [BitConverter]::ToInt32($b, 0x3C)
+          $m = [BitConverter]::ToUInt16($b, $pe + 4)
+          if ($m -ne 0x8664) { throw "非 x64：$exe" }
+          Write-Host "编译检查通过（x64）"

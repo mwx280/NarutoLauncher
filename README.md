@@ -67,7 +67,7 @@ NarutoLauncher/
 ├── installer/          Inno Setup 安装脚本
 ├── tools/              构建 / 依赖下载 / Flash 提取脚本
 ├── third_party/        第三方依赖（CEF 由脚本下载；Flash 插件与 MinHook 随仓库分发）
-└── .github/workflows/  GitHub Actions 构建发布流水线
+└── .github/workflows/  GitHub Actions 编译检查
 ```
 
 ## 快速构建
@@ -124,7 +124,7 @@ CEFFlashGameHost.exe --help
 更新走 **GitHub Releases**。`GitHubUpdateService` 请求 `api.github.com/repos/mwx280/NarutoLauncher/releases/latest`，比对语义化版本号，有新版弹窗提示并跳转下载页。
 
 - 当前版本：`v1.0.0`（在 `GitHubUpdateService.cs` 的 `CurrentVersion` 修改，须与 GitHub tag 一致）
-- 发布新版：在 GitHub 打 tag（如 `v1.0.0`），由 CI 自动构建安装包并上传到 Release
+- 发布新版：在 GitHub 打 tag（如 `v1.0.0`），本地运行 `installer\NarutoLauncher.iss`（Inno Setup）生成安装包，作为 release 资产上传。CI 只做编译检查，不打包发布。
 
 ## 致谢
 
