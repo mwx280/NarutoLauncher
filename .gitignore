@@ -36,6 +36,10 @@ third_party/*
 # UI 预览（非 Git 跟踪）
 preview/
 
+# SWF 反编译工具（本地分析用，禁止入库）
+tools/ffdec/
+tools/ffdec_out/
+
 # 日志与临时文件
 *.log
 *.tmp
@@ -50,9 +54,6 @@ preview/
 *.key
 secrets.*
 credentials.*
-
-# AI 代理约定文件（本机配置，不入库）
-AGENTS.md
 
 # .NET / WPF 构建产物
 bin/

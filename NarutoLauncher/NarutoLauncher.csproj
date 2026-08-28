@@ -8,12 +8,18 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <SelfContained>false</SelfContained>
+    <SelfContained>true</SelfContained>
     <AssemblyName>NarutoLauncher</AssemblyName>
-    <!-- 架构由构建脚本通过 -p:RuntimeIdentifier=win-x64 / win-x86 与 -p:PlatformTarget=x64 / x86 指定，
-         默认与当前输出目录保持一致（win-x64）。 -->
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
-    <PlatformTarget Condition="'$(PlatformTarget)' == ''">x64</PlatformTarget>
+    <!-- 版本与元数据（开源版）：更新检查对照 GitHub Release tag（v1.0.3） -->
+    <Version>1.0.3</Version>
+    <FileVersion>1.0.3</FileVersion>
+    <AssemblyVersion>1.0.3</AssemblyVersion>
+    <Product>火影忍者Online 启动器（开源版）</Product>
+    <Authors>NarutoLauncher Contributors</Authors>
+    <Copyright>Copyright © 2026 NarutoLauncher Contributors</Copyright>
+    <!-- 架构固定为 x64（GameHost 亦以 x64 编译，与 WPF 一致） -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>

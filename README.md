@@ -1,6 +1,8 @@
 # 火影忍者Online 启动器（NarutoLauncher）
 
-高性能火影忍者Online Flash 游戏启动器。WPF 启动器 + 分离 CEF 87 x86 游戏宿主，游戏窗口通过 HwndHost 内嵌在界面中，支持多账号多开、扫码登录、记住密码、自动登录。
+高性能火影忍者Online Flash 游戏启动器（**开源版**）。WPF 启动器 + 分离 CEF 87 **x64** 游戏宿主，游戏窗口通过 HwndHost 内嵌在界面中，支持多账号多开、扫码登录、记住密码、自动登录。
+
+> 基于掌握 `master` 分支，剔除封禁、自建更新服务器、混淆、反馈、公告后端等私有化模块，更新改用 **GitHub Releases** 检查，可自由构建与分发。
 
 ## 架构
 
@@ -8,10 +10,10 @@
 NarutoLauncher.exe   WPF · C# · x64
 ├─ 系统原生 UI：首页 / 游戏 / 账号管理 / 设置
 └─ HwndHost（GameHostView）→ 跨进程 SetParent
-     └─ GameHost.exe   CEF 87 · x86 · C++（每账号一个实例）
+     └─ GameHost.exe   CEF 87 · x64 · C++（每账号一个实例）
           ├─ 游戏窗口内嵌显示在启动器界面中
           ├─ Flash 游戏（game.huoying.qq.com）
-          └─ 变速 hook（MinHook x86）
+          └─ 变速 hook（MinHook x64）
 ```
 
 游戏窗口真正内嵌在启动器界面内（WPF HwndHost 跨进程嵌入），UI 与游戏进程分离。
@@ -20,11 +22,12 @@ NarutoLauncher.exe   WPF · C# · x64
 
 | 决策点 | 结论 | 原因 |
 |---|---|---|
-| 渲染引擎 | CEF 87.1.13（x86）| Chromium 88+ 移除 Flash；CEF 87 是最后一个支持 PPAPI Flash 的版本 |
-| Flash 插件 | Flash.cn PPAPI 34.0.0.380（x86）| 中国区官方维护，明确支持 Chromium 88 以下内核 |
+| 渲染引擎 | CEF 87.1.13（x64）| Chromium 88+ 移除 Flash；CEF 87 是最后一个支持 PPAPI Flash 的版本 |
+| Flash 插件 | Flash.cn PPAPI 34.0.0.380（x64）| 中国区官方维护，明确支持 Chromium 88 以下内核 |
 | UI 技术 | C# + WPF | HwndHost 原生支持跨进程窗口内嵌（已验证）|
 | 启动器架构 | WPF 单进程 + 跨进程 SetParent | UI 与游戏分离，游戏窗口内嵌 |
 | 多开 | 每账号一个 GameHost 进程 | 多账号同时在线，独立窗口内嵌 |
+| 更新 | GitHub Releases API | 无需自建服务器，开源可直接分发 |
 
 ## 目录结构
 
@@ -43,31 +46,43 @@ NarutoLauncher/
 > 详细计划见 [docs/PLAN.md](docs/PLAN.md)。
 
 ```powershell
-# 1. 准备依赖（下载 CEF SDK 运行时，-Arch 可选 x86/x64）
-powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1 -Arch x86
+# 1. 准备依赖（下载 CEF SDK + 运行时，-Arch 选 x64）
+powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1 -Arch x64
 #    Flash 插件为系统安装（C:\Windows\...\Macromed\Flash），需手动复制，见 tools/extract_flash.ps1
 
-# 2. 一键构建（依赖下载 + GameHost + WPF + GameHost 复制，-Arch 可选 x86/x64）
-powershell -ExecutionPolicy Bypass -File tools/build.ps1 -Arch x86
+# 2. 一键构建（依赖下载 + GameHost + WPF + GameHost 复制，-Arch 选 x64）
+powershell -ExecutionPolicy Bypass -File tools/build.ps1 -Arch x64
 ```
 
 快捷脚本：
 
 ```powershell
-# 构建全 x86 / 全 x64 版本（推荐直接使用）
-powershell -ExecutionPolicy Bypass -File tools/build-x86.ps1
+# 构建全 x64 版本（推荐直接使用）
 powershell -ExecutionPolicy Bypass -File tools/build-x64.ps1
 
 # 拉取最新代码并一键构建
-powershell -ExecutionPolicy Bypass -File tools/pull.ps1 -Arch x86
+powershell -ExecutionPolicy Bypass -File tools/pull.ps1 -Arch x64
 ```
 
-> 说明：x86 与 x64 的 GameHost 均使用各自架构的 Flash 插件（官方同时发布 32/64 位版本），
-> 两种架构均可正常运行 Flash 游戏。x64 兼容问题的修复过程见 [docs/X64_FLASH_ISSUE.md](docs/X64_FLASH_ISSUE.md)。
+> 说明：本开源版统一使用 x64 GameHost（配合 x64 Flash 插件 pepflashplayer_x64.dll），
+> 与 x64 WPF 启动器架构一致，实测不崩溃。x64 兼容问题的修复过程见 [docs/X64_FLASH_ISSUE.md](docs/X64_FLASH_ISSUE.md)。
+
+## 更新
+
+开源版通过 **GitHub Releases** 检查更新：`GitHubUpdateService` 请求
+`https://api.github.com/repos/<owner>/<repo>/releases/latest`，比对语义化版本号，
+比 `GitHubUpdateService.CurrentVersion` 新则弹窗提示并跳转下载页。
+
+- 当前版本号：**v1.0.3**（见 `GitHubUpdateService.cs` 的 `CurrentVersion`，须与 GitHub tag 一致）
+- 发布新版本时：在 GitHub 打 tag（如 `v1.0.3`）并上传安装包作为 release 资产即可。
 
 ## 环境要求
 
-- Windows（开发机：Windows ARM64 VM on Apple Silicon）
-- Visual Studio 2026 Community（MSVC v145，含 x86 交叉工具链）
+- Windows（开发机：Windows ARM64 VM on Apple Silicon 亦可）
+- Visual Studio 2026 Community（MSVC v145，含 x64 工具链）
 - .NET SDK 10
 - CMake 3.16 + Ninja
+
+## 许可证
+
+当前仓库以开源方式分发，具体许可证见仓库 [LICENSE](LICENSE)（如未提供，请按需补充）。
