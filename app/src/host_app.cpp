@@ -77,7 +77,7 @@ void HostApp::OnBeforeCommandLineProcessing(
     command_line->AppendSwitch("persist-session-cookies");
     // 日志写文件而非控制台，避免弹出 cmd 窗口
     command_line->AppendSwitchWithValue("log-file",
-        "cef_flash_game_host_cef.log");
+        "CEFFlashGameHost_cef.log");
 }
 
 CefRefPtr<CefBrowserProcessHandler> HostApp::GetBrowserProcessHandler() {

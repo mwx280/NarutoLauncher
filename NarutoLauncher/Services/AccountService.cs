@@ -103,7 +103,7 @@ public class AccountService
         {
             var userdata = !string.IsNullOrEmpty(acc.ScanUserDataDir)
                 ? acc.ScanUserDataDir
-                : Path.Combine(AppContext.BaseDirectory, "GameHost", "userdata", acc.QQ);
+                : Path.Combine(AppContext.BaseDirectory, "CEFFlashGameHost", "userdata", acc.QQ);
             if (Directory.Exists(userdata))
                 Directory.Delete(userdata, true);
         }

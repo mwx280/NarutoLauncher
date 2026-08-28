@@ -22,7 +22,7 @@ void AppLog::Init() {
         if (sep != std::wstring::npos)
             path = path.substr(0, sep + 1);
     }
-    path += L"cef_flash_game_host.log";
+    path += L"CEFFlashGameHost.log";
     // 追加模式：避免多 CEF 进程并发打开互相覆盖
     _wfopen_s(&g_log, path.c_str(), L"a");
 }

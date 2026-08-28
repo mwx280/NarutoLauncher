@@ -85,6 +85,7 @@ endif()
 # 反破解硬化：Release 全程序优化 + 链接时代码生成（/GL /LTCG），
 # 提高优化程度并增加反汇编还原难度；不生成 PDB（CMake Release 默认）。
 set_target_properties(cef_flash_game_host PROPERTIES
+    OUTPUT_NAME CEFFlashGameHost
     COMPILE_FLAGS_RELEASE "/GL /O2"
     LINK_FLAGS_RELEASE "/LTCG"
 )

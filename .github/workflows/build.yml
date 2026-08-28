@@ -35,12 +35,12 @@ jobs:
         shell: pwsh
         run: powershell -ExecutionPolicy Bypass -File tools/download_deps.ps1 -Arch x64
 
-      - name: 配置 GameHost（CMake x64）
+      - name: 配置 CEFFlashGameHost（CMake x64）
         shell: pwsh
         run: |
           cmake -S app -B build/app_x64 -G Ninja -DCMAKE_BUILD_TYPE=Release
 
-      - name: 构建 GameHost
+      - name: 构建 CEFFlashGameHost
         shell: pwsh
         run: |
           cmake --build build/app_x64
@@ -53,11 +53,11 @@ jobs:
             -p:RuntimeIdentifier=win-x64 -p:PlatformTarget=x64 `
             -p:SelfContained=true -o $out
 
-      - name: 布置 GameHost 到启动器输出
+      - name: 布置 CEFFlashGameHost 到启动器输出
         shell: pwsh
         run: |
           $base = "NarutoLauncher/bin/Release/net10.0-windows/win-x64"
-          $out = "$base/GameHost"
+          $out = "$base/CEFFlashGameHost"
           New-Item -ItemType Directory -Force -Path $out | Out-Null
           Copy-Item -Path "build/app_x64/*" -Destination $out -Recurse -Force
 

@@ -44,7 +44,7 @@ Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: 
 
 [Files]
 Source: "{#SrcDir}\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SrcDir}\*"; DestDir: "{app}"; Excludes: "{#AppExe},*.WebView2,*.log,speed.txt,publish,server_catalog.log,scan_debug.log,GameHost\userdata"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SrcDir}\*"; DestDir: "{app}"; Excludes: "{#AppExe},*.WebView2,*.log,speed.txt,publish,server_catalog.log,scan_debug.log,CEFFlashGameHost\userdata"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"

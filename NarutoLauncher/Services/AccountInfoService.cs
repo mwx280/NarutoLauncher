@@ -25,7 +25,7 @@ public class AccountInfoService
     {
         if (!string.IsNullOrEmpty(account.ScanUserDataDir) && Directory.Exists(account.ScanUserDataDir))
             return account.ScanUserDataDir;
-        var qq = Path.Combine(AppContext.BaseDirectory, "GameHost", "userdata", account.QQ);
+        var qq = Path.Combine(AppContext.BaseDirectory, "CEFFlashGameHost", "userdata", account.QQ);
         return Directory.Exists(qq) ? qq : null;
     }
 
