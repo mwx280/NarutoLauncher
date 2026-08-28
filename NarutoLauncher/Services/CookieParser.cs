@@ -152,7 +152,7 @@ public static class CookieParser
     }
 
     /// <summary>解码区服名（escape 编码）：%uXXXX（中文）+ %XX（≤255 字符如间隔点 ·=0xB7）。</summary>
-    private static string DecodeJsUnicode(string s)
+    public static string DecodeJsUnicode(string s)
     {
         if (string.IsNullOrEmpty(s))
             return s;

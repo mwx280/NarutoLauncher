@@ -90,8 +90,27 @@ public class AccountService
     {
         var acc = Accounts.FirstOrDefault(a => a.Id == id);
         if (acc == null) return;
+        // 连带删除该账号的 userdata 目录（cookie/登录态），避免残留
+        TryDeleteUserData(acc);
         Accounts.Remove(acc);
         Save();
+    }
+
+    /// <summary>删除账号对应的 userdata 目录（扫码目录或 QQ 目录），cookie 一并清除。</summary>
+    private static void TryDeleteUserData(Account acc)
+    {
+        try
+        {
+            var userdata = !string.IsNullOrEmpty(acc.ScanUserDataDir)
+                ? acc.ScanUserDataDir
+                : Path.Combine(AppContext.BaseDirectory, "GameHost", "userdata", acc.QQ);
+            if (Directory.Exists(userdata))
+                Directory.Delete(userdata, true);
+        }
+        catch
+        {
+            // 目录被占用（游戏运行中）时跳过，避免删除失败导致崩溃
+        }
     }
 
     // ---------- DPAPI 密码加密 ----------

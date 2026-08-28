@@ -213,6 +213,8 @@ public class GameProcessService
         {
             var proc = Process.Start(psi);
             if (proc == null) return null;
+            // 提高游戏进程优先级，加快启动与画面加载
+            try { proc.PriorityClass = ProcessPriorityClass.AboveNormal; } catch { }
             var key = $"{account.Id}-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
             var session = new GameSession
             {
@@ -223,12 +225,26 @@ public class GameProcessService
             };
             _sessions[key] = session;
             account.Running = true;
+            // 登录后同步区服/角色名（供账号 UI 与封禁上报，无需进游戏）
+            _ = RefreshAccountInfoAsync(account);
             return session;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"启动游戏失败: {ex.Message}");
             return null;
+        }
+    }
+
+    /// <summary>登录后异步同步账号区服/角色名（失败静默）。</summary>
+    private static async Task RefreshAccountInfoAsync(Account account)
+    {
+        try
+        {
+            await new AccountInfoService().RefreshAsync(account);
+        }
+        catch
+        {
         }
     }
 
