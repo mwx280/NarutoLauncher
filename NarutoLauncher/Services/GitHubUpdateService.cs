@@ -24,7 +24,7 @@ public class GitHubUpdateService
     public const string Repo = "mwx280/NarutoLauncher";
 
     /// <summary>当前版本（发布新版本时同步修改，须与 GitHub tag 一致）。</summary>
-    public static string CurrentVersion => "1.0.0";
+    public static string CurrentVersion => "1.0.1";
 
     private readonly HttpClient _http;
 

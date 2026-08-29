@@ -4,7 +4,7 @@
 ; 注：中文语言文件使用官方自带的 Languages\ChineseSimplified.isl，无需随仓库分发。
 
 #define AppName "火影忍者Online 启动器"
-#define AppVersion "1.0.0"
+#define AppVersion "1.0.1"
 #define AppPublisher "XiaoWu"
 #define AppCopyright "Copyright © 2026 XiaoWu"
 #define AppExe "NarutoLauncher.exe"
