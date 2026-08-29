@@ -182,47 +182,6 @@
                 </Grid>
             </Border>
 
-            <!-- ===== 游戏分组 ===== -->
-            <TextBlock Text="游戏" Style="{StaticResource GroupTitleStyle}"/>
-
-            <!-- 游戏变速 -->
-            <Border Style="{StaticResource SettingRowStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE94A;" Style="{StaticResource SettingIconTextStyle}"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="游戏变速" Style="{StaticResource ItemNameStyle}"/>
-                        <TextBlock Text="调整游戏运行速度" Style="{StaticResource ItemDescStyle}"/>
-                    </StackPanel>
-                    <ui:ToggleSwitch Grid.Column="2" x:Name="GameSpeedBox"/>
-                </Grid>
-            </Border>
-
-            <!-- 挂机防掉线 -->
-            <Border Style="{StaticResource SettingRowStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xEA18;" Style="{StaticResource SettingIconTextStyle}"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="挂机防掉线" Style="{StaticResource ItemNameStyle}"/>
-                        <TextBlock Text="挂机时自动重连，防止掉线" Style="{StaticResource ItemDescStyle}"/>
-                    </StackPanel>
-                    <ui:ToggleSwitch Grid.Column="2" x:Name="AntiDropBox"/>
-                </Grid>
-            </Border>
-
             <!-- 开始游戏自动进入游戏（已停用）
             <Border Style="{StaticResource SettingRowStyle}">
                 <Grid>

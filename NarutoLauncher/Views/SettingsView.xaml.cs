@@ -49,8 +49,6 @@ public partial class SettingsView : UserControl
             ? Visibility.Visible : Visibility.Collapsed;
 
         // 功能开关
-        GameSpeedBox.IsChecked = s.GameSpeed;
-        AntiDropBox.IsChecked = s.AntiDrop;
         // AutoEnterGameBox.IsChecked = s.AutoEnterGame;  // 自动登录已停用
         FlashGpuBox.IsChecked = s.FlashHardwareAcceleration;
         TrayBox.IsChecked = s.MinimizeToTray;
@@ -69,10 +67,6 @@ public partial class SettingsView : UserControl
         };
 
         // 开关变化保存
-        GameSpeedBox.Checked += SaveSwitches;
-        GameSpeedBox.Unchecked += SaveSwitches;
-        AntiDropBox.Checked += SaveSwitches;
-        AntiDropBox.Unchecked += SaveSwitches;
         // AutoEnterGameBox.Checked += SaveSwitches;  // 自动登录已停用
         // AutoEnterGameBox.Unchecked += SaveSwitches;
         TrayBox.Checked += SaveSwitches;
@@ -94,8 +88,6 @@ public partial class SettingsView : UserControl
     {
         if (_initializing) return;
         var s = App.CurrentApp.Settings;
-        s.GameSpeed = GameSpeedBox.IsChecked == true;
-        s.AntiDrop = AntiDropBox.IsChecked == true;
         // s.AutoEnterGame = AutoEnterGameBox.IsChecked == true;  // 自动登录已停用
         s.MinimizeToTray = TrayBox.IsChecked == true;
         s.MinimizeOnGameStart = MinOnGameStartBox.IsChecked == true;

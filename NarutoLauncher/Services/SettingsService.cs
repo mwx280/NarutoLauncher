@@ -62,8 +62,6 @@ public class SettingsService
     private const string SettingsFileName = "settings.json";
 
     private readonly string _path;
-    private bool _gameSpeed = true;
-    private bool _antiDrop = true;
     private bool _minimizeToTray = true;
     private bool _minimizeOnGameStart = true;
     private bool _showMainOnGameClose = true;
@@ -90,8 +88,6 @@ public class SettingsService
         Load();
     }
 
-    public bool GameSpeed { get => _gameSpeed; set { if (_gameSpeed != value) { _gameSpeed = value; Save(); } } }
-    public bool AntiDrop { get => _antiDrop; set { if (_antiDrop != value) { _antiDrop = value; Save(); } } }
     public bool MinimizeToTray { get => _minimizeToTray; set { if (_minimizeToTray != value) { _minimizeToTray = value; Save(); } } }
     public bool RememberPassword { get => _rememberPassword; set { if (_rememberPassword != value) { _rememberPassword = value; Save(); } } }
 
@@ -254,8 +250,6 @@ public class SettingsService
         {
             var dto = new SettingsData
             {
-                GameSpeed = _gameSpeed,
-                AntiDrop = _antiDrop,
                 MinimizeToTray = _minimizeToTray,
                 RememberPassword = _rememberPassword,
                 MinimizeOnGameStart = _minimizeOnGameStart,
@@ -289,8 +283,6 @@ public class SettingsService
             var json = File.ReadAllText(_path);
             var dto = JsonSerializer.Deserialize<SettingsData>(json);
             if (dto == null) return;
-            _gameSpeed = dto.GameSpeed;
-            _antiDrop = dto.AntiDrop;
             _minimizeToTray = dto.MinimizeToTray;
             _rememberPassword = dto.RememberPassword;
             _minimizeOnGameStart = dto.MinimizeOnGameStart;
@@ -316,8 +308,6 @@ public class SettingsService
     /// <summary>序列化 DTO（避免反序列化自身触发构造函数递归）。</summary>
     private class SettingsData
     {
-        public bool GameSpeed { get; set; } = true;
-        public bool AntiDrop { get; set; } = true;
         public bool MinimizeToTray { get; set; } = true;
         public bool RememberPassword { get; set; } = true;
         public bool MinimizeOnGameStart { get; set; } = true;

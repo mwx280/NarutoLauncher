@@ -141,7 +141,9 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
-                        <TextBlock Text="&#xE7A2;" Style="{StaticResource SettingIconTextStyle}"/>
+                        <Image Source="/assets/favicon.png" Stretch="Uniform"
+                               Width="18" Height="18"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="启动器" Style="{StaticResource ItemNameStyle}"/>
