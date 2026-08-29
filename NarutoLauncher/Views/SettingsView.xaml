@@ -223,7 +223,7 @@
                 </Grid>
             </Border>
 
-            <!-- 开始游戏自动进入游戏 -->
+            <!-- 开始游戏自动进入游戏（已停用）
             <Border Style="{StaticResource SettingRowStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -241,6 +241,7 @@
                     <ui:ToggleSwitch Grid.Column="2" x:Name="AutoEnterGameBox"/>
                 </Grid>
             </Border>
+            -->
 
             <!-- ===== 画质分组 ===== -->
             <TextBlock Text="画质" Style="{StaticResource GroupTitleStyle}"/>
@@ -378,6 +379,53 @@
                         <TextBlock Text="关闭游戏标签后，自动回到启动器主窗口" Style="{StaticResource ItemDescStyle}"/>
                     </StackPanel>
                     <ui:ToggleSwitch Grid.Column="2" x:Name="ShowMainOnGameCloseBox"/>
+                </Grid>
+            </Border>
+
+            <!-- ===== 调试分组 ===== -->
+            <TextBlock Text="调试" Style="{StaticResource GroupTitleStyle}"/>
+
+            <!-- 远程调试端口开关 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE9D9;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="开启远程调试端口" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="在启动游戏时开放调试端口，便于外部调试工具连接" Style="{StaticResource ItemDescStyle}"/>
+                    </StackPanel>
+                    <ui:ToggleSwitch Grid.Column="2" x:Name="DebugPortEnableBox"/>
+                </Grid>
+            </Border>
+
+            <!-- 调试端口号 -->
+            <Border Style="{StaticResource SettingRowStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource SettingIconStyle}">
+                        <TextBlock Text="&#xE943;" Style="{StaticResource SettingIconTextStyle}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="调试端口" Style="{StaticResource ItemNameStyle}"/>
+                        <TextBlock Text="远程调试端口号" Style="{StaticResource ItemDescStyle}"/>
+                    </StackPanel>
+                    <TextBox x:Name="DebugPortValueBox" Grid.Column="2" Margin="0,0,20,0"
+                             Width="90" Height="34" Padding="10,4"
+                             VerticalContentAlignment="Center"
+                             Background="{DynamicResource ControlFillColorDefaultBrush}"
+                             BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                             BorderThickness="1" FontSize="13"
+                             TextChanged="OnDebugPortChanged"/>
                 </Grid>
             </Border>
 

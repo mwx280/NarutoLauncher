@@ -51,12 +51,14 @@ public partial class SettingsView : UserControl
         // 功能开关
         GameSpeedBox.IsChecked = s.GameSpeed;
         AntiDropBox.IsChecked = s.AntiDrop;
-        AutoEnterGameBox.IsChecked = s.AutoEnterGame;
+        // AutoEnterGameBox.IsChecked = s.AutoEnterGame;  // 自动登录已停用
         FlashGpuBox.IsChecked = s.FlashHardwareAcceleration;
         TrayBox.IsChecked = s.MinimizeToTray;
         MinOnGameStartBox.IsChecked = s.MinimizeOnGameStart;
         ShowMainOnGameCloseBox.IsChecked = s.ShowMainOnGameClose;
         RememberPwdBox.IsChecked = s.RememberPassword;
+        DebugPortEnableBox.IsChecked = s.EnableDebugPort;
+        DebugPortValueBox.Text = s.DebugPort.ToString();
         NavStyleCombo.SelectedIndex = s.NavigationStyle == Services.NavigationStyle.Modern ? 1 : 0;
         DprModeCombo.SelectedIndex = s.DprMode == Services.DprMode.Quality ? 1 : 0;
         FlashQualityCombo.SelectedIndex = s.FlashQuality switch
@@ -71,8 +73,8 @@ public partial class SettingsView : UserControl
         GameSpeedBox.Unchecked += SaveSwitches;
         AntiDropBox.Checked += SaveSwitches;
         AntiDropBox.Unchecked += SaveSwitches;
-        AutoEnterGameBox.Checked += SaveSwitches;
-        AutoEnterGameBox.Unchecked += SaveSwitches;
+        // AutoEnterGameBox.Checked += SaveSwitches;  // 自动登录已停用
+        // AutoEnterGameBox.Unchecked += SaveSwitches;
         TrayBox.Checked += SaveSwitches;
         TrayBox.Unchecked += SaveSwitches;
         MinOnGameStartBox.Checked += SaveSwitches;
@@ -81,6 +83,8 @@ public partial class SettingsView : UserControl
         ShowMainOnGameCloseBox.Unchecked += SaveSwitches;
         RememberPwdBox.Checked += SaveSwitches;
         RememberPwdBox.Unchecked += SaveSwitches;
+        DebugPortEnableBox.Checked += SaveSwitches;
+        DebugPortEnableBox.Unchecked += SaveSwitches;
         // Flash 硬件加速：拦截点击（开关不随点击翻转），确认后才开启/关闭
         FlashGpuBox.PreviewMouseLeftButtonDown += OnFlashGpuPreviewMouseDown;
         FlashGpuBox.PreviewKeyDown += OnFlashGpuPreviewKeyDown;
@@ -92,11 +96,20 @@ public partial class SettingsView : UserControl
         var s = App.CurrentApp.Settings;
         s.GameSpeed = GameSpeedBox.IsChecked == true;
         s.AntiDrop = AntiDropBox.IsChecked == true;
-        s.AutoEnterGame = AutoEnterGameBox.IsChecked == true;
+        // s.AutoEnterGame = AutoEnterGameBox.IsChecked == true;  // 自动登录已停用
         s.MinimizeToTray = TrayBox.IsChecked == true;
         s.MinimizeOnGameStart = MinOnGameStartBox.IsChecked == true;
         s.ShowMainOnGameClose = ShowMainOnGameCloseBox.IsChecked == true;
         s.RememberPassword = RememberPwdBox.IsChecked == true;
+        s.EnableDebugPort = DebugPortEnableBox.IsChecked == true;
+    }
+
+    /// <summary>调试端口输入变更（数字校验）。</summary>
+    private void OnDebugPortChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_initializing) return;
+        if (int.TryParse(DebugPortValueBox.Text.Trim(), out var port) && port > 0 && port <= 65535)
+            App.CurrentApp.Settings.DebugPort = port;
     }
 
     /// <summary>

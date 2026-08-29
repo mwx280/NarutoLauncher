@@ -77,6 +77,8 @@ public class SettingsService
     private string _accentColor = "#E8482C";
     private AvatarType _avatarDisplay = AvatarType.QqAvatar;
     private NavigationStyle _navigationStyle = NavigationStyle.Classic;
+    private bool _enableDebugPort;
+    private int _debugPort = 9222;
 
     public SettingsService()
     {
@@ -228,6 +230,24 @@ public class SettingsService
         }
     }
 
+    /// <summary>开启远程调试端口：启动游戏时给 GameHost 传 --debug-port，便于调试/联调。</summary>
+    public bool EnableDebugPort
+    {
+        get => _enableDebugPort;
+        set { if (_enableDebugPort != value) { _enableDebugPort = value; Save(); } }
+    }
+
+    /// <summary>远程调试端口（CEF CDP 端口）。</summary>
+    public int DebugPort
+    {
+        get => _debugPort;
+        set
+        {
+            var v = value < 1 || value > 65535 ? 9222 : value;
+            if (_debugPort != v) { _debugPort = v; Save(); }
+        }
+    }
+
     public void Save()
     {
         try
@@ -249,6 +269,8 @@ public class SettingsService
                 AccentColor = _accentColor,
                 AvatarDisplay = _avatarDisplay,
                 NavigationStyle = _navigationStyle,
+                EnableDebugPort = _enableDebugPort,
+                DebugPort = _debugPort,
             };
             var json = JsonSerializer.Serialize(dto, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_path, json);
@@ -273,7 +295,7 @@ public class SettingsService
             _rememberPassword = dto.RememberPassword;
             _minimizeOnGameStart = dto.MinimizeOnGameStart;
             _showMainOnGameClose = dto.ShowMainOnGameClose;
-            _autoEnterGame = dto.AutoEnterGame;
+            _autoEnterGame = false;  // 自动登录已停用（忽略旧配置，强制关闭）
             _flashHardwareAcceleration = dto.FlashHardwareAcceleration;
             _flashQuality = string.IsNullOrEmpty(dto.FlashQuality) ? "low" : dto.FlashQuality;
             _dprMode = dto.DprMode;
@@ -282,6 +304,8 @@ public class SettingsService
             _accentColor = string.IsNullOrEmpty(dto.AccentColor) ? "#E8482C" : dto.AccentColor;
             _avatarDisplay = dto.AvatarDisplay;
             _navigationStyle = dto.NavigationStyle;
+            _enableDebugPort = dto.EnableDebugPort;
+            _debugPort = dto.DebugPort < 1 || dto.DebugPort > 65535 ? 9222 : dto.DebugPort;
         }
         catch (Exception ex)
         {
@@ -307,5 +331,7 @@ public class SettingsService
         public string AccentColor { get; set; } = "#E8482C";
         public AvatarType AvatarDisplay { get; set; } = AvatarType.NameChar;
         public NavigationStyle NavigationStyle { get; set; } = NavigationStyle.Classic;
+        public bool EnableDebugPort { get; set; }
+        public int DebugPort { get; set; } = 9222;
     }
 }
